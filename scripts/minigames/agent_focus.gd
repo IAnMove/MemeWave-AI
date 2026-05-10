@@ -87,108 +87,188 @@ func _build_stage() -> void:
 	var bg := ColorRect.new()
 	bg.position = Vector2(0, 0)
 	bg.size = Vector2(1280, 720)
-	bg.color = Color("#101926")
+	bg.color = Color("#121212")
 	add_child(bg)
 	move_child(bg, 0)
 
+	_build_sidebar()
 	_build_agent_panel()
 	_build_task_log()
 	_build_prompt_panel()
 
-func _build_agent_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(354, 224)
-	panel.size = Vector2(572, 392)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#f2f7ff"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(panel)
+func _build_sidebar() -> void:
+	var sidebar := PanelContainer.new()
+	sidebar.position = Vector2(44, 212)
+	sidebar.size = Vector2(256, 410)
+	sidebar.add_theme_stylebox_override("panel", make_style(Color("#222222"), Color("#3a3a3a"), 3, 8))
+	content_layer.add_child(sidebar)
 
-	var title := make_label(tr("AGENT_WORK_TITLE"), 34, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(390, 238)
-	title.size = Vector2(500, 48)
+	var tools := make_label("Codex", 25, Color("#f1f1f1"), HORIZONTAL_ALIGNMENT_LEFT)
+	tools.position = Vector2(66, 230)
+	tools.size = Vector2(200, 34)
+	content_layer.add_child(tools)
+
+	var section := make_label(tr("AGENT_PROJECTS"), 18, Color("#8f8f8f"), HORIZONTAL_ALIGNMENT_LEFT)
+	section.position = Vector2(66, 288)
+	section.size = Vector2(190, 28)
+	content_layer.add_child(section)
+
+	var selected := PanelContainer.new()
+	selected.position = Vector2(62, 322)
+	selected.size = Vector2(214, 42)
+	selected.add_theme_stylebox_override("panel", make_style(Color("#343434"), Color("#343434"), 2, 8))
+	content_layer.add_child(selected)
+
+	var selected_text := make_label("wario-wave-ai", 21, Color("#ffffff"), HORIZONTAL_ALIGNMENT_LEFT)
+	selected_text.position = Vector2(82, 326)
+	selected_text.size = Vector2(164, 34)
+	content_layer.add_child(selected_text)
+
+	for index in range(4):
+		var line := make_label(tr("AGENT_THREAD_%d" % (index + 1)), 17, Color("#c7c7c7"), HORIZONTAL_ALIGNMENT_LEFT)
+		line.position = Vector2(82, 384 + index * 42)
+		line.size = Vector2(180, 30)
+		content_layer.add_child(line)
+
+	var footer := PanelContainer.new()
+	footer.position = Vector2(66, 570)
+	footer.size = Vector2(196, 34)
+	footer.add_theme_stylebox_override("panel", make_style(Color("#2b2b2b"), Color("#505050"), 2, 8))
+	content_layer.add_child(footer)
+
+	var footer_text := make_label("5.5  dev", 17, Color("#bdbdbd"), HORIZONTAL_ALIGNMENT_CENTER)
+	footer_text.position = Vector2(76, 573)
+	footer_text.size = Vector2(176, 28)
+	content_layer.add_child(footer_text)
+
+func _build_agent_panel() -> void:
+	var workspace := PanelContainer.new()
+	workspace.position = Vector2(326, 212)
+	workspace.size = Vector2(900, 410)
+	workspace.add_theme_stylebox_override("panel", make_style(Color("#181818"), Color("#343434"), 3, 8))
+	content_layer.add_child(workspace)
+
+	var tab := PanelContainer.new()
+	tab.position = Vector2(356, 226)
+	tab.size = Vector2(176, 30)
+	tab.add_theme_stylebox_override("panel", make_style(Color("#2d2d2d"), Color("#2d2d2d"), 2, 8))
+	content_layer.add_child(tab)
+
+	var tab_text := make_label("agent_focus.gd", 17, Color("#f4f4f4"), HORIZONTAL_ALIGNMENT_CENTER)
+	tab_text.position = Vector2(368, 226)
+	tab_text.size = Vector2(152, 28)
+	content_layer.add_child(tab_text)
+
+	var branch := make_label(tr("AGENT_BRANCH"), 16, Color("#9f9f9f"), HORIZONTAL_ALIGNMENT_RIGHT)
+	branch.position = Vector2(982, 228)
+	branch.size = Vector2(208, 28)
+	content_layer.add_child(branch)
+
+	var title := make_label(tr("AGENT_WORK_TITLE"), 26, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
+	title.position = Vector2(358, 270)
+	title.size = Vector2(500, 38)
 	content_layer.add_child(title)
 
-	var agent := make_sprite("res://assets/sprites/hungry_model.png", Vector2(170, 150))
-	agent.position = Vector2(555, 306)
+	var message := PanelContainer.new()
+	message.position = Vector2(356, 312)
+	message.size = Vector2(836, 112)
+	message.add_theme_stylebox_override("panel", make_style(Color("#242424"), Color("#333333"), 2, 8))
+	content_layer.add_child(message)
+
+	var agent := make_sprite("res://assets/sprites/hungry_model.png", Vector2(98, 92))
+	agent.position = Vector2(382, 322)
 	content_layer.add_child(agent)
 
-	agent_mood = make_label("", 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	agent_mood.position = Vector2(406, 464)
-	agent_mood.size = Vector2(468, 45)
-	agent_mood.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	var role := make_label("Codex", 18, Color("#bdbdbd"), HORIZONTAL_ALIGNMENT_LEFT)
+	role.position = Vector2(504, 326)
+	role.size = Vector2(120, 28)
+	content_layer.add_child(role)
+
+	agent_mood = make_label("", 24, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
+	agent_mood.position = Vector2(504, 356)
+	agent_mood.size = Vector2(630, 42)
+	agent_mood.add_theme_color_override("font_outline_color", Color("#111111"))
 	agent_mood.add_theme_constant_override("outline_size", 3)
 	content_layer.add_child(agent_mood)
 
 	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(424, 532)
-	progress_bar.size = Vector2(432, 34)
+	progress_bar.position = Vector2(506, 398)
+	progress_bar.size = Vector2(500, 16)
 	progress_bar.min_value = 0
 	progress_bar.max_value = TARGET_PROGRESS
 	progress_bar.show_percentage = false
 	content_layer.add_child(progress_bar)
 
-	var progress_label := make_label(tr("AGENT_PROGRESS_LABEL"), 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	progress_label.position = Vector2(424, 566)
-	progress_label.size = Vector2(432, 28)
+	var progress_label := make_label(tr("AGENT_PROGRESS_LABEL"), 17, Color("#a8a8a8"), HORIZONTAL_ALIGNMENT_LEFT)
+	progress_label.position = Vector2(1018, 391)
+	progress_label.size = Vector2(150, 26)
 	content_layer.add_child(progress_label)
 
 func _build_task_log() -> void:
-	var log_panel := PanelContainer.new()
-	log_panel.position = Vector2(58, 224)
-	log_panel.size = Vector2(260, 392)
-	log_panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(log_panel)
+	task_log_labels.clear()
 
-	var title := make_label(tr("AGENT_LOG_TITLE"), 29, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(80, 244)
-	title.size = Vector2(216, 42)
+	var changes := PanelContainer.new()
+	changes.position = Vector2(356, 436)
+	changes.size = Vector2(836, 112)
+	changes.add_theme_stylebox_override("panel", make_style(Color("#222222"), Color("#383838"), 2, 8))
+	content_layer.add_child(changes)
+
+	var title := make_label(tr("AGENT_LOG_TITLE"), 21, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
+	title.position = Vector2(378, 448)
+	title.size = Vector2(260, 30)
 	content_layer.add_child(title)
 
+	var diff_stats := make_label("+42  -3", 19, Color("#35d68a"), HORIZONTAL_ALIGNMENT_RIGHT)
+	diff_stats.position = Vector2(1040, 448)
+	diff_stats.size = Vector2(124, 30)
+	content_layer.add_child(diff_stats)
+
 	for index in range(WORK_STEPS.size()):
-		var label := make_label("", 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
-		label.position = Vector2(86, 306 + index * 50)
-		label.size = Vector2(196, 42)
-		label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+		var label := make_label("", 16, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_LEFT)
+		label.position = Vector2(378 + (index % 2) * 390, 482 + int(index / 2) * 22)
+		label.size = Vector2(350, 22)
+		label.add_theme_color_override("font_outline_color", Color("#111111"))
 		label.add_theme_constant_override("outline_size", 2)
 		content_layer.add_child(label)
 		task_log_labels.append(label)
 
 	cursor = ColorRect.new()
-	cursor.position = Vector2(86, 560)
-	cursor.size = Vector2(52, 7)
-	cursor.color = Color("#1d1d1d")
+	cursor.position = Vector2(1138, 388)
+	cursor.size = Vector2(18, 5)
+	cursor.color = Color("#ff8a3d")
 	content_layer.add_child(cursor)
 
 func _build_prompt_panel() -> void:
 	prompt_panel = PanelContainer.new()
-	prompt_panel.position = Vector2(966, 224)
-	prompt_panel.size = Vector2(252, 392)
+	prompt_panel.position = Vector2(356, 558)
+	prompt_panel.size = Vector2(836, 50)
 	prompt_panel.visible = false
-	prompt_panel.add_theme_stylebox_override("panel", make_style(Color("#fff0f7"), Color("#1d1d1d"), 5, 8))
+	prompt_panel.add_theme_stylebox_override("panel", make_style(Color("#2a2a2a"), Color("#3d3d3d"), 2, 10))
 	content_layer.add_child(prompt_panel)
 
-	prompt_title = make_label(tr("AGENT_NEXT_TASK_TITLE"), 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	prompt_title.position = Vector2(990, 248)
-	prompt_title.size = Vector2(204, 45)
+	prompt_title = make_label(tr("AGENT_NEXT_TASK_TITLE"), 16, Color("#a8a8a8"), HORIZONTAL_ALIGNMENT_LEFT)
+	prompt_title.position = Vector2(376, 562)
+	prompt_title.size = Vector2(160, 22)
 	prompt_title.visible = false
 	content_layer.add_child(prompt_title)
 
-	prompt_label = make_label(tr("AGENT_PROMPT"), 23, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	prompt_label.position = Vector2(994, 322)
-	prompt_label.size = Vector2(196, 86)
+	prompt_label = make_label(tr("AGENT_PROMPT"), 20, Color("#f4f4f4"), HORIZONTAL_ALIGNMENT_LEFT)
+	prompt_label.position = Vector2(376, 584)
+	prompt_label.size = Vector2(430, 24)
 	prompt_label.visible = false
 	content_layer.add_child(prompt_label)
 
-	countdown_label = make_label("", 24, Color("#bf2030"), HORIZONTAL_ALIGNMENT_CENTER)
-	countdown_label.position = Vector2(994, 426)
-	countdown_label.size = Vector2(196, 42)
-	countdown_label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	countdown_label = make_label("", 18, Color("#ff8a3d"), HORIZONTAL_ALIGNMENT_RIGHT)
+	countdown_label.position = Vector2(792, 576)
+	countdown_label.size = Vector2(110, 26)
+	countdown_label.add_theme_color_override("font_outline_color", Color("#111111"))
 	countdown_label.add_theme_constant_override("outline_size", 3)
 	countdown_label.visible = false
 	content_layer.add_child(countdown_label)
 
-	continue_button = make_button(tr("AGENT_CONTINUE_BUTTON"), 25, Color("#bdfb7f"))
-	continue_button.position = Vector2(1002, 506)
-	continue_button.size = Vector2(180, 64)
+	continue_button = make_button(tr("AGENT_CONTINUE_BUTTON"), 20, Color("#bdfb7f"))
+	continue_button.position = Vector2(928, 568)
+	continue_button.size = Vector2(238, 34)
 	continue_button.disabled = true
 	continue_button.visible = false
 	continue_button.pressed.connect(_on_continue_pressed)

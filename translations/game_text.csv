@@ -265,11 +265,17 @@ INJECTION_SUCCESS,JAILBREAKS BLOCKED!,¡JAILBREAKS BLOQUEADOS!
 INJECTION_TIMEOUT_SUCCESS,FIREWALL HELD,FIREWALL AGUANTÓ
 INJECTION_FAIL,MODEL ATE THE JAILBREAK,EL MODELO SE COMIÓ EL JAILBREAK
 GAME_AGENT_TITLE,Distracted Agent,Agente Distraído
-GAME_AGENT_DESC,The agent works alone. In the last seconds click Continue when it asks for the next task.,El agente trabaja solo. En los últimos segundos pulsa Continuar cuando pregunte por la siguiente tarea.
+GAME_AGENT_DESC,The agent works inside a Codex-style dev session. In the last seconds click Continue when it asks for the next task.,El agente trabaja en una sesión de desarrollo tipo Codex. En los últimos segundos pulsa Continuar cuando pregunte por la siguiente tarea.
 AGENT_INSTRUCTIONS,Wait for the final question. Click Continue before time runs out.,Espera a la pregunta final. Pulsa Continuar antes de que se acabe el tiempo.
-AGENT_WORK_TITLE,AUTONOMOUS AGENT,AGENTE AUTÓNOMO
+AGENT_WORK_TITLE,CODEX SESSION,SESIÓN CODEX
 AGENT_PROGRESS_LABEL,work completed,trabajo completado
-AGENT_LOG_TITLE,Work log,Registro
+AGENT_PROJECTS,Projects,Proyectos
+AGENT_BRANCH,main / local changes,main / cambios locales
+AGENT_THREAD_1,Review token burner,Revisar quemador tokens
+AGENT_THREAD_2,Prepare web build,Preparar build web
+AGENT_THREAD_3,Fix minigame UI,Arreglar UI minijuego
+AGENT_THREAD_4,Continue roadmap,Continuar roadmap
+AGENT_LOG_TITLE,Modified files,Archivos modificados
 AGENT_NEXT_TASK_TITLE,NEXT TASK?,¿SIGUIENTE TAREA?
 AGENT_PROMPT,Continue with the next task?,¿Quieres que continúe con la siguiente tarea?
 AGENT_CONTINUE_BUTTON,Continue,Continuar
