@@ -93,19 +93,12 @@ func _build_stage() -> void:
 
 func _build_paper_background() -> void:
 	var paper := ColorRect.new()
+	paper.name = "TokenWhiteBackground"
 	paper.position = Vector2(0, 196)
 	paper.size = Vector2(1280, 524)
-	paper.color = Color("#fffdf8")
+	paper.color = Color("#ffffff")
 	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(paper)
-
-	for x in [382, 476, 570, 664]:
-		var guide := ColorRect.new()
-		guide.position = Vector2(x, 210)
-		guide.size = Vector2(3, 408)
-		guide.color = Color("#6cbcff26")
-		guide.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		content_layer.add_child(guide)
 
 func _build_header_illustration() -> void:
 	var frame: Control = SketchPanel.new()
@@ -150,8 +143,8 @@ func _build_drop_lane() -> void:
 
 func _build_cpu() -> void:
 	mouth_lip = PanelContainer.new()
-	mouth_lip.position = MOUTH_RECT.position + Vector2(-12, -12)
-	mouth_lip.size = MOUTH_RECT.size + Vector2(24, 24)
+	mouth_lip.position = MOUTH_RECT.position + Vector2(-14, -14)
+	mouth_lip.size = MOUTH_RECT.size + Vector2(28, 28)
 	mouth_lip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mouth_lip.add_theme_stylebox_override("panel", make_style(Color("#ff5b5b"), Color("#1d1d1d"), 5, 12))
 	content_layer.add_child(mouth_lip)
@@ -163,60 +156,74 @@ func _build_cpu() -> void:
 	mouth.add_theme_stylebox_override("panel", make_style(Color("#111116"), Color("#1d1d1d"), 5, 10))
 	content_layer.add_child(mouth)
 
-	for index in range(7):
+	for index in range(8):
 		var tooth := ColorRect.new()
-		tooth.position = MOUTH_RECT.position + Vector2(22 + index * 33, 4)
+		tooth.position = MOUTH_RECT.position + Vector2(17 + index * 30, 4)
 		tooth.size = Vector2(18, 25)
 		tooth.color = Color("#fffdf8")
 		tooth.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content_layer.add_child(tooth)
 
 	var tongue := ColorRect.new()
-	tongue.position = MOUTH_RECT.position + Vector2(66, 56)
-	tongue.size = Vector2(132, 15)
+	tongue.position = MOUTH_RECT.position + Vector2(64, 58)
+	tongue.size = Vector2(136, 14)
 	tongue.color = Color("#ff9fd6")
 	tongue.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(tongue)
 
+	var top_shadow := ColorRect.new()
+	top_shadow.position = Vector2(758, 456)
+	top_shadow.size = Vector2(418, 15)
+	top_shadow.color = Color("#b6c2c5")
+	top_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(top_shadow)
+
 	cpu_body = SketchPanel.new()
-	cpu_body.position = Vector2(CPU_WALL_X, 464)
-	cpu_body.size = Vector2(450, 126)
-	cpu_body.call("configure", Color("#dff2ff"), Color("#1d1d1d"), 5.0, 2.0, false)
+	cpu_body.position = Vector2(CPU_WALL_X, 456)
+	cpu_body.size = Vector2(450, 138)
+	cpu_body.call("configure", Color("#dff2ff"), Color("#1d1d1d"), 5.0, 1.7, false)
 	content_layer.add_child(cpu_body)
 
 	var screen := PanelContainer.new()
-	screen.position = Vector2(782, 488)
-	screen.size = Vector2(366, 78)
+	screen.position = Vector2(782, 482)
+	screen.size = Vector2(366, 86)
 	screen.add_theme_stylebox_override("panel", make_style(Color("#bff0ff"), Color("#1d1d1d"), 4, 8))
 	content_layer.add_child(screen)
 
+	var shine := ColorRect.new()
+	shine.position = Vector2(798, 494)
+	shine.size = Vector2(334, 5)
+	shine.color = Color("#ffffff88")
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(shine)
+
 	var cpu_name := make_label(tr("TOKENS_CPU_NAME"), 32, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	cpu_name.position = Vector2(822, 500)
+	cpu_name.position = Vector2(822, 493)
 	cpu_name.size = Vector2(286, 38)
 	cpu_name.add_theme_color_override("font_outline_color", Color("#ffffff"))
 	cpu_name.add_theme_constant_override("outline_size", 4)
 	content_layer.add_child(cpu_name)
 
 	var eye_left := PanelContainer.new()
-	eye_left.position = Vector2(862, 536)
+	eye_left.position = Vector2(860, 530)
 	eye_left.size = Vector2(42, 38)
 	eye_left.add_theme_stylebox_override("panel", make_style(Color("#ffffff"), Color("#1d1d1d"), 4, 10))
 	content_layer.add_child(eye_left)
 
 	pupil_left = ColorRect.new()
-	pupil_left.position = Vector2(884, 540)
+	pupil_left.position = Vector2(883, 534)
 	pupil_left.size = Vector2(13, 16)
 	pupil_left.color = Color("#1d1d1d")
 	content_layer.add_child(pupil_left)
 
 	var eye_right := PanelContainer.new()
-	eye_right.position = Vector2(1026, 536)
+	eye_right.position = Vector2(1028, 530)
 	eye_right.size = Vector2(42, 38)
 	eye_right.add_theme_stylebox_override("panel", make_style(Color("#ffffff"), Color("#1d1d1d"), 4, 10))
 	content_layer.add_child(eye_right)
 
 	pupil_right = ColorRect.new()
-	pupil_right.position = Vector2(1048, 540)
+	pupil_right.position = Vector2(1051, 534)
 	pupil_right.size = Vector2(13, 16)
 	pupil_right.color = Color("#1d1d1d")
 	content_layer.add_child(pupil_right)
@@ -228,7 +235,7 @@ func _build_cpu() -> void:
 	content_layer.add_child(cheek_left)
 
 	cheek_right = ColorRect.new()
-	cheek_right.position = Vector2(1072, 558)
+	cheek_right.position = Vector2(1074, 558)
 	cheek_right.size = Vector2(38, 12)
 	cheek_right.color = Color("#ff9fd680")
 	content_layer.add_child(cheek_right)
@@ -237,23 +244,23 @@ func _build_cpu() -> void:
 	happy_smile.width = 6
 	happy_smile.default_color = Color("#11883a")
 	happy_smile.points = PackedVector2Array([
-		Vector2(930, 550),
-		Vector2(946, 564),
-		Vector2(966, 568),
-		Vector2(986, 564),
-		Vector2(1002, 550)
+		Vector2(930, 552),
+		Vector2(946, 566),
+		Vector2(966, 570),
+		Vector2(986, 566),
+		Vector2(1002, 552)
 	])
 	happy_smile.visible = false
 	content_layer.add_child(happy_smile)
 
 	var stand := PanelContainer.new()
-	stand.position = Vector2(926, 590)
-	stand.size = Vector2(78, 34)
+	stand.position = Vector2(926, 594)
+	stand.size = Vector2(78, 32)
 	stand.add_theme_stylebox_override("panel", make_style(Color("#d5d5d5"), Color("#1d1d1d"), 4, 4))
 	content_layer.add_child(stand)
 
 	var base := PanelContainer.new()
-	base.position = Vector2(846, 620)
+	base.position = Vector2(846, 622)
 	base.size = Vector2(238, 26)
 	base.add_theme_stylebox_override("panel", make_style(Color("#d5d5d5"), Color("#1d1d1d"), 4, 8))
 	content_layer.add_child(base)
@@ -376,9 +383,9 @@ func _show_happy_feedback() -> void:
 	if mouth_lip:
 		mouth_lip.add_theme_stylebox_override("panel", make_style(Color("#ff9fd6"), Color("#1d1d1d"), 5, 12))
 	if pupil_left:
-		pupil_left.position = Vector2(884, 536)
+		pupil_left.position = Vector2(883, 530)
 	if pupil_right:
-		pupil_right.position = Vector2(1048, 536)
+		pupil_right.position = Vector2(1051, 530)
 	if cheek_left:
 		cheek_left.color = Color("#ff69b4cc")
 	if cheek_right:
@@ -398,9 +405,9 @@ func _reset_happy_feedback() -> void:
 	if mouth_lip:
 		mouth_lip.add_theme_stylebox_override("panel", make_style(Color("#ff5b5b"), Color("#1d1d1d"), 5, 12))
 	if pupil_left:
-		pupil_left.position = Vector2(884, 540)
+		pupil_left.position = Vector2(883, 534)
 	if pupil_right:
-		pupil_right.position = Vector2(1048, 540)
+		pupil_right.position = Vector2(1051, 534)
 	if cheek_left:
 		cheek_left.color = Color("#ff9fd680")
 	if cheek_right:

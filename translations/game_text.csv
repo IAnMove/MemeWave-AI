@@ -28,7 +28,7 @@ REPO_SUCCESS,THIS IS NOT OPEN ANYMORE!,ESTO YA NO ES OPEN!
 REPO_FAIL,THE REPO IS STILL OPEN,EL REPO SIGUE ABIERTO
 GAME_TOKENS_TITLE,Token Burner,Quemador de Tokens
 GAME_TOKENS_DESC,"CHAGTPT is hungry: drop tokens into its mouth and avoid 429s, the rate-limit errors.","CHAGTPT tiene hambre: deja caer tokens en su boca y evita los 429, que son errores de límite de uso."
-TOKENS_INSTRUCTIONS,Slide tokens into CHAGTPT's mouth. Avoid red 429 errors.,Mueve tokens hacia la boca de CHAGTPT. Evita los errores rojos 429.
+TOKENS_INSTRUCTIONS,Click and drag tokens to the right. Avoid red 429 errors.,Haz clic y arrastra los tokens hacia la derecha. Evita los errores rojos 429.
 TOKENS_STATUS,Fed tokens: %d/%d  |  Errors: %d,Tokens alimentados: %d/%d  |  Errores: %d
 TOKENS_MODEL_LINE_1,HUNGRY,MODELO
 TOKENS_MODEL_LINE_2,MODEL,HAMBRIENTO

@@ -16,6 +16,13 @@ func _run() -> void:
 	if not happy_sound or not happy_sound.stream:
 		_fail("Token Burner feed sound was not loaded.")
 		return
+	if String(game.call("_resolve_tutorial_action_kind")) != "drag_right":
+		_fail("Token Burner should show click-and-drag-right tutorial art.")
+		return
+	var background := (game.get("content_layer") as Control).get_node_or_null("TokenWhiteBackground") as ColorRect
+	if not background or background.color != Color("#ffffff"):
+		_fail("Token Burner playfield background should be white.")
+		return
 
 	var token := game.call("make_sprite", "res://assets/sprites/token.png", Vector2(94, 94)) as Control
 	token.position = Vector2(860, 390)

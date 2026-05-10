@@ -15,6 +15,11 @@ const TUTORIAL_ACTION_IMAGES := {
 		"res://assets/tutorial_actions/drag_2_move.png",
 		"res://assets/tutorial_actions/drag_3_drop.png"
 	],
+	"drag_right": [
+		"res://assets/tutorial_actions/drag_right_1_click.png",
+		"res://assets/tutorial_actions/drag_right_2_drag.png",
+		"res://assets/tutorial_actions/drag_right_3_drop.png"
+	],
 	"move": [
 		"res://assets/tutorial_actions/move_1_keys.png",
 		"res://assets/tutorial_actions/move_2_left.png",
@@ -313,6 +318,11 @@ func _build_action_tutorial() -> void:
 func _resolve_tutorial_action_kind() -> String:
 	var text := "%s %s" % [instructions, tr(instructions)]
 	text = text.to_lower()
+	if (
+		(text.find("drag") != -1 or text.find("arrastra") != -1)
+		and (text.find("right") != -1 or text.find("derecha") != -1)
+	):
+		return "drag_right"
 	if text.find("drag") != -1 or text.find("arrastra") != -1:
 		return "drag"
 	if (
