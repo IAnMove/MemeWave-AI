@@ -7,9 +7,11 @@ const TARGET_TOKENS := 8
 const ITEM_SIZE := Vector2(94, 94)
 const ITEM_MIN_SPEED := 116.0
 const ITEM_MAX_SPEED := 172.0
-const SPAWN_MIN_X := 86.0
-const SPAWN_MAX_X := 640.0
-const DRAG_MIN_X := 52.0
+const DROP_LANE_LEFT_X := 348.0
+const DROP_LANE_RIGHT_X := 666.0
+const SPAWN_MIN_X := DROP_LANE_LEFT_X + 8.0
+const SPAWN_MAX_X := DROP_LANE_RIGHT_X - ITEM_SIZE.x - 8.0
+const DRAG_MIN_X := DROP_LANE_LEFT_X
 const DRAG_MAX_X := 1082.0
 const CPU_WALL_X := 740.0
 const MOUTH_RECT := Rect2(Vector2(832, 376), Vector2(262, 82))
@@ -139,6 +141,28 @@ func _build_sam_panel() -> void:
 	content_layer.add_child(label)
 
 func _build_drop_lane() -> void:
+	var lane_left := Line2D.new()
+	lane_left.width = 4
+	lane_left.default_color = Color("#9bd7ff66")
+	lane_left.points = PackedVector2Array([
+		Vector2(DROP_LANE_LEFT_X, 210),
+		Vector2(DROP_LANE_LEFT_X + 5, 320),
+		Vector2(DROP_LANE_LEFT_X - 4, 460),
+		Vector2(DROP_LANE_LEFT_X, 618)
+	])
+	content_layer.add_child(lane_left)
+
+	var lane_right := Line2D.new()
+	lane_right.width = 4
+	lane_right.default_color = Color("#9bd7ff66")
+	lane_right.points = PackedVector2Array([
+		Vector2(DROP_LANE_RIGHT_X, 210),
+		Vector2(DROP_LANE_RIGHT_X - 4, 335),
+		Vector2(DROP_LANE_RIGHT_X + 5, 472),
+		Vector2(DROP_LANE_RIGHT_X, 618)
+	])
+	content_layer.add_child(lane_right)
+
 	for index in range(3):
 		var arrow: Control = SketchIcon.new()
 		arrow.position = Vector2(438 + index * 62, 296 + index * 38)

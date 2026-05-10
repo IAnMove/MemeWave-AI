@@ -23,6 +23,19 @@ func _run() -> void:
 	if not background or background.color != Color("#ffffff"):
 		_fail("Token Burner playfield background should be white.")
 		return
+	game.call("_spawn_item")
+	await process_frame
+	var spawned_items := game.get("items") as Array
+	if spawned_items.is_empty():
+		_fail("Token Burner should spawn items in the drop lane.")
+		return
+	var spawned_item := spawned_items[0] as Dictionary
+	var spawned_node := spawned_item["node"] as Control
+	if spawned_node.position.x < 348.0 or spawned_node.position.x + spawned_node.size.x > 666.0:
+		_fail("Token Burner items should spawn to the right of Sam, inside the drop lane.")
+		return
+	game.call("_remove_item", spawned_item)
+	await process_frame
 
 	var token := game.call("make_sprite", "res://assets/sprites/token.png", Vector2(94, 94)) as Control
 	token.position = Vector2(860, 390)
