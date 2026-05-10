@@ -276,20 +276,21 @@ AGENT_THREAD_2,Prepare web build,Preparar build web
 AGENT_THREAD_3,Fix minigame UI,Arreglar UI minijuego
 AGENT_THREAD_4,Continue roadmap,Continuar roadmap
 AGENT_LOG_TITLE,Modified files,Archivos modificados
-AGENT_NEXT_TASK_TITLE,NEXT TASK?,¿SIGUIENTE TAREA?
+AGENT_NEXT_TASK_TITLE,YOUR REPLY,TU RESPUESTA
 AGENT_PROMPT,Continue with the next task?,¿Quieres que continúe con la siguiente tarea?
-AGENT_CONTINUE_BUTTON,Continue,Continuar
+AGENT_REPLY_PLACEHOLDER,Reply to Codex...,Responder a Codex...
+AGENT_CONTINUE_BUTTON,"Yes, continue","Sí, continúa"
 AGENT_CONFIRMED,Continuing...,Continuando...
 AGENT_COUNTDOWN,%ds left,quedan %ds
 AGENT_MOOD_WORKING,working...,trabajando...
 AGENT_MOOD_WAITING,waiting for confirmation...,esperando confirmación...
 AGENT_MOOD_CONFIRMED,next task accepted!,¡siguiente tarea aceptada!
 AGENT_MOOD_IDLE,no answer...,sin respuesta...
-AGENT_STEP_REFACTOR,refactor module,refactorizar módulo
-AGENT_STEP_EDIT_FILE,edit file,editar fichero
-AGENT_STEP_TESTS,run tests,pasar tests
-AGENT_STEP_COMMIT,make commit,hacer commit
-AGENT_STEP_NEXT_TASK,ask for next task,preguntar siguiente tarea
+AGENT_STEP_REFACTOR,Refactored the messy module.,He refactorizado el módulo lioso.
+AGENT_STEP_EDIT_FILE,Edited the file without touching extras.,He editado el fichero sin tocar extras.
+AGENT_STEP_TESTS,Tests passed locally.,Los tests pasan en local.
+AGENT_STEP_COMMIT,Commit created for this task.,Commit creado para esta tarea.
+AGENT_STEP_NEXT_TASK,Asking for the next task.,Preguntando por la siguiente tarea.
 AGENT_STATUS_WORKING,Work: %d%%  |  asks in %ds,Trabajo: %d%%  |  pregunta en %ds
 AGENT_STATUS_WAITING,Click Continue  |  %ds left,Pulsa Continuar  |  quedan %ds
 AGENT_SUCCESS,CONTINUING!,¡CONTINUAMOS!

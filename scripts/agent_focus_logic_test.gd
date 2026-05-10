@@ -31,6 +31,17 @@ func _run() -> void:
 	if not continue_button.visible or continue_button.disabled:
 		_fail("Continue button should become clickable during the final prompt.")
 		return
+	if continue_button.text != "Yes, continue":
+		_fail("Continue button should use the player reply copy.")
+		return
+	var message_labels: Array = game.get("message_labels")
+	var final_message := message_labels[message_labels.size() - 1] as Label
+	if not final_message.visible or final_message.text.find("Continue with the next task?") == -1:
+		_fail("Agent Focus should ask the final question inside the chat messages.")
+		return
+	if String(game.get("status_label").text) != "":
+		_fail("Agent Focus should not duplicate the prompt in the bottom status line.")
+		return
 	if float(game.get("task_progress")) < 90.0:
 		_fail("Agent Focus should pause near completion while waiting for Continue.")
 		return

@@ -21,7 +21,8 @@ var prompt_title: Label
 var prompt_label: Label
 var continue_button: Button
 var countdown_label: Label
-var task_log_labels: Array[Label] = []
+var message_bubbles: Array[PanelContainer] = []
+var message_labels: Array[Label] = []
 var cursor: ColorRect
 var cursor_timer := 0.0
 
@@ -53,12 +54,12 @@ func start_minigame() -> void:
 		continue_button.text = tr("AGENT_CONTINUE_BUTTON")
 	if prompt_label:
 		prompt_label.visible = false
-		prompt_label.text = tr("AGENT_PROMPT")
+		prompt_label.text = tr("AGENT_REPLY_PLACEHOLDER")
 	if countdown_label:
 		countdown_label.visible = false
 	if agent_mood:
 		agent_mood.text = tr("AGENT_MOOD_WORKING")
-	_reset_log()
+	_reset_messages()
 	_update_meters()
 	_update_status()
 
@@ -91,146 +92,97 @@ func _build_stage() -> void:
 	add_child(bg)
 	move_child(bg, 0)
 
-	_build_sidebar()
 	_build_agent_panel()
 	_build_task_log()
 	_build_prompt_panel()
 
-func _build_sidebar() -> void:
-	var sidebar := PanelContainer.new()
-	sidebar.position = Vector2(44, 212)
-	sidebar.size = Vector2(256, 410)
-	sidebar.add_theme_stylebox_override("panel", make_style(Color("#222222"), Color("#3a3a3a"), 3, 8))
-	content_layer.add_child(sidebar)
-
-	var tools := make_label("Codex", 25, Color("#f1f1f1"), HORIZONTAL_ALIGNMENT_LEFT)
-	tools.position = Vector2(66, 230)
-	tools.size = Vector2(200, 34)
-	content_layer.add_child(tools)
-
-	var section := make_label(tr("AGENT_PROJECTS"), 18, Color("#8f8f8f"), HORIZONTAL_ALIGNMENT_LEFT)
-	section.position = Vector2(66, 288)
-	section.size = Vector2(190, 28)
-	content_layer.add_child(section)
-
-	var selected := PanelContainer.new()
-	selected.position = Vector2(62, 322)
-	selected.size = Vector2(214, 42)
-	selected.add_theme_stylebox_override("panel", make_style(Color("#343434"), Color("#343434"), 2, 8))
-	content_layer.add_child(selected)
-
-	var selected_text := make_label("wario-wave-ai", 21, Color("#ffffff"), HORIZONTAL_ALIGNMENT_LEFT)
-	selected_text.position = Vector2(82, 326)
-	selected_text.size = Vector2(164, 34)
-	content_layer.add_child(selected_text)
-
-	for index in range(4):
-		var line := make_label(tr("AGENT_THREAD_%d" % (index + 1)), 17, Color("#c7c7c7"), HORIZONTAL_ALIGNMENT_LEFT)
-		line.position = Vector2(82, 384 + index * 42)
-		line.size = Vector2(180, 30)
-		content_layer.add_child(line)
-
-	var footer := PanelContainer.new()
-	footer.position = Vector2(66, 570)
-	footer.size = Vector2(196, 34)
-	footer.add_theme_stylebox_override("panel", make_style(Color("#2b2b2b"), Color("#505050"), 2, 8))
-	content_layer.add_child(footer)
-
-	var footer_text := make_label("5.5  dev", 17, Color("#bdbdbd"), HORIZONTAL_ALIGNMENT_CENTER)
-	footer_text.position = Vector2(76, 573)
-	footer_text.size = Vector2(176, 28)
-	content_layer.add_child(footer_text)
-
 func _build_agent_panel() -> void:
 	var workspace := PanelContainer.new()
-	workspace.position = Vector2(326, 212)
-	workspace.size = Vector2(900, 410)
+	workspace.position = Vector2(46, 212)
+	workspace.size = Vector2(1188, 410)
 	workspace.add_theme_stylebox_override("panel", make_style(Color("#181818"), Color("#343434"), 3, 8))
 	content_layer.add_child(workspace)
 
 	var tab := PanelContainer.new()
-	tab.position = Vector2(356, 226)
+	tab.position = Vector2(82, 226)
 	tab.size = Vector2(176, 30)
 	tab.add_theme_stylebox_override("panel", make_style(Color("#2d2d2d"), Color("#2d2d2d"), 2, 8))
 	content_layer.add_child(tab)
 
 	var tab_text := make_label("agent_focus.gd", 17, Color("#f4f4f4"), HORIZONTAL_ALIGNMENT_CENTER)
-	tab_text.position = Vector2(368, 226)
+	tab_text.position = Vector2(94, 226)
 	tab_text.size = Vector2(152, 28)
 	content_layer.add_child(tab_text)
 
 	var branch := make_label(tr("AGENT_BRANCH"), 16, Color("#9f9f9f"), HORIZONTAL_ALIGNMENT_RIGHT)
-	branch.position = Vector2(982, 228)
+	branch.position = Vector2(976, 228)
 	branch.size = Vector2(208, 28)
 	content_layer.add_child(branch)
 
 	var title := make_label(tr("AGENT_WORK_TITLE"), 26, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
-	title.position = Vector2(358, 270)
+	title.position = Vector2(82, 270)
 	title.size = Vector2(500, 38)
 	content_layer.add_child(title)
 
 	var message := PanelContainer.new()
-	message.position = Vector2(356, 312)
-	message.size = Vector2(836, 112)
+	message.position = Vector2(82, 312)
+	message.size = Vector2(1098, 112)
 	message.add_theme_stylebox_override("panel", make_style(Color("#242424"), Color("#333333"), 2, 8))
 	content_layer.add_child(message)
 
 	var agent := make_sprite("res://assets/sprites/hungry_model.png", Vector2(98, 92))
-	agent.position = Vector2(382, 322)
+	agent.position = Vector2(108, 322)
 	content_layer.add_child(agent)
 
 	var role := make_label("Codex", 18, Color("#bdbdbd"), HORIZONTAL_ALIGNMENT_LEFT)
-	role.position = Vector2(504, 326)
+	role.position = Vector2(230, 326)
 	role.size = Vector2(120, 28)
 	content_layer.add_child(role)
 
 	agent_mood = make_label("", 24, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
-	agent_mood.position = Vector2(504, 356)
-	agent_mood.size = Vector2(630, 42)
+	agent_mood.position = Vector2(230, 356)
+	agent_mood.size = Vector2(760, 42)
 	agent_mood.add_theme_color_override("font_outline_color", Color("#111111"))
 	agent_mood.add_theme_constant_override("outline_size", 3)
 	content_layer.add_child(agent_mood)
 
 	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(506, 398)
-	progress_bar.size = Vector2(500, 16)
+	progress_bar.position = Vector2(230, 398)
+	progress_bar.size = Vector2(680, 16)
 	progress_bar.min_value = 0
 	progress_bar.max_value = TARGET_PROGRESS
 	progress_bar.show_percentage = false
 	content_layer.add_child(progress_bar)
 
 	var progress_label := make_label(tr("AGENT_PROGRESS_LABEL"), 17, Color("#a8a8a8"), HORIZONTAL_ALIGNMENT_LEFT)
-	progress_label.position = Vector2(1018, 391)
+	progress_label.position = Vector2(928, 391)
 	progress_label.size = Vector2(150, 26)
 	content_layer.add_child(progress_label)
 
 func _build_task_log() -> void:
-	task_log_labels.clear()
+	message_bubbles.clear()
+	message_labels.clear()
 
-	var changes := PanelContainer.new()
-	changes.position = Vector2(356, 436)
-	changes.size = Vector2(836, 112)
-	changes.add_theme_stylebox_override("panel", make_style(Color("#222222"), Color("#383838"), 2, 8))
-	content_layer.add_child(changes)
-
-	var title := make_label(tr("AGENT_LOG_TITLE"), 21, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
-	title.position = Vector2(378, 448)
-	title.size = Vector2(260, 30)
-	content_layer.add_child(title)
-
-	var diff_stats := make_label("+42  -3", 19, Color("#35d68a"), HORIZONTAL_ALIGNMENT_RIGHT)
-	diff_stats.position = Vector2(1040, 448)
-	diff_stats.size = Vector2(124, 30)
-	content_layer.add_child(diff_stats)
+	var chat_panel := PanelContainer.new()
+	chat_panel.position = Vector2(82, 436)
+	chat_panel.size = Vector2(1098, 112)
+	chat_panel.add_theme_stylebox_override("panel", make_style(Color("#222222"), Color("#383838"), 2, 8))
+	content_layer.add_child(chat_panel)
 
 	for index in range(WORK_STEPS.size()):
+		var bubble := PanelContainer.new()
+		bubble.size = Vector2(820, 22)
+		bubble.visible = false
+		bubble.add_theme_stylebox_override("panel", make_style(Color("#2c2c2c"), Color("#333333"), 1, 8))
+		content_layer.add_child(bubble)
+		message_bubbles.append(bubble)
+
 		var label := make_label("", 16, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_LEFT)
-		label.position = Vector2(378 + (index % 2) * 390, 482 + int(index / 2) * 22)
-		label.size = Vector2(350, 22)
+		label.visible = false
 		label.add_theme_color_override("font_outline_color", Color("#111111"))
 		label.add_theme_constant_override("outline_size", 2)
 		content_layer.add_child(label)
-		task_log_labels.append(label)
+		message_labels.append(label)
 
 	cursor = ColorRect.new()
 	cursor.position = Vector2(1138, 388)
@@ -240,26 +192,26 @@ func _build_task_log() -> void:
 
 func _build_prompt_panel() -> void:
 	prompt_panel = PanelContainer.new()
-	prompt_panel.position = Vector2(356, 558)
-	prompt_panel.size = Vector2(836, 50)
+	prompt_panel.position = Vector2(82, 558)
+	prompt_panel.size = Vector2(1098, 50)
 	prompt_panel.visible = false
 	prompt_panel.add_theme_stylebox_override("panel", make_style(Color("#2a2a2a"), Color("#3d3d3d"), 2, 10))
 	content_layer.add_child(prompt_panel)
 
 	prompt_title = make_label(tr("AGENT_NEXT_TASK_TITLE"), 16, Color("#a8a8a8"), HORIZONTAL_ALIGNMENT_LEFT)
-	prompt_title.position = Vector2(376, 562)
+	prompt_title.position = Vector2(106, 562)
 	prompt_title.size = Vector2(160, 22)
 	prompt_title.visible = false
 	content_layer.add_child(prompt_title)
 
-	prompt_label = make_label(tr("AGENT_PROMPT"), 20, Color("#f4f4f4"), HORIZONTAL_ALIGNMENT_LEFT)
-	prompt_label.position = Vector2(376, 584)
-	prompt_label.size = Vector2(430, 24)
+	prompt_label = make_label(tr("AGENT_REPLY_PLACEHOLDER"), 20, Color("#8f8f8f"), HORIZONTAL_ALIGNMENT_LEFT)
+	prompt_label.position = Vector2(106, 584)
+	prompt_label.size = Vector2(500, 24)
 	prompt_label.visible = false
 	content_layer.add_child(prompt_label)
 
 	countdown_label = make_label("", 18, Color("#ff8a3d"), HORIZONTAL_ALIGNMENT_RIGHT)
-	countdown_label.position = Vector2(792, 576)
+	countdown_label.position = Vector2(748, 576)
 	countdown_label.size = Vector2(110, 26)
 	countdown_label.add_theme_color_override("font_outline_color", Color("#111111"))
 	countdown_label.add_theme_constant_override("outline_size", 3)
@@ -267,8 +219,8 @@ func _build_prompt_panel() -> void:
 	content_layer.add_child(countdown_label)
 
 	continue_button = make_button(tr("AGENT_CONTINUE_BUTTON"), 20, Color("#bdfb7f"))
-	continue_button.position = Vector2(928, 568)
-	continue_button.size = Vector2(238, 34)
+	continue_button.position = Vector2(888, 568)
+	continue_button.size = Vector2(270, 34)
 	continue_button.disabled = true
 	continue_button.visible = false
 	continue_button.pressed.connect(_on_continue_pressed)
@@ -279,11 +231,11 @@ func _update_work_progress() -> void:
 	var elapsed := ROUND_SECONDS - time_left
 	var work_ratio := clampf(elapsed / work_duration, 0.0, 1.0)
 	task_progress = work_ratio * 88.0
-	var step_index: int = min(WORK_STEPS.size() - 1, int(floor(work_ratio * WORK_STEPS.size())))
+	var step_index: int = min(WORK_STEPS.size() - 2, int(floor(work_ratio * float(WORK_STEPS.size() - 1))))
 	if step_index != current_step_index:
 		current_step_index = step_index
 		agent_mood.text = tr(WORK_STEPS[current_step_index])
-		_refresh_log()
+		_refresh_messages()
 
 func _show_continue_prompt() -> void:
 	prompt_shown = true
@@ -299,10 +251,10 @@ func _show_continue_prompt() -> void:
 		continue_button.disabled = false
 	if prompt_label:
 		prompt_label.visible = true
-		prompt_label.text = tr("AGENT_PROMPT")
+		prompt_label.text = tr("AGENT_REPLY_PLACEHOLDER")
 	if countdown_label:
 		countdown_label.visible = true
-	_refresh_log()
+	_refresh_messages()
 	_update_prompt_countdown()
 
 func _on_continue_pressed() -> void:
@@ -326,37 +278,46 @@ func _update_prompt_countdown() -> void:
 	if countdown_label:
 		countdown_label.text = tr("AGENT_COUNTDOWN") % [int(ceil(time_left))]
 
-func _reset_log() -> void:
+func _reset_messages() -> void:
 	current_step_index = -1
-	_refresh_log()
+	_refresh_messages()
 
-func _refresh_log() -> void:
-	for index in range(task_log_labels.size()):
-		var label: Label = task_log_labels[index]
-		var text: String = tr(WORK_STEPS[index])
-		if prompt_shown and index == WORK_STEPS.size() - 1:
-			label.text = "> " + text
-			label.add_theme_color_override("font_color", Color("#bf2030"))
-		elif index < current_step_index:
-			label.text = "OK " + text
-			label.add_theme_color_override("font_color", Color("#176c39"))
-		elif index == current_step_index:
-			label.text = "> " + text
-			label.add_theme_color_override("font_color", Color("#1d1d1d"))
+func _refresh_messages() -> void:
+	var shown_indices: Array[int] = []
+	for index in range(message_labels.size()):
+		if index <= current_step_index:
+			shown_indices.append(index)
 		else:
-			label.text = "... " + text
-			label.add_theme_color_override("font_color", Color("#6b6b6b"))
+			message_bubbles[index].visible = false
+			message_labels[index].visible = false
+
+	var bottom_y := 516.0
+	var gap := 24.0
+	for display_index in range(shown_indices.size()):
+		var message_index := shown_indices[display_index]
+		var y := bottom_y - float(shown_indices.size() - 1 - display_index) * gap
+		var bubble := message_bubbles[message_index]
+		var label := message_labels[message_index]
+		bubble.position = Vector2(106, y)
+		bubble.visible = true
+		label.position = Vector2(122, y - 1)
+		label.size = Vector2(790, 22)
+		label.visible = true
+		if prompt_shown and message_index == WORK_STEPS.size() - 1:
+			bubble.add_theme_stylebox_override("panel", make_style(Color("#35292d"), Color("#4d3036"), 1, 8))
+			label.text = "Codex: " + tr("AGENT_PROMPT")
+			label.add_theme_color_override("font_color", Color("#ff8a3d"))
+		else:
+			bubble.add_theme_stylebox_override("panel", make_style(Color("#2c2c2c"), Color("#333333"), 1, 8))
+			label.text = "Codex: " + tr(WORK_STEPS[message_index])
+			label.add_theme_color_override("font_color", Color("#35d68a"))
 
 func _update_meters() -> void:
 	if progress_bar:
 		progress_bar.value = task_progress
 
 func _update_status() -> void:
-	if prompt_shown:
-		set_status(tr("AGENT_STATUS_WAITING") % [int(ceil(time_left))])
-		return
-	var seconds_to_prompt: int = max(0, int(ceil(time_left - PROMPT_SECONDS_LEFT)))
-	set_status(tr("AGENT_STATUS_WORKING") % [int(task_progress), seconds_to_prompt])
+	set_status("")
 
 func on_timeout() -> void:
 	if accepted:
