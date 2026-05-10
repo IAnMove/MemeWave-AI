@@ -172,7 +172,8 @@ func _test_gpu_ritual() -> void:
 	root.add_child(game)
 	await process_frame
 	game.start_minigame()
-	game.call("_try_connect", 0, 1)
+	var good_pair := _find_socket_pair(game, true)
+	game.call("_try_connect", good_pair[0], good_pair[1])
 	await process_frame
 	if int(game.get("connected")) + int(game.get("mistakes")) < 1:
 		_fail("GPU Sacrifice Ritual did not process a cable")
@@ -184,7 +185,8 @@ func _test_gpu_ritual() -> void:
 	root.add_child(game)
 	await process_frame
 	game.start_minigame()
-	game.call("_try_connect", 0, 3)
+	var bad_pair := _find_socket_pair(game, false)
+	game.call("_try_connect", bad_pair[0], bad_pair[1])
 	await process_frame
 	if int(game.get("mistakes")) < 1:
 		_fail("GPU Sacrifice Ritual did not process a bad cable")
@@ -192,6 +194,21 @@ func _test_gpu_ritual() -> void:
 	await create_timer(0.22).timeout
 	game.queue_free()
 	await process_frame
+
+func _find_socket_pair(game: Control, should_match: bool) -> Array[int]:
+	var sockets: Array = game.get("sockets")
+	for first_index in range(sockets.size()):
+		var first: Dictionary = sockets[first_index]
+		for second_index in range(sockets.size()):
+			if first_index == second_index:
+				continue
+			var second: Dictionary = sockets[second_index]
+			if String(first["side"]) == String(second["side"]):
+				continue
+			var matches := String(first["id"]) == String(second["id"])
+			if matches == should_match:
+				return [first_index, second_index]
+	return []
 
 func _test_archaeologist() -> void:
 	var game := PromptArchaeologist.new()

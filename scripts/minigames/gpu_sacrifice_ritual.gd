@@ -17,6 +17,7 @@ var selected_index := -1
 var connected := 0
 var mistakes := 0
 var cable_layer: Node2D
+var dangling_cable: Line2D
 var altar_panel: Control
 var altar_label: Label
 var ritual_bar: ProgressBar
@@ -112,11 +113,32 @@ func _build_sockets() -> void:
 	var right_x := 972
 	var start_y := 300
 	var gap := 76
-	for index in range(PAIRS.size()):
-		var pair: Dictionary = PAIRS[index]
+	var left_pairs := _shuffled_pairs()
+	var right_pairs := _shuffled_pairs()
+	if _orders_match(left_pairs, right_pairs):
+		var first: Dictionary = right_pairs.pop_front()
+		right_pairs.append(first)
+	for index in range(left_pairs.size()):
+		var pair: Dictionary = left_pairs[index]
 		var y := start_y + index * gap
 		_add_socket("left", pair["id"], tr(pair["left_key"]), Color(pair["color"]), Vector2(left_x, y))
+	for index in range(right_pairs.size()):
+		var pair: Dictionary = right_pairs[index]
+		var y := start_y + index * gap
 		_add_socket("right", pair["id"], tr(pair["right_key"]), Color(pair["color"]), Vector2(right_x, y))
+
+func _shuffled_pairs() -> Array:
+	var copy := PAIRS.duplicate(true)
+	copy.shuffle()
+	return copy
+
+func _orders_match(left_pairs: Array, right_pairs: Array) -> bool:
+	for index in range(left_pairs.size()):
+		var left_pair: Dictionary = left_pairs[index]
+		var right_pair: Dictionary = right_pairs[index]
+		if String(left_pair["id"]) != String(right_pair["id"]):
+			return false
+	return true
 
 func _add_socket(side: String, pair_id: String, label_text: String, wire_color: Color, position: Vector2) -> void:
 	var card := PanelContainer.new()
@@ -167,14 +189,16 @@ func _try_connect(first_index: int, second_index: int) -> void:
 
 	var first := sockets[first_index]
 	var second := sockets[second_index]
-	_clear_selection()
 
 	if first["id"] == second["id"]:
+		_clear_selection()
 		_connect_pair(first_index, second_index)
 	else:
+		_drop_wrong_cable(first, second)
 		mistakes += 1
 		_flash_wrong(first_index)
 		_flash_wrong(second_index)
+		_clear_selection()
 		_mark_mistake()
 		verdict_label.text = tr("GPU_RITUAL_BAD_CABLE")
 		verdict_label.add_theme_color_override("font_color", Color("#ff5b5b"))
@@ -206,9 +230,11 @@ func _draw_cable(first: Dictionary, second: Dictionary) -> void:
 	var first_node := first["node"] as Control
 	var second_node := second["node"] as Control
 	var line := Line2D.new()
-	line.width = 9
+	line.width = 10
 	line.default_color = first["color"]
-	line.points = PackedVector2Array([first_node.get_global_rect().get_center(), second_node.get_global_rect().get_center()])
+	var start := _socket_anchor(first_node, String(first["side"]))
+	var end := _socket_anchor(second_node, String(second["side"]))
+	line.points = PackedVector2Array([start, start.lerp(end, 0.5) + Vector2(0, 34), end])
 	line.z_index = 1
 	cable_layer.add_child(line)
 
@@ -217,11 +243,61 @@ func _select_socket(index: int) -> void:
 		_set_socket_style(selected_index, "normal")
 	selected_index = index
 	_set_socket_style(index, "selected")
+	_draw_dangling_cable(index)
 
 func _clear_selection() -> void:
+	_clear_dangling_cable()
 	if selected_index != -1 and not bool(sockets[selected_index]["connected"]):
 		_set_socket_style(selected_index, "normal")
 	selected_index = -1
+
+func _draw_dangling_cable(index: int) -> void:
+	_clear_dangling_cable()
+	var socket := sockets[index]
+	var node := socket["node"] as Control
+	var side := String(socket["side"])
+	var start := _socket_anchor(node, side)
+	var direction := 1.0 if side == "left" else -1.0
+	dangling_cable = Line2D.new()
+	dangling_cable.width = 10
+	dangling_cable.default_color = socket["color"]
+	dangling_cable.points = PackedVector2Array([
+		start,
+		start + Vector2(42.0 * direction, 38),
+		start + Vector2(78.0 * direction, 58)
+	])
+	dangling_cable.z_index = 2
+	cable_layer.add_child(dangling_cable)
+
+func _clear_dangling_cable() -> void:
+	if dangling_cable and is_instance_valid(dangling_cable):
+		dangling_cable.queue_free()
+	dangling_cable = null
+
+func _drop_wrong_cable(first: Dictionary, second: Dictionary) -> void:
+	_clear_dangling_cable()
+	var first_node := first["node"] as Control
+	var second_node := second["node"] as Control
+	var start := _socket_anchor(first_node, String(first["side"]))
+	var end := _socket_anchor(second_node, String(second["side"]))
+	var line := Line2D.new()
+	line.width = 10
+	line.default_color = first["color"]
+	line.points = PackedVector2Array([start, start.lerp(end, 0.55) + Vector2(0, 54), end])
+	line.z_index = 2
+	cable_layer.add_child(line)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(line, "position:y", line.position.y + 150.0, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(line, "rotation", 0.18, 0.36)
+	tween.tween_property(line, "modulate:a", 0.0, 0.36)
+	tween.chain().tween_callback(Callable(line, "queue_free"))
+
+func _socket_anchor(node: Control, side: String) -> Vector2:
+	var rect := node.get_global_rect()
+	if side == "left":
+		return rect.position + Vector2(rect.size.x, rect.size.y * 0.5)
+	return rect.position + Vector2(0, rect.size.y * 0.5)
 
 func _flash_wrong(index: int) -> void:
 	_set_socket_style(index, "wrong")
@@ -243,7 +319,7 @@ func _set_socket_style(index: int, state: String) -> void:
 			border = Color("#ffef5f")
 			fill = Color("#fff7c7")
 		"connected":
-			border = Color("#1d1d1d")
+			border = Color("#22b851")
 			fill = Color("#bdfb7f")
 		"wrong":
 			border = Color("#1d1d1d")
