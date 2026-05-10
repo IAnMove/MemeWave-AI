@@ -14,7 +14,6 @@ var task_progress := 0.0
 var prompt_shown := false
 var accepted := false
 var current_step_index := -1
-var progress_bar: ProgressBar
 var agent_mood: Label
 var prompt_panel: PanelContainer
 var prompt_title: Label
@@ -141,23 +140,16 @@ func _build_agent_panel() -> void:
 
 	agent_mood = make_label("", 24, Color("#f2f2f2"), HORIZONTAL_ALIGNMENT_LEFT)
 	agent_mood.position = Vector2(230, 356)
-	agent_mood.size = Vector2(760, 42)
+	agent_mood.size = Vector2(760, 54)
 	agent_mood.add_theme_color_override("font_outline_color", Color("#111111"))
 	agent_mood.add_theme_constant_override("outline_size", 3)
 	content_layer.add_child(agent_mood)
 
-	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(230, 398)
-	progress_bar.size = Vector2(680, 16)
-	progress_bar.min_value = 0
-	progress_bar.max_value = TARGET_PROGRESS
-	progress_bar.show_percentage = false
-	content_layer.add_child(progress_bar)
-
-	var progress_label := make_label(tr("AGENT_PROGRESS_LABEL"), 17, Color("#a8a8a8"), HORIZONTAL_ALIGNMENT_LEFT)
-	progress_label.position = Vector2(928, 391)
-	progress_label.size = Vector2(150, 26)
-	content_layer.add_child(progress_label)
+	cursor = ColorRect.new()
+	cursor.position = Vector2(1138, 388)
+	cursor.size = Vector2(18, 5)
+	cursor.color = Color("#ff8a3d")
+	content_layer.add_child(cursor)
 
 func _build_task_log() -> void:
 	message_bubbles.clear()
@@ -183,12 +175,6 @@ func _build_task_log() -> void:
 		label.add_theme_constant_override("outline_size", 2)
 		content_layer.add_child(label)
 		message_labels.append(label)
-
-	cursor = ColorRect.new()
-	cursor.position = Vector2(1138, 388)
-	cursor.size = Vector2(18, 5)
-	cursor.color = Color("#ff8a3d")
-	content_layer.add_child(cursor)
 
 func _build_prompt_panel() -> void:
 	prompt_panel = PanelContainer.new()
@@ -234,7 +220,7 @@ func _update_work_progress() -> void:
 	var step_index: int = min(WORK_STEPS.size() - 2, int(floor(work_ratio * float(WORK_STEPS.size() - 1))))
 	if step_index != current_step_index:
 		current_step_index = step_index
-		agent_mood.text = tr(WORK_STEPS[current_step_index])
+		agent_mood.text = tr("AGENT_MOOD_WORKING")
 		_refresh_messages()
 
 func _show_continue_prompt() -> void:
@@ -310,11 +296,10 @@ func _refresh_messages() -> void:
 		else:
 			bubble.add_theme_stylebox_override("panel", make_style(Color("#2c2c2c"), Color("#333333"), 1, 8))
 			label.text = "Codex: " + tr(WORK_STEPS[message_index])
-			label.add_theme_color_override("font_color", Color("#35d68a"))
+			label.add_theme_color_override("font_color", Color("#e9e9e9"))
 
 func _update_meters() -> void:
-	if progress_bar:
-		progress_bar.value = task_progress
+	pass
 
 func _update_status() -> void:
 	set_status("")

@@ -21,6 +21,22 @@ func _run() -> void:
 	if continue_button.visible or not continue_button.disabled:
 		_fail("Continue button should stay hidden until the last 5 seconds.")
 		return
+	if _count_progress_bars(game) > 0:
+		_fail("Agent Focus should not show a progress bar in the chat UI.")
+		return
+	var initial_messages := _visible_message_count(game)
+	var total_messages := int((game.get("message_labels") as Array).size())
+	if initial_messages >= total_messages:
+		_fail("Agent Focus should not show every message at the start.")
+		return
+
+	game.set("time_left", 12.0)
+	game.call("_process", 0.0)
+	await process_frame
+	var mid_messages := _visible_message_count(game)
+	if mid_messages <= initial_messages or mid_messages >= total_messages:
+		_fail("Agent Focus should reveal chat messages progressively.")
+		return
 
 	game.set("time_left", 4.8)
 	game.call("_process", 0.0)
@@ -85,3 +101,20 @@ func _run() -> void:
 func _fail(message: String) -> void:
 	push_error(message)
 	quit(1)
+
+func _visible_message_count(game: Control) -> int:
+	var labels: Array = game.get("message_labels")
+	var count := 0
+	for label_variant in labels:
+		var label := label_variant as Label
+		if label and label.visible:
+			count += 1
+	return count
+
+func _count_progress_bars(node: Node) -> int:
+	var count := 0
+	if node is ProgressBar:
+		count += 1
+	for child in node.get_children():
+		count += _count_progress_bars(child)
+	return count
