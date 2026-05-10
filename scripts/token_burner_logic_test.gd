@@ -34,6 +34,15 @@ func _run() -> void:
 	if int(game.get("fed_tokens")) != 1:
 		_fail("Token Burner did not feed a token intersecting the mouth.")
 		return
+	await create_timer(0.1).timeout
+	var mouth := game.get("mouth") as PanelContainer
+	if not mouth or mouth.size.y > 32.0:
+		_fail("Token Burner mouth should visually close after feeding a token.")
+		return
+	var happy_eye_left := game.get("happy_eye_left") as Line2D
+	if not happy_eye_left or not happy_eye_left.visible:
+		_fail("Token Burner should show happy eyes after feeding a token.")
+		return
 	await create_timer(0.45).timeout
 
 	var rate := game.call("make_sprite", "res://assets/sprites/rate_limit.png", Vector2(94, 94)) as Control

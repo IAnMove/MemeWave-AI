@@ -21,15 +21,21 @@ var spawn_timer := 0.0
 var fed_tokens := 0
 var misses := 0
 var mouth: PanelContainer
+var mouth_sensor: Control
 var mouth_lip: PanelContainer
+var mouth_teeth: Array[ColorRect] = []
+var tongue: ColorRect
+var mouth_highlight: ColorRect
 var cpu_body: Control
 var feed_bar: ProgressBar
 var pupil_left: ColorRect
 var pupil_right: ColorRect
 var cheek_left: ColorRect
 var cheek_right: ColorRect
-var happy_smile: Line2D
+var happy_eye_left: Line2D
+var happy_eye_right: Line2D
 var happy_sound: AudioStreamPlayer
+var happy_feedback_id := 0
 
 func _ready() -> void:
 	configure(
@@ -142,6 +148,13 @@ func _build_drop_lane() -> void:
 		content_layer.add_child(arrow)
 
 func _build_cpu() -> void:
+	mouth_sensor = Control.new()
+	mouth_sensor.name = "TokenMouthHitbox"
+	mouth_sensor.position = MOUTH_RECT.position
+	mouth_sensor.size = MOUTH_RECT.size
+	mouth_sensor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(mouth_sensor)
+
 	mouth_lip = PanelContainer.new()
 	mouth_lip.position = MOUTH_RECT.position + Vector2(-14, -14)
 	mouth_lip.size = MOUTH_RECT.size + Vector2(28, 28)
@@ -156,6 +169,7 @@ func _build_cpu() -> void:
 	mouth.add_theme_stylebox_override("panel", make_style(Color("#111116"), Color("#1d1d1d"), 5, 10))
 	content_layer.add_child(mouth)
 
+	mouth_teeth.clear()
 	for index in range(8):
 		var tooth := ColorRect.new()
 		tooth.position = MOUTH_RECT.position + Vector2(17 + index * 30, 4)
@@ -163,13 +177,21 @@ func _build_cpu() -> void:
 		tooth.color = Color("#fffdf8")
 		tooth.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content_layer.add_child(tooth)
+		mouth_teeth.append(tooth)
 
-	var tongue := ColorRect.new()
+	tongue = ColorRect.new()
 	tongue.position = MOUTH_RECT.position + Vector2(64, 58)
 	tongue.size = Vector2(136, 14)
 	tongue.color = Color("#ff9fd6")
 	tongue.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(tongue)
+
+	mouth_highlight = ColorRect.new()
+	mouth_highlight.position = MOUTH_RECT.position + Vector2(38, 42)
+	mouth_highlight.size = Vector2(186, 5)
+	mouth_highlight.color = Color("#ffffff3a")
+	mouth_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(mouth_highlight)
 
 	var top_shadow := ColorRect.new()
 	top_shadow.position = Vector2(758, 456)
@@ -178,11 +200,25 @@ func _build_cpu() -> void:
 	top_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(top_shadow)
 
+	var case_shadow := PanelContainer.new()
+	case_shadow.position = Vector2(CPU_WALL_X + 18, 468)
+	case_shadow.size = Vector2(442, 132)
+	case_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	case_shadow.add_theme_stylebox_override("panel", make_style(Color("#a7d5e5"), Color("#1d1d1d"), 4, 6))
+	content_layer.add_child(case_shadow)
+
 	cpu_body = SketchPanel.new()
 	cpu_body.position = Vector2(CPU_WALL_X, 456)
 	cpu_body.size = Vector2(450, 138)
 	cpu_body.call("configure", Color("#dff2ff"), Color("#1d1d1d"), 5.0, 1.7, false)
 	content_layer.add_child(cpu_body)
+
+	var body_top := ColorRect.new()
+	body_top.position = Vector2(770, 466)
+	body_top.size = Vector2(390, 8)
+	body_top.color = Color("#ffffffaa")
+	body_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(body_top)
 
 	var screen := PanelContainer.new()
 	screen.position = Vector2(782, 482)
@@ -216,6 +252,17 @@ func _build_cpu() -> void:
 	pupil_left.color = Color("#1d1d1d")
 	content_layer.add_child(pupil_left)
 
+	happy_eye_left = Line2D.new()
+	happy_eye_left.width = 6
+	happy_eye_left.default_color = Color("#1d1d1d")
+	happy_eye_left.points = PackedVector2Array([
+		Vector2(865, 548),
+		Vector2(882, 537),
+		Vector2(900, 548)
+	])
+	happy_eye_left.visible = false
+	content_layer.add_child(happy_eye_left)
+
 	var eye_right := PanelContainer.new()
 	eye_right.position = Vector2(1028, 530)
 	eye_right.size = Vector2(42, 38)
@@ -227,6 +274,17 @@ func _build_cpu() -> void:
 	pupil_right.size = Vector2(13, 16)
 	pupil_right.color = Color("#1d1d1d")
 	content_layer.add_child(pupil_right)
+
+	happy_eye_right = Line2D.new()
+	happy_eye_right.width = 6
+	happy_eye_right.default_color = Color("#1d1d1d")
+	happy_eye_right.points = PackedVector2Array([
+		Vector2(1033, 548),
+		Vector2(1050, 537),
+		Vector2(1068, 548)
+	])
+	happy_eye_right.visible = false
+	content_layer.add_child(happy_eye_right)
 
 	cheek_left = ColorRect.new()
 	cheek_left.position = Vector2(820, 558)
@@ -240,18 +298,19 @@ func _build_cpu() -> void:
 	cheek_right.color = Color("#ff9fd680")
 	content_layer.add_child(cheek_right)
 
-	happy_smile = Line2D.new()
-	happy_smile.width = 6
-	happy_smile.default_color = Color("#11883a")
-	happy_smile.points = PackedVector2Array([
-		Vector2(930, 552),
-		Vector2(946, 566),
-		Vector2(966, 570),
-		Vector2(986, 566),
-		Vector2(1002, 552)
-	])
-	happy_smile.visible = false
-	content_layer.add_child(happy_smile)
+	for index in range(7):
+		var vent := ColorRect.new()
+		vent.position = Vector2(788 + index * 18, 575)
+		vent.size = Vector2(10, 6)
+		vent.color = Color("#1d1d1d88")
+		vent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content_layer.add_child(vent)
+
+	var power_light := PanelContainer.new()
+	power_light.position = Vector2(1124, 573)
+	power_light.size = Vector2(16, 16)
+	power_light.add_theme_stylebox_override("panel", make_style(Color("#70ff7a"), Color("#1d1d1d"), 3, 8))
+	content_layer.add_child(power_light)
 
 	var stand := PanelContainer.new()
 	stand.position = Vector2(926, 594)
@@ -357,7 +416,7 @@ func _is_below_mouth(node: Control) -> bool:
 
 func _try_feed_item(item: Dictionary) -> bool:
 	var node := item["node"] as Control
-	if not mouth or not mouth.get_global_rect().intersects(node.get_global_rect()):
+	if not mouth_sensor or not mouth_sensor.get_global_rect().intersects(node.get_global_rect()):
 		return false
 
 	if item["kind"] == "token":
@@ -380,40 +439,80 @@ func _try_feed_item(item: Dictionary) -> bool:
 	return true
 
 func _show_happy_feedback() -> void:
+	happy_feedback_id += 1
+	var feedback_id := happy_feedback_id
 	if mouth_lip:
 		mouth_lip.add_theme_stylebox_override("panel", make_style(Color("#ff9fd6"), Color("#1d1d1d"), 5, 12))
+	if mouth:
+		mouth.add_theme_stylebox_override("panel", make_style(Color("#17171d"), Color("#1d1d1d"), 5, 10))
+		var mouth_tween := create_tween()
+		mouth_tween.set_parallel(true)
+		mouth_tween.tween_property(mouth_lip, "position", MOUTH_RECT.position + Vector2(-14, 16), 0.08)
+		mouth_tween.tween_property(mouth_lip, "size", Vector2(MOUTH_RECT.size.x + 28, 48), 0.08)
+		mouth_tween.tween_property(mouth, "position", MOUTH_RECT.position + Vector2(0, 31), 0.08)
+		mouth_tween.tween_property(mouth, "size", Vector2(MOUTH_RECT.size.x, 20), 0.08)
+	for tooth in mouth_teeth:
+		if tooth:
+			tooth.visible = false
+	if tongue:
+		tongue.visible = false
+	if mouth_highlight:
+		mouth_highlight.visible = false
 	if pupil_left:
-		pupil_left.position = Vector2(883, 530)
+		pupil_left.visible = false
 	if pupil_right:
-		pupil_right.position = Vector2(1051, 530)
+		pupil_right.visible = false
+	if happy_eye_left:
+		happy_eye_left.visible = true
+	if happy_eye_right:
+		happy_eye_right.visible = true
 	if cheek_left:
 		cheek_left.color = Color("#ff69b4cc")
 	if cheek_right:
 		cheek_right.color = Color("#ff69b4cc")
-	if happy_smile:
-		happy_smile.visible = true
-		happy_smile.modulate.a = 1.0
 
 	var tween := create_tween()
 	if cpu_body:
-		tween.tween_property(cpu_body, "scale", Vector2(1.035, 1.035), 0.08)
+		tween.tween_property(cpu_body, "scale", Vector2(1.035, 0.985), 0.08)
 		tween.tween_property(cpu_body, "scale", Vector2.ONE, 0.12)
 
-	get_tree().create_timer(0.36).timeout.connect(_reset_happy_feedback)
+	get_tree().create_timer(0.36).timeout.connect(func() -> void:
+		if feedback_id == happy_feedback_id:
+			_reset_happy_feedback()
+	)
 
 func _reset_happy_feedback() -> void:
 	if mouth_lip:
 		mouth_lip.add_theme_stylebox_override("panel", make_style(Color("#ff5b5b"), Color("#1d1d1d"), 5, 12))
+	if mouth:
+		mouth.add_theme_stylebox_override("panel", make_style(Color("#111116"), Color("#1d1d1d"), 5, 10))
+		var mouth_tween := create_tween()
+		mouth_tween.set_parallel(true)
+		mouth_tween.tween_property(mouth_lip, "position", MOUTH_RECT.position + Vector2(-14, -14), 0.12)
+		mouth_tween.tween_property(mouth_lip, "size", MOUTH_RECT.size + Vector2(28, 28), 0.12)
+		mouth_tween.tween_property(mouth, "position", MOUTH_RECT.position, 0.12)
+		mouth_tween.tween_property(mouth, "size", MOUTH_RECT.size, 0.12)
+	for tooth in mouth_teeth:
+		if tooth:
+			tooth.visible = true
+	if tongue:
+		tongue.visible = true
+	if mouth_highlight:
+		mouth_highlight.visible = true
 	if pupil_left:
+		pupil_left.visible = true
 		pupil_left.position = Vector2(883, 534)
 	if pupil_right:
+		pupil_right.visible = true
 		pupil_right.position = Vector2(1051, 534)
+	if happy_eye_left:
+		happy_eye_left.visible = false
+	if happy_eye_right:
+		happy_eye_right.visible = false
 	if cheek_left:
 		cheek_left.color = Color("#ff9fd680")
 	if cheek_right:
 		cheek_right.color = Color("#ff9fd680")
-	if happy_smile:
-		happy_smile.visible = false
 
 func _play_happy_sound() -> void:
 	if happy_sound:
