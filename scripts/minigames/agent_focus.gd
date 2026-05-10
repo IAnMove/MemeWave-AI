@@ -1,29 +1,29 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_PROGRESS := 100.0
-const SPAWN_MIN := 0.48
-const SPAWN_MAX := 0.88
-const DISTRACTION_LIFETIME := 2.05
-const DISTRACTIONS := [
-	{"key": "AGENT_DISTRACTION_CSS", "penalty": 12, "boost": 12, "color": "#ff9fd6"},
-	{"key": "AGENT_DISTRACTION_FILES", "penalty": 14, "boost": 13, "color": "#ffef5f"},
-	{"key": "AGENT_DISTRACTION_REWRITE", "penalty": 16, "boost": 15, "color": "#ff7777"},
-	{"key": "AGENT_DISTRACTION_FRAMEWORK", "penalty": 18, "boost": 16, "color": "#66c6ff"},
-	{"key": "AGENT_DISTRACTION_NAMING", "penalty": 10, "boost": 10, "color": "#bdfb7f"},
-	{"key": "AGENT_DISTRACTION_TABS", "penalty": 13, "boost": 12, "color": "#ffb25f"}
+const PROMPT_SECONDS_LEFT := 5.0
+const WORK_STEPS := [
+	"AGENT_STEP_REFACTOR",
+	"AGENT_STEP_EDIT_FILE",
+	"AGENT_STEP_TESTS",
+	"AGENT_STEP_COMMIT",
+	"AGENT_STEP_NEXT_TASK"
 ]
 
-var distractions: Array[Dictionary] = []
-var spawn_timer := 0.0
 var task_progress := 0.0
-var focus := 100.0
-var cleared := 0
-var mistakes := 0
+var prompt_shown := false
+var accepted := false
+var current_step_index := -1
 var progress_bar: ProgressBar
-var focus_bar: ProgressBar
 var agent_mood: Label
-var cleared_label: Label
-var mistake_label: Label
+var prompt_panel: PanelContainer
+var prompt_title: Label
+var prompt_label: Label
+var continue_button: Button
+var countdown_label: Label
+var task_log_labels: Array[Label] = []
+var cursor: ColorRect
+var cursor_timer := 0.0
 
 func _ready() -> void:
 	configure(
@@ -37,45 +37,51 @@ func _ready() -> void:
 
 func start_minigame() -> void:
 	super.start_minigame()
-	distractions.clear()
-	spawn_timer = 0.0
 	task_progress = 0.0
-	focus = 100.0
-	cleared = 0
-	mistakes = 0
+	prompt_shown = false
+	accepted = false
+	current_step_index = -1
+	cursor_timer = 0.0
 	score = 0
-	_clear_distractions()
+	if prompt_panel:
+		prompt_panel.visible = false
+	if prompt_title:
+		prompt_title.visible = false
+	if continue_button:
+		continue_button.disabled = true
+		continue_button.visible = false
+		continue_button.text = tr("AGENT_CONTINUE_BUTTON")
+	if prompt_label:
+		prompt_label.visible = false
+		prompt_label.text = tr("AGENT_PROMPT")
+	if countdown_label:
+		countdown_label.visible = false
+	if agent_mood:
+		agent_mood.text = tr("AGENT_MOOD_WORKING")
+	_reset_log()
 	_update_meters()
 	_update_status()
-	agent_mood.text = tr("AGENT_MOOD_WORKING")
 
 func _process(delta: float) -> void:
 	super._process(delta)
 	if not running:
 		return
 
-	var pressure := distractions.size()
-	task_progress = min(TARGET_PROGRESS, task_progress + delta * (4.0 if pressure > 0 else 7.0))
-	focus = clamp(focus - delta * pressure * 4.0, 0.0, 100.0)
+	cursor_timer += delta
+	if cursor:
+		cursor.visible = int(cursor_timer * 3.0) % 2 == 0
 
-	spawn_timer -= delta
-	if spawn_timer <= 0.0:
-		spawn_timer = randf_range(SPAWN_MIN, SPAWN_MAX)
-		_spawn_distraction()
+	if not prompt_shown and time_left <= PROMPT_SECONDS_LEFT:
+		_show_continue_prompt()
 
-	for distraction in distractions.duplicate():
-		distraction["life"] = float(distraction["life"]) - delta
-		var node := distraction["node"] as Control
-		node.rotation = sin(float(distraction["life"]) * 9.0) * 0.045
-		if float(distraction["life"]) <= 0.0:
-			_miss_distraction(distraction)
+	if prompt_shown:
+		task_progress = max(task_progress, 90.0)
+		_update_prompt_countdown()
+	else:
+		_update_work_progress()
 
 	_update_meters()
-
-	if task_progress >= TARGET_PROGRESS:
-		await finish_with_result(true, "AGENT_SUCCESS", 0.7)
-	elif focus <= 0.0:
-		await finish_with_result(false, "AGENT_FAIL_FOCUS", 0.55)
+	_update_status()
 
 func _build_stage() -> void:
 	var bg := ColorRect.new()
@@ -86,176 +92,195 @@ func _build_stage() -> void:
 	move_child(bg, 0)
 
 	_build_agent_panel()
-	_build_dashboard()
+	_build_task_log()
+	_build_prompt_panel()
 
 func _build_agent_panel() -> void:
 	var panel := PanelContainer.new()
-	panel.position = Vector2(320, 220)
-	panel.size = Vector2(640, 398)
+	panel.position = Vector2(354, 224)
+	panel.size = Vector2(572, 392)
 	panel.add_theme_stylebox_override("panel", make_style(Color("#f2f7ff"), Color("#1d1d1d"), 5, 8))
 	content_layer.add_child(panel)
 
 	var title := make_label(tr("AGENT_WORK_TITLE"), 34, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(350, 238)
-	title.size = Vector2(580, 48)
+	title.position = Vector2(390, 238)
+	title.size = Vector2(500, 48)
 	content_layer.add_child(title)
 
 	var agent := make_sprite("res://assets/sprites/hungry_model.png", Vector2(170, 150))
 	agent.position = Vector2(555, 306)
 	content_layer.add_child(agent)
 
-	agent_mood = make_label("", 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	agent_mood.position = Vector2(390, 464)
-	agent_mood.size = Vector2(500, 45)
+	agent_mood = make_label("", 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	agent_mood.position = Vector2(406, 464)
+	agent_mood.size = Vector2(468, 45)
 	agent_mood.add_theme_color_override("font_outline_color", Color("#ffffff"))
 	agent_mood.add_theme_constant_override("outline_size", 3)
 	content_layer.add_child(agent_mood)
 
 	progress_bar = ProgressBar.new()
-	progress_bar.position = Vector2(402, 532)
-	progress_bar.size = Vector2(476, 34)
+	progress_bar.position = Vector2(424, 532)
+	progress_bar.size = Vector2(432, 34)
 	progress_bar.min_value = 0
 	progress_bar.max_value = TARGET_PROGRESS
 	progress_bar.show_percentage = false
 	content_layer.add_child(progress_bar)
 
 	var progress_label := make_label(tr("AGENT_PROGRESS_LABEL"), 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	progress_label.position = Vector2(402, 566)
-	progress_label.size = Vector2(476, 28)
+	progress_label.position = Vector2(424, 566)
+	progress_label.size = Vector2(432, 28)
 	content_layer.add_child(progress_label)
 
-func _build_dashboard() -> void:
-	var left := PanelContainer.new()
-	left.position = Vector2(54, 220)
-	left.size = Vector2(226, 398)
-	left.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(left)
+func _build_task_log() -> void:
+	var log_panel := PanelContainer.new()
+	log_panel.position = Vector2(58, 224)
+	log_panel.size = Vector2(260, 392)
+	log_panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
+	content_layer.add_child(log_panel)
 
-	var focus_title := make_label(tr("AGENT_FOCUS_TITLE"), 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	focus_title.position = Vector2(75, 248)
-	focus_title.size = Vector2(184, 40)
-	content_layer.add_child(focus_title)
+	var title := make_label(tr("AGENT_LOG_TITLE"), 29, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = Vector2(80, 244)
+	title.size = Vector2(216, 42)
+	content_layer.add_child(title)
 
-	focus_bar = ProgressBar.new()
-	focus_bar.position = Vector2(84, 326)
-	focus_bar.size = Vector2(166, 34)
-	focus_bar.min_value = 0
-	focus_bar.max_value = 100
-	focus_bar.show_percentage = false
-	content_layer.add_child(focus_bar)
+	for index in range(WORK_STEPS.size()):
+		var label := make_label("", 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
+		label.position = Vector2(86, 306 + index * 50)
+		label.size = Vector2(196, 42)
+		label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+		label.add_theme_constant_override("outline_size", 2)
+		content_layer.add_child(label)
+		task_log_labels.append(label)
 
-	cleared_label = make_label("", 22, Color("#176c39"), HORIZONTAL_ALIGNMENT_CENTER)
-	cleared_label.position = Vector2(76, 398)
-	cleared_label.size = Vector2(182, 46)
-	content_layer.add_child(cleared_label)
+	cursor = ColorRect.new()
+	cursor.position = Vector2(86, 560)
+	cursor.size = Vector2(52, 7)
+	cursor.color = Color("#1d1d1d")
+	content_layer.add_child(cursor)
 
-	mistake_label = make_label("", 22, Color("#bf2030"), HORIZONTAL_ALIGNMENT_CENTER)
-	mistake_label.position = Vector2(76, 470)
-	mistake_label.size = Vector2(182, 46)
-	content_layer.add_child(mistake_label)
+func _build_prompt_panel() -> void:
+	prompt_panel = PanelContainer.new()
+	prompt_panel.position = Vector2(966, 224)
+	prompt_panel.size = Vector2(252, 392)
+	prompt_panel.visible = false
+	prompt_panel.add_theme_stylebox_override("panel", make_style(Color("#fff0f7"), Color("#1d1d1d"), 5, 8))
+	content_layer.add_child(prompt_panel)
 
-	var right := PanelContainer.new()
-	right.position = Vector2(1000, 220)
-	right.size = Vector2(226, 398)
-	right.add_theme_stylebox_override("panel", make_style(Color("#fff0f7"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(right)
+	prompt_title = make_label(tr("AGENT_NEXT_TASK_TITLE"), 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	prompt_title.position = Vector2(990, 248)
+	prompt_title.size = Vector2(204, 45)
+	prompt_title.visible = false
+	content_layer.add_child(prompt_title)
 
-	var danger := make_label(tr("AGENT_DANGER_TITLE"), 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	danger.position = Vector2(1022, 250)
-	danger.size = Vector2(182, 82)
-	content_layer.add_child(danger)
+	prompt_label = make_label(tr("AGENT_PROMPT"), 23, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	prompt_label.position = Vector2(994, 322)
+	prompt_label.size = Vector2(196, 86)
+	prompt_label.visible = false
+	content_layer.add_child(prompt_label)
 
-	var hint := make_label(tr("AGENT_DANGER_HINT"), 21, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = Vector2(1024, 418)
-	hint.size = Vector2(178, 92)
-	content_layer.add_child(hint)
+	countdown_label = make_label("", 24, Color("#bf2030"), HORIZONTAL_ALIGNMENT_CENTER)
+	countdown_label.position = Vector2(994, 426)
+	countdown_label.size = Vector2(196, 42)
+	countdown_label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	countdown_label.add_theme_constant_override("outline_size", 3)
+	countdown_label.visible = false
+	content_layer.add_child(countdown_label)
 
-func _spawn_distraction() -> void:
-	if distractions.size() >= 6:
+	continue_button = make_button(tr("AGENT_CONTINUE_BUTTON"), 25, Color("#bdfb7f"))
+	continue_button.position = Vector2(1002, 506)
+	continue_button.size = Vector2(180, 64)
+	continue_button.disabled = true
+	continue_button.visible = false
+	continue_button.pressed.connect(_on_continue_pressed)
+	content_layer.add_child(continue_button)
+
+func _update_work_progress() -> void:
+	var work_duration := ROUND_SECONDS - PROMPT_SECONDS_LEFT
+	var elapsed := ROUND_SECONDS - time_left
+	var work_ratio := clampf(elapsed / work_duration, 0.0, 1.0)
+	task_progress = work_ratio * 88.0
+	var step_index: int = min(WORK_STEPS.size() - 1, int(floor(work_ratio * WORK_STEPS.size())))
+	if step_index != current_step_index:
+		current_step_index = step_index
+		agent_mood.text = tr(WORK_STEPS[current_step_index])
+		_refresh_log()
+
+func _show_continue_prompt() -> void:
+	prompt_shown = true
+	current_step_index = WORK_STEPS.size() - 1
+	task_progress = 90.0
+	agent_mood.text = tr("AGENT_MOOD_WAITING")
+	if prompt_panel:
+		prompt_panel.visible = true
+	if prompt_title:
+		prompt_title.visible = true
+	if continue_button:
+		continue_button.visible = true
+		continue_button.disabled = false
+	if prompt_label:
+		prompt_label.visible = true
+		prompt_label.text = tr("AGENT_PROMPT")
+	if countdown_label:
+		countdown_label.visible = true
+	_refresh_log()
+	_update_prompt_countdown()
+
+func _on_continue_pressed() -> void:
+	if not running or not prompt_shown or accepted:
 		return
 
-	var def: Dictionary = DISTRACTIONS[randi_range(0, DISTRACTIONS.size() - 1)]
-	var card := Button.new()
-	card.name = "DynamicAgentDistraction"
-	card.position = Vector2(randf_range(85, 1010), randf_range(290, 544))
-	card.size = Vector2(190, 62)
-	card.pivot_offset = Vector2(95, 31)
-	card.text = tr(def["key"])
-	card.focus_mode = Control.FOCUS_NONE
-	card.add_theme_font_size_override("font_size", 16)
-	card.add_theme_color_override("font_color", Color("#1d1d1d"))
-	card.add_theme_color_override("font_hover_color", Color("#1d1d1d"))
-	card.add_theme_color_override("font_pressed_color", Color("#1d1d1d"))
-	card.add_theme_color_override("font_outline_color", Color("#ffffff"))
-	card.add_theme_constant_override("outline_size", 2)
-	card.add_theme_stylebox_override("normal", make_style(Color(def["color"]), Color("#1d1d1d"), 4, 8))
-	card.add_theme_stylebox_override("hover", make_style(Color(def["color"]).lightened(0.14), Color("#1d1d1d"), 4, 8))
-	card.add_theme_stylebox_override("pressed", make_style(Color(def["color"]).darkened(0.12), Color("#1d1d1d"), 4, 8))
-	card.pressed.connect(_on_distraction_pressed.bind(card))
-	content_layer.add_child(card)
-	distractions.append({
-		"node": card,
-		"life": DISTRACTION_LIFETIME,
-		"penalty": int(def["penalty"]),
-		"boost": int(def["boost"])
-	})
-
-func _on_distraction_pressed(node: Button) -> void:
-	if not running:
-		return
-
-	var distraction := _find_distraction(node)
-	if distraction.is_empty():
-		return
-
-	cleared += 1
-	score = cleared
-	task_progress = min(TARGET_PROGRESS, task_progress + int(distraction["boost"]))
-	focus = min(100.0, focus + 7.0)
-	agent_mood.text = tr("AGENT_MOOD_FOCUSED")
-	_remove_distraction(distraction)
+	accepted = true
+	score = 1
+	task_progress = TARGET_PROGRESS
+	if continue_button:
+		continue_button.disabled = true
+		continue_button.text = tr("AGENT_CONFIRMED")
+	if agent_mood:
+		agent_mood.text = tr("AGENT_MOOD_CONFIRMED")
+	play_action_sound("collect")
 	_update_meters()
 	_update_status()
+	await finish_with_result(true, "AGENT_SUCCESS", 0.45)
 
-func _miss_distraction(distraction: Dictionary) -> void:
-	mistakes += 1
-	focus = max(0.0, focus - int(distraction["penalty"]))
-	agent_mood.text = tr("AGENT_MOOD_DISTRACTED")
-	_remove_distraction(distraction)
-	_update_meters()
-	_update_status()
+func _update_prompt_countdown() -> void:
+	if countdown_label:
+		countdown_label.text = tr("AGENT_COUNTDOWN") % [int(ceil(time_left))]
 
-func _find_distraction(node: Button) -> Dictionary:
-	for distraction in distractions:
-		if distraction["node"] == node:
-			return distraction
-	return {}
+func _reset_log() -> void:
+	current_step_index = -1
+	_refresh_log()
 
-func _remove_distraction(distraction: Dictionary) -> void:
-	distractions.erase(distraction)
-	var node := distraction["node"] as Control
-	if is_instance_valid(node):
-		node.queue_free()
-
-func _clear_distractions() -> void:
-	for child in content_layer.get_children():
-		if child.name == "DynamicAgentDistraction":
-			child.queue_free()
-	distractions.clear()
+func _refresh_log() -> void:
+	for index in range(task_log_labels.size()):
+		var label: Label = task_log_labels[index]
+		var text: String = tr(WORK_STEPS[index])
+		if prompt_shown and index == WORK_STEPS.size() - 1:
+			label.text = "> " + text
+			label.add_theme_color_override("font_color", Color("#bf2030"))
+		elif index < current_step_index:
+			label.text = "OK " + text
+			label.add_theme_color_override("font_color", Color("#176c39"))
+		elif index == current_step_index:
+			label.text = "> " + text
+			label.add_theme_color_override("font_color", Color("#1d1d1d"))
+		else:
+			label.text = "... " + text
+			label.add_theme_color_override("font_color", Color("#6b6b6b"))
 
 func _update_meters() -> void:
 	if progress_bar:
 		progress_bar.value = task_progress
-	if focus_bar:
-		focus_bar.value = focus
 
 func _update_status() -> void:
-	if cleared_label:
-		cleared_label.text = tr("AGENT_CLEARED") % cleared
-	if mistake_label:
-		mistake_label.text = tr("AGENT_MISTAKES") % mistakes
-	set_status(tr("AGENT_STATUS") % [int(task_progress), int(focus), mistakes])
+	if prompt_shown:
+		set_status(tr("AGENT_STATUS_WAITING") % [int(ceil(time_left))])
+		return
+	var seconds_to_prompt: int = max(0, int(ceil(time_left - PROMPT_SECONDS_LEFT)))
+	set_status(tr("AGENT_STATUS_WORKING") % [int(task_progress), seconds_to_prompt])
 
 func on_timeout() -> void:
-	var success := task_progress >= TARGET_PROGRESS and focus > 0.0
-	await finish_with_result(success, "AGENT_TIMEOUT_SUCCESS" if success else "AGENT_FAIL", 0.45)
+	if accepted:
+		return
+	if agent_mood:
+		agent_mood.text = tr("AGENT_MOOD_IDLE")
+	await finish_with_result(false, "AGENT_FAIL", 0.45)

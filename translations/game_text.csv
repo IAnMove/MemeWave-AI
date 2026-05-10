@@ -265,29 +265,29 @@ INJECTION_SUCCESS,JAILBREAKS BLOCKED!,¡JAILBREAKS BLOQUEADOS!
 INJECTION_TIMEOUT_SUCCESS,FIREWALL HELD,FIREWALL AGUANTÓ
 INJECTION_FAIL,MODEL ATE THE JAILBREAK,EL MODELO SE COMIÓ EL JAILBREAK
 GAME_AGENT_TITLE,Distracted Agent,Agente Distraído
-GAME_AGENT_DESC,Keep the coding agent focused by clicking away shiny refactors and vibe traps before the task derails.,Mantén al agente programador concentrado quitando refactors brillantes y trampas vibe antes de que descarrile la tarea.
-AGENT_INSTRUCTIONS,Click distractions so the agent finishes the task.,Haz clic en las distracciones para que el agente termine la tarea.
-AGENT_WORK_TITLE,SHIP THE ACTUAL TASK,ENTREGA LA TAREA REAL
-AGENT_PROGRESS_LABEL,task progress,progreso de la tarea
-AGENT_FOCUS_TITLE,FOCUS,FOCO
-AGENT_DANGER_TITLE,DISTRACTION ZONE,ZONA DE DISTRACCIÓN
-AGENT_DANGER_HINT,do not let the agent vibe away,no dejes que el agente se vaya por las ramas
-AGENT_MOOD_WORKING,working on the bug...,trabajando en el bug...
-AGENT_MOOD_FOCUSED,back on task!,¡vuelve a la tarea!
-AGENT_MOOD_DISTRACTED,opening random files...,abriendo archivos al azar...
-AGENT_DISTRACTION_CSS,refactor CSS,refactor CSS
-AGENT_DISTRACTION_FILES,open 40 files,abrir 40 archivos
-AGENT_DISTRACTION_REWRITE,rewrite app,reescribir app
-AGENT_DISTRACTION_FRAMEWORK,new framework,nuevo framework
-AGENT_DISTRACTION_NAMING,rename variables,renombrar variables
-AGENT_DISTRACTION_TABS,read 18 tabs,leer 18 pestañas
-AGENT_CLEARED,Cleared: %d,Quitadas: %d
-AGENT_MISTAKES,Drifts: %d,Derivas: %d
-AGENT_STATUS,Progress: %d%%  |  focus: %d%%  |  drifts: %d,Progreso: %d%%  |  foco: %d%%  |  derivas: %d
-AGENT_SUCCESS,TASK SHIPPED!,¡TAREA ENTREGADA!
-AGENT_TIMEOUT_SUCCESS,AGENT STAYED FOCUSED,EL AGENTE AGUANTÓ EL FOCO
-AGENT_FAIL_FOCUS,AGENT LOST THE PLOT,EL AGENTE PERDIÓ EL HILO
-AGENT_FAIL,TASK STILL VIBING,TAREA AÚN VIBEANDO
+GAME_AGENT_DESC,The agent works alone. In the last seconds click Continue when it asks for the next task.,El agente trabaja solo. En los últimos segundos pulsa Continuar cuando pregunte por la siguiente tarea.
+AGENT_INSTRUCTIONS,Wait for the final question. Click Continue before time runs out.,Espera a la pregunta final. Pulsa Continuar antes de que se acabe el tiempo.
+AGENT_WORK_TITLE,AUTONOMOUS AGENT,AGENTE AUTÓNOMO
+AGENT_PROGRESS_LABEL,work completed,trabajo completado
+AGENT_LOG_TITLE,Work log,Registro
+AGENT_NEXT_TASK_TITLE,NEXT TASK?,¿SIGUIENTE TAREA?
+AGENT_PROMPT,Continue with the next task?,¿Quieres que continúe con la siguiente tarea?
+AGENT_CONTINUE_BUTTON,Continue,Continuar
+AGENT_CONFIRMED,Continuing...,Continuando...
+AGENT_COUNTDOWN,%ds left,quedan %ds
+AGENT_MOOD_WORKING,working...,trabajando...
+AGENT_MOOD_WAITING,waiting for confirmation...,esperando confirmación...
+AGENT_MOOD_CONFIRMED,next task accepted!,¡siguiente tarea aceptada!
+AGENT_MOOD_IDLE,no answer...,sin respuesta...
+AGENT_STEP_REFACTOR,refactor module,refactorizar módulo
+AGENT_STEP_EDIT_FILE,edit file,editar fichero
+AGENT_STEP_TESTS,run tests,pasar tests
+AGENT_STEP_COMMIT,make commit,hacer commit
+AGENT_STEP_NEXT_TASK,ask for next task,preguntar siguiente tarea
+AGENT_STATUS_WORKING,Work: %d%%  |  asks in %ds,Trabajo: %d%%  |  pregunta en %ds
+AGENT_STATUS_WAITING,Click Continue  |  %ds left,Pulsa Continuar  |  quedan %ds
+AGENT_SUCCESS,CONTINUING!,¡CONTINUAMOS!
+AGENT_FAIL,AGENT STOPPED,AGENTE PARADO
 CHOICE_INSTRUCTIONS,Pick the better tool for this job.,Elige la mejor herramienta para este trabajo.
 CHOICE_PROMPT_LABEL,JOB REQUEST,PETICIÓN
 CHOICE_TAP_HINT,choose Claude Code or Codex,elige Claude Code o Codex
