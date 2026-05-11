@@ -66,13 +66,27 @@ const DEV_GAMEPLAY_GROUPS := [
 			"GAME_INJECTION_TITLE",
 			"GAME_AGENT_TITLE",
 			"GAME_TOS_TITLE",
-			"GAME_SYCO_TITLE"
+			"GAME_SYCO_TITLE",
+			"GAME_MERGE_TITLE",
+			"GAME_PR_TITLE",
+			"GAME_PROMPT_GATE_TITLE",
+			"GAME_GROK_RAGE_TITLE",
+			"GAME_ARCHAEOLOGY_TITLE",
+			"GAME_RENAME_TITLE",
+			"GAME_THREAD_TITLE",
+			"GAME_PHOTOSHOP_TITLE",
+			"GAME_APOLOGY_TITLE"
 		]
 	},
 	{
 		"title_key": "GAMEPLAY_DRAG_DROP",
 		"game_title_keys": [
-			"GAME_TOKENS_TITLE"
+			"GAME_TOKENS_TITLE",
+			"GAME_ROUTER_TITLE",
+			"GAME_CONTEXT_TITLE",
+			"GAME_DATASET_TITLE",
+			"GAME_FUNERAL_TITLE",
+			"GAME_WAKE_PET_TITLE"
 		]
 	},
 	{
@@ -82,7 +96,8 @@ const DEV_GAMEPLAY_GROUPS := [
 			"GAME_GPU_TITLE",
 			"GAME_RUNWAY_TITLE",
 			"GAME_LICENSE_TITLE",
-			"GAME_DENIAL_TITLE"
+			"GAME_DENIAL_TITLE",
+			"GAME_DEPLOY_TITLE"
 		]
 	},
 	{
@@ -97,41 +112,14 @@ const DEV_GAMEPLAY_GROUPS := [
 		"title_key": "GAMEPLAY_PAIR_MATCHING",
 		"game_title_keys": [
 			"GAME_ENERGY_TITLE",
-			"GAME_GPU_RITUAL_TITLE"
+			"GAME_GPU_RITUAL_TITLE",
+			"GAME_SWARM_TITLE"
 		]
 	},
 	{
 		"title_key": "GAMEPLAY_MEMORY",
 		"game_title_keys": [
 			"GAME_MEMORY_TITLE"
-		]
-	},
-	{
-		"title_key": "GAMEPLAY_OPTION_SORTING",
-		"game_title_keys": [
-			"GAME_ROUTER_TITLE",
-			"GAME_CONTEXT_TITLE",
-			"GAME_CHOICE_PLAN_TITLE",
-			"GAME_CHOICE_PAGE_TITLE",
-			"GAME_CHOICE_COMPLEX_TITLE",
-			"GAME_MERGE_TITLE",
-			"GAME_DATASET_TITLE",
-			"GAME_KITCHEN_TITLE",
-			"GAME_PR_TITLE",
-			"GAME_COPILOT_TITLE",
-			"GAME_PROMPT_GATE_TITLE",
-			"GAME_EVAL_TITLE",
-			"GAME_DEPLOY_TITLE",
-			"GAME_SWARM_TITLE",
-			"GAME_GROK_RAGE_TITLE",
-			"GAME_VIBE_DEPLOY_TITLE",
-			"GAME_ARCHAEOLOGY_TITLE",
-			"GAME_RENAME_TITLE",
-			"GAME_FUNERAL_TITLE",
-			"GAME_THREAD_TITLE",
-			"GAME_PHOTOSHOP_TITLE",
-			"GAME_APOLOGY_TITLE",
-			"GAME_WAKE_PET_TITLE"
 		]
 	}
 ]
@@ -214,19 +202,22 @@ const GAME_DEFS := [
 		"title_key": "GAME_CHOICE_PLAN_TITLE",
 		"script": ChoiceCodePlanning,
 		"description_key": "GAME_CHOICE_PLAN_DESC",
-		"thumbnail": "res://assets/sprites/dario_amodei.png"
+		"thumbnail": "res://assets/sprites/dario_amodei.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_CHOICE_PAGE_TITLE",
 		"script": ChoicePrettyPage,
 		"description_key": "GAME_CHOICE_PAGE_DESC",
-		"thumbnail": "res://assets/art/title.png"
+		"thumbnail": "res://assets/art/title.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_CHOICE_COMPLEX_TITLE",
 		"script": ChoiceComplexTasks,
 		"description_key": "GAME_CHOICE_COMPLEX_DESC",
-		"thumbnail": "res://assets/sprites/sam_face.png"
+		"thumbnail": "res://assets/sprites/sam_face.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_MERGE_TITLE",
@@ -262,7 +253,8 @@ const GAME_DEFS := [
 		"title_key": "GAME_KITCHEN_TITLE",
 		"script": FinetuneKitchen,
 		"description_key": "GAME_KITCHEN_DESC",
-		"thumbnail": "res://assets/sprites/token.png"
+		"thumbnail": "res://assets/sprites/token.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_PR_TITLE",
@@ -286,7 +278,8 @@ const GAME_DEFS := [
 		"title_key": "GAME_COPILOT_TITLE",
 		"script": CopilotSuggestions,
 		"description_key": "GAME_COPILOT_DESC",
-		"thumbnail": "res://assets/sprites/leaderboard.png"
+		"thumbnail": "res://assets/sprites/leaderboard.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_PROMPT_GATE_TITLE",
@@ -308,7 +301,8 @@ const GAME_DEFS := [
 		"script": EvalCherryPicker,
 		"description_key": "GAME_EVAL_DESC",
 		"instruction_key": "EVAL_INSTRUCTIONS",
-		"thumbnail": "res://assets/art/eval_cherry_picker_bg.png"
+		"thumbnail": "res://assets/art/eval_cherry_picker_bg.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_DEPLOY_TITLE",
@@ -343,7 +337,8 @@ const GAME_DEFS := [
 		"script": VibeDeployProd,
 		"description_key": "GAME_VIBE_DEPLOY_DESC",
 		"instruction_key": "VIBE_DEPLOY_INSTRUCTIONS",
-		"thumbnail": "res://assets/art/deploy_friday_bg.png"
+		"thumbnail": "res://assets/art/deploy_friday_bg.png",
+		"retired": true
 	},
 	{
 		"title_key": "GAME_GPU_RITUAL_TITLE",
@@ -405,8 +400,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_WAKE_PET_TITLE",
 		"script": WakePet,
 		"description_key": "GAME_WAKE_PET_DESC",
-		"instruction_key": "WAKE_PET_INSTRUCTIONS",
-		"thumbnail": "res://assets/sprites/hungry_model.png"
+		"thumbnail": "res://assets/art/server_computer_on.png"
 	}
 ]
 
@@ -422,6 +416,7 @@ var round_queue: Array[int] = []
 var direct_launch := false
 var direct_developer := false
 var unlocked_minigames: Array[bool] = []
+var view_generation := 0
 var ui_click_player: AudioStreamPlayer
 var round_transition_player: AudioStreamPlayer
 var menu_music_player: AudioStreamPlayer
@@ -449,10 +444,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		show_developer_menu()
 		return
 
+	if current_screen == "game" and direct_launch and direct_developer and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		show_collection(true)
+		return
+
 	if current_screen == "developer" or current_screen == "developer_grid":
 		var digit := _digit_for_key(event.keycode)
-		if digit > 0 and digit <= GAME_DEFS.size():
-			start_direct_game(digit - 1, true)
+		var active_indexes := _active_game_indexes()
+		if digit > 0 and digit <= active_indexes.size():
+			start_direct_game(active_indexes[digit - 1], true)
 
 func show_main_menu() -> void:
 	_clear_view()
@@ -557,7 +558,8 @@ func show_descriptions() -> void:
 	list.add_theme_constant_override("separation", 10)
 	scroll.add_child(list)
 
-	for def in GAME_DEFS:
+	for index in _active_game_indexes():
+		var def: Dictionary = GAME_DEFS[index]
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(1070, 78)
 		card.add_theme_stylebox_override("panel", _make_style(Color("#ffffff"), Color("#1d1d1d"), 4, 8))
@@ -655,7 +657,7 @@ func show_collection(developer: bool) -> void:
 		grid.add_theme_constant_override("v_separation", 18)
 		scroll.add_child(grid)
 
-		for index in GAME_DEFS.size():
+		for index in _active_game_indexes():
 			grid.add_child(_make_game_card(index, developer))
 
 	var back := _make_button(tr("MENU_BACK"), 30, Color("#ffef5f"))
@@ -706,6 +708,8 @@ func _make_game_card(game_index: int, developer: bool) -> PanelContainer:
 func _build_developer_gameplay_groups() -> Array:
 	var title_to_index := {}
 	for index in GAME_DEFS.size():
+		if _is_game_retired(index):
+			continue
 		title_to_index[String(GAME_DEFS[index]["title_key"])] = index
 
 	var used := {}
@@ -728,7 +732,7 @@ func _build_developer_gameplay_groups() -> Array:
 			groups.append({"title_key": group_def["title_key"], "indexes": indexes})
 
 	var other_indexes := []
-	for index in GAME_DEFS.size():
+	for index in _active_game_indexes():
 		if not used.has(index):
 			other_indexes.append(index)
 
@@ -779,6 +783,10 @@ func start_game() -> void:
 	_start_next_round()
 
 func start_direct_game(game_index: int, developer: bool) -> void:
+	if _is_game_retired(game_index):
+		show_collection(developer)
+		return
+
 	current_index = 0
 	wins = 0
 	total_score = 0
@@ -896,6 +904,7 @@ func _start_next_round() -> void:
 	_show_countdown(minigame)
 
 func _show_countdown(minigame: Control) -> void:
+	var generation := view_generation
 	var overlay := Label.new()
 	overlay.position = Vector2(0, 205)
 	overlay.size = Vector2(1280, 220)
@@ -907,14 +916,20 @@ func _show_countdown(minigame: Control) -> void:
 	overlay.add_theme_constant_override("outline_size", 14)
 	current_view.add_child(overlay)
 
-	_countdown_async(overlay, minigame)
+	_countdown_async(overlay, minigame, generation)
 
-func _countdown_async(overlay: Label, minigame: Control) -> void:
+func _countdown_async(overlay: Label, minigame: Control, generation: int) -> void:
 	for text in ["3", "2", "1", tr("COUNTDOWN_GO")]:
+		if generation != view_generation or not is_instance_valid(overlay):
+			return
 		overlay.text = text
 		await get_tree().create_timer(0.48).timeout
 
-	overlay.queue_free()
+	if generation != view_generation:
+		return
+
+	if is_instance_valid(overlay):
+		overlay.queue_free()
 	if is_instance_valid(minigame) and minigame.has_method("start_minigame"):
 		minigame.start_minigame()
 
@@ -1012,9 +1027,21 @@ func _is_unlocked(game_index: int) -> bool:
 		return false
 	return unlocked_minigames[game_index]
 
+func _is_game_retired(game_index: int) -> bool:
+	if game_index < 0 or game_index >= GAME_DEFS.size():
+		return true
+	return bool(GAME_DEFS[game_index].get("retired", false))
+
+func _active_game_indexes() -> Array[int]:
+	var indexes: Array[int] = []
+	for index in GAME_DEFS.size():
+		if not _is_game_retired(index):
+			indexes.append(index)
+	return indexes
+
 func _make_random_round_queue() -> Array[int]:
 	var queue: Array[int] = []
-	for index in GAME_DEFS.size():
+	for index in _active_game_indexes():
 		queue.append(index)
 		var title_key := String(GAME_DEFS[index]["title_key"])
 		var repeat_count := int(ROUND_REPEAT_COUNTS.get(title_key, 1))
@@ -1062,6 +1089,7 @@ func _digit_for_key(keycode: Key) -> int:
 			return 0
 
 func _clear_view() -> void:
+	view_generation += 1
 	if current_view and is_instance_valid(current_view):
 		current_view.queue_free()
 	current_view = null

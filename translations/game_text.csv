@@ -446,6 +446,32 @@ GAMEPLAY_PAIR_MATCHING,Pair matching,Conectar parejas
 GAMEPLAY_MEMORY,Memory cards,Cartas de memoria
 GAMEPLAY_OPTION_SORTING,Choice / classification,Eleccion / clasificacion
 GAMEPLAY_OTHER,Other,Otros
+QUICK_PROGRESS,Progress,Progreso
+QUICK_SORT_GOOD,Good!,Bien!
+QUICK_SORT_BAD,Wrong!,Mal!
+QUICK_KEEP,KEEP,GUARDAR
+QUICK_TRASH,TRASH,TIRAR
+QUICK_WASH,WASH,LAVAR
+QUICK_QUARANTINE,HOLD,RETENER
+QUICK_APPLY,APPLY,APLICAR
+QUICK_IGNORE,IGNORE,IGNORAR
+QUICK_ACCEPT,ACCEPT,ACEPTAR
+QUICK_REJECT,REJECT,RECHAZAR
+QUICK_SEND,SEND,ENVIAR
+QUICK_DISCARD,TRASH,TIRAR
+QUICK_DEPLOY,DEPLOY,DEPLOY
+QUICK_BLOCK,BLOCK,BLOQUEAR
+QUICK_AGENT,AGENT,AGENTE
+QUICK_QUEUE,QUEUE,COLA
+QUICK_FEED,FEED,DAR
+QUICK_MUTE,MUTE,SILENCIAR
+QUICK_DIG,DIG,EXCAVAR
+QUICK_TOSS,TOSS,TIRAR
+QUICK_REPLY,REPLY,RESPONDER
+QUICK_STRETCH,STRETCH,ESTIRAR
+QUICK_CROP,CROP,RECORTAR
+QUICK_USE,USE,USAR
+QUICK_TUCK,TUCK,ARROPAR
 COLLECTION_LOCKED,LOCKED,BLOQUEADO
 COLLECTION_PLAY,PLAY,JUGAR
 GAME_RUNWAY_TITLE,Startup Runway Runner,Runner Runway Startup
@@ -522,25 +548,25 @@ CASINO_SUCCESS,LEADERBOARD JACKPOT!,¡JACKPOT DE LEADERBOARD!
 CASINO_TIMEOUT_SUCCESS,BENCHMARK ACCEPTED,BENCHMARK ACEPTADO
 CASINO_FAIL,BENCHMARK FLOPPED,BENCHMARK PINCHÓ
 GAME_TOS_TITLE,Terms Ninja,Terms Ninja
-GAME_TOS_DESC,Slice suspicious terms of service clauses before the tiny legal text steals the entire vibe project.,Corta cláusulas sospechosas antes de que la letra pequeña robe todo el proyecto vibe.
-TOS_INSTRUCTIONS,Click only suspicious clauses.,Haz clic solo en cláusulas sospechosas.
-TOS_STAGE_TITLE,FALLING TERMS OF SERVICE,TÉRMINOS CAYENDO
-TOS_IDLE,read the tiny text,lee la letra pequeña
-TOS_BLOCKED,clause blocked,cláusula bloqueada
-TOS_FALSE,that clause was fine,esa cláusula era normal
-TOS_MISSED,tiny text escaped,la letra pequeña escapó
-TOS_BAD_DATA,we train on everything,entrenamos con todo
-TOS_BAD_SOUL,license your soul,licencia tu alma
-TOS_BAD_GPU,use your GPU at night,usar tu GPU de noche
-TOS_BAD_FOREVER,rights forever,derechos para siempre
-TOS_GOOD_BUGS,send crash reports,enviar reportes crash
-TOS_GOOD_COOKIES,optional cookies,cookies opcionales
-TOS_GOOD_EXPORT,export your data,exportar tus datos
+GAME_TOS_DESC,Slice hallucinated legal clauses and leave normal license terms alone.,Corta cláusulas legales alucinadas y deja tranquilas las licencias normales.
+TOS_INSTRUCTIONS,Click hallucinated clauses. Leave legal licenses.,Corta alucinaciones. Deja licencias legales.
+TOS_STAGE_TITLE,LEGAL LICENSE CHECK,LICENCIA LEGAL
+TOS_IDLE,read the license,lee la licencia
+TOS_BLOCKED,hallucination cut,alucinación cortada
+TOS_FALSE,legal clause,cláusula legal
+TOS_MISSED,hallucination escaped,alucinación escapó
+TOS_BAD_DATA,we own your dreams,tus sueños son nuestros
+TOS_BAD_SOUL,user will be enslaved,usuario esclavizado
+TOS_BAD_GPU,your GPU serves us,tu GPU nos servirá
+TOS_BAD_FOREVER,firstborn as payment,primogénito como pago
+TOS_GOOD_BUGS,MIT license,licencia MIT
+TOS_GOOD_COOKIES,Apache 2.0,Apache 2.0
+TOS_GOOD_EXPORT,privacy notice,aviso privacidad
 TOS_GOOD_DELETE,delete account,borrar cuenta
 TOS_STATUS,Blocked: %d/%d  |  mistakes: %d,Bloqueadas: %d/%d  |  errores: %d
 TOS_SUCCESS,TINY TEXT DEFEATED!,¡LETRA PEQUEÑA DERROTADA!
 TOS_TIMEOUT_SUCCESS,TERMS CLEAN,TÉRMINOS LIMPIOS
-TOS_FAIL,LEGAL TEXT WON,GANÓ LA LETRA PEQUEÑA
+TOS_FAIL,HALLUCINATIONS WON,GANARON ALUCINACIONES
 GAME_COPILOT_TITLE,Copilot Suggestions,Sugerencias Copilot
 GAME_COPILOT_DESC,Accept helpful code suggestions and reject plausible-looking traps before they sneak into production.,Acepta sugerencias útiles y rechaza trampas que parecen plausibles antes de que entren en producción.
 COPILOT_INSTRUCTIONS,Accept useful suggestions. Reject dangerous ones.,Acepta sugerencias útiles. Rechaza las peligrosas.
@@ -1016,29 +1042,29 @@ APOLOGY_SUCCESS,APOLOGY SHIPPED!,DISCULPA ENVIADA!
 APOLOGY_TIMEOUT_SUCCESS,STATEMENT READY,COMUNICADO LISTO
 APOLOGY_TIMEOUT_FAIL,PR PANIC,PANICO PR
 APOLOGY_FAIL,APOLOGY LOOP,BUCLE DISCULPA
-GAME_WAKE_PET_TITLE,Wake Pet,Despierta Mascota
-GAME_WAKE_PET_DESC,Wake the sleepy AI pet with useful boosts and tuck away anything that makes it nap again,Despierta la mascota IA dormida con estimulos utiles y aparta todo lo que la vuelve a dormir
-WAKE_PET_INSTRUCTIONS,Use wake boosts. Tuck sleepy items away.,Usa estimulos para despertar. Aparta objetos somnolientos.
-WAKE_PET_BOARD_TITLE,Wake the tiny model,Despierta el mini modelo
-WAKE_PET_USE,USE,USAR
-WAKE_PET_TUCK,TUCK IN,ARROPAR
-WAKE_PET_IDLE,still snoring,sigue roncando
-WAKE_PET_ASLEEP,pet asleep,mascota dormida
-WAKE_PET_AWAKE,pet awake,mascota despierta
-WAKE_PET_GOOD_WAKE,wake boost!,sube energia!
-WAKE_PET_GOOD_TUCK,sleep trap tucked,trampa de sueno apartada
-WAKE_PET_BAD,wrong bedtime move,movida de cama mala
-WAKE_PET_ALARM,alarm clock,reloj alarma
-WAKE_PET_COFFEE,tiny coffee,cafe mini
-WAKE_PET_TOKEN_SNACK,token snack,snack de tokens
-WAKE_PET_SUNBEAM,sunbeam,rayito de sol
-WAKE_PET_DEBUG_WALK,debug walk,paseo debug
-WAKE_PET_BLANKET,heavy blanket,manta pesada
-WAKE_PET_LULLABY,lofi lullaby,nana lofi
-WAKE_PET_SNOOZE,snooze button,boton snooze
-WAKE_PET_WARM_CACHE,warm cache,cache calentita
-WAKE_PET_STATUS,Wake: %d/%d  |  mistakes: %d,Despertar: %d/%d  |  errores: %d
-WAKE_PET_SUCCESS,PET ONLINE!,MASCOTA ONLINE!
-WAKE_PET_TIMEOUT_SUCCESS,PET WOKE UP,MASCOTA DESPIERTA
-WAKE_PET_TIMEOUT_FAIL,STILL SLEEPING,SIGUE DORMIDA
-WAKE_PET_FAIL,NAP WON,GANO LA SIESTA
+GAME_WAKE_PET_TITLE,Plug Server,Enchufa el servidor
+GAME_WAKE_PET_DESC,Drag the loose cable into the wall outlet and power the dead machine,Arrastra el cable suelto al enchufe y enciende la maquina apagada
+WAKE_PET_INSTRUCTIONS,Drag the cable into the outlet.,Arrastra el cable al enchufe.
+WAKE_PET_BOARD_TITLE,Dead machine,Maquina apagada
+WAKE_PET_USE,PLUG,ENCHUFAR
+WAKE_PET_TUCK,PULL,TIRAR
+WAKE_PET_IDLE,no power,sin energia
+WAKE_PET_ASLEEP,server off,servidor apagado
+WAKE_PET_AWAKE,server on,servidor encendido
+WAKE_PET_GOOD_WAKE,power!,energia!
+WAKE_PET_GOOD_TUCK,cable loose,cable suelto
+WAKE_PET_BAD,missed outlet,enchufe fallado
+WAKE_PET_ALARM,cable,cable
+WAKE_PET_COFFEE,outlet,enchufe
+WAKE_PET_TOKEN_SNACK,screen,pantalla
+WAKE_PET_SUNBEAM,power,energia
+WAKE_PET_DEBUG_WALK,boot,arranque
+WAKE_PET_BLANKET,dark screen,pantalla negra
+WAKE_PET_LULLABY,dead port,puerto muerto
+WAKE_PET_SNOOZE,loose plug,clavija suelta
+WAKE_PET_WARM_CACHE,cold rack,rack frio
+WAKE_PET_STATUS,Power: %d/%d  |  mistakes: %d,Energia: %d/%d  |  errores: %d
+WAKE_PET_SUCCESS,POWER ON!,ENCENDIDO!
+WAKE_PET_TIMEOUT_SUCCESS,SERVER ON,SERVIDOR ON
+WAKE_PET_TIMEOUT_FAIL,NO POWER,SIN ENERGIA
+WAKE_PET_FAIL,CABLE LOST,CABLE PERDIDO

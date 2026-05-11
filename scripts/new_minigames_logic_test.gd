@@ -4,6 +4,12 @@ const LicenseMaze := preload("res://scripts/minigames/license_maze.gd")
 const EvalCherryPicker := preload("res://scripts/minigames/eval_cherry_picker.gd")
 const DeployFriday := preload("res://scripts/minigames/deploy_friday.gd")
 const SycophancyWhack := preload("res://scripts/minigames/sycophancy_whack.gd")
+const ModelRouter := preload("res://scripts/minigames/model_router.gd")
+const ContextTetris := preload("res://scripts/minigames/context_tetris.gd")
+const AgentMergeConflict := preload("res://scripts/minigames/agent_merge_conflict.gd")
+const DatasetLaundry := preload("res://scripts/minigames/dataset_laundry.gd")
+const PrReviewInferno := preload("res://scripts/minigames/pr_review_inferno.gd")
+const PromptGatekeeper := preload("res://scripts/minigames/prompt_gatekeeper.gd")
 const AgentTaskSwarm := preload("res://scripts/minigames/agent_task_swarm.gd")
 const GrokRageMode := preload("res://scripts/minigames/grok_rage_mode.gd")
 const VibeDeployProd := preload("res://scripts/minigames/vibe_deploy_prod.gd")
@@ -29,23 +35,30 @@ func _run() -> void:
 	if int(main.get("GAME_DEFS").size()) != 42:
 		_fail("Expected 42 minigames in GAME_DEFS")
 		return
+	if int((main.call("_active_game_indexes") as Array).size()) != 35:
+		_fail("Expected 35 active minigames after retiring duplicates")
+		return
 	main.queue_free()
 
 	await _test_license()
-	await _test_eval()
-	await _test_deploy()
 	await _test_syco()
-	await _test_swarm()
-	await _test_grok_rage()
-	await _test_vibe_deploy()
 	await _test_gpu_ritual()
-	await _test_archaeologist()
-	await _test_rename()
-	await _test_funeral()
-	await _test_thread()
-	await _test_photoshop()
 	await _test_denial()
-	await _test_apology()
+	await _test_quick_sort("Model Router", ModelRouter)
+	await _test_quick_sort("Context Tetris", ContextTetris)
+	await _test_quick_sort("Agent Merge Conflict", AgentMergeConflict)
+	await _test_quick_sort("Dataset Laundry", DatasetLaundry)
+	await _test_quick_sort("PR Review Inferno", PrReviewInferno)
+	await _test_quick_sort("Prompt Gatekeeper", PromptGatekeeper)
+	await _test_quick_sort("Friday Deploy", DeployFriday)
+	await _test_quick_sort("Agent Task Swarm", AgentTaskSwarm)
+	await _test_quick_sort("Grok Rage Mode", GrokRageMode)
+	await _test_quick_sort("Prompt Archaeologist", PromptArchaeologist)
+	await _test_quick_sort("Elon Rename Button", ElonRenameButton)
+	await _test_quick_sort("Open Source Funeral", OpenSourceFuneral)
+	await _test_quick_sort("Thread of Doom", ThreadOfDoom)
+	await _test_quick_sort("Benchmark Photoshop", BenchmarkPhotoshop)
+	await _test_quick_sort("Robot Apology Generator", RobotApologyGenerator)
 	await _test_wake_pet()
 
 	print("New minigames logic test passed.")
@@ -381,26 +394,78 @@ func _test_wake_pet() -> void:
 	root.add_child(game)
 	await process_frame
 	game.start_minigame()
-	var items: Array = game.get("ITEMS")
-	var current := int(game.get("current_item"))
-	var correct_action := "use" if bool(items[current]["wake"]) else "tuck"
-	game.call("_on_choice_pressed", correct_action)
 	await process_frame
-	if int(game.get("handled")) < 1:
-		_fail("Wake Pet did not process a correct action")
-		return
-	var before_mistakes := int(game.get("mistakes"))
-	current = int(game.get("current_item"))
-	correct_action = "use" if bool(items[current]["wake"]) else "tuck"
-	var wrong_action := "tuck" if correct_action == "use" else "use"
-	game.call("_on_choice_pressed", wrong_action)
+
+	game.call("_move_plug_to", Vector2(520, 360))
 	await process_frame
-	if int(game.get("mistakes")) <= before_mistakes and bool(game.get("running")):
-		_fail("Wake Pet did not process a wrong action")
+	if bool(game.get("plug_connected")):
+		_fail("Plug Server connected before snap")
 		return
-	await create_timer(0.16).timeout
+
+	game.call("_connect_plug")
+	await process_frame
+	if not bool(game.get("plug_connected")):
+		_fail("Plug Server did not snap the plug")
+		return
+	if int(game.get("score")) != 1:
+		_fail("Plug Server did not award completion score")
+		return
+	var powered_screen := game.get("computer_on") as TextureRect
+	if not powered_screen or not powered_screen.visible:
+		_fail("Plug Server did not switch to powered-on computer art")
+		return
+
+	await create_timer(0.75).timeout
+	if bool(game.get("running")):
+		_fail("Plug Server did not finish after powering on")
+		return
 	game.queue_free()
 	await process_frame
+
+func _test_quick_sort(game_name: String, script: GDScript) -> void:
+	var game: Control = script.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	var item_defs: Array = game.get("item_defs")
+	var option_defs: Array = game.get("option_defs")
+	var current := int(game.get("current_item"))
+	if current < 0 or current >= item_defs.size():
+		_fail("%s did not spawn an item" % game_name)
+		return
+
+	var correct := String((item_defs[current] as Dictionary)["correct"])
+	game.call("_choose_action", correct)
+	await create_timer(0.24).timeout
+	if int(game.get("handled")) < 1:
+		_fail("%s did not process a correct action" % game_name)
+		return
+
+	if bool(game.get("running")):
+		current = int(game.get("current_item"))
+		correct = String((item_defs[current] as Dictionary)["correct"])
+		var wrong := _wrong_quick_action(option_defs, correct)
+		var before_mistakes := int(game.get("mistakes"))
+		game.call("_choose_action", wrong)
+		await create_timer(0.24).timeout
+		if int(game.get("mistakes")) <= before_mistakes and bool(game.get("running")):
+			_fail("%s did not process a wrong action" % game_name)
+			return
+		if bool(game.get("running")):
+			game.finish(false)
+
+	game.queue_free()
+	await process_frame
+
+func _wrong_quick_action(option_defs: Array, correct: String) -> String:
+	for option_variant in option_defs:
+		var option: Dictionary = option_variant
+		var action := String(option["id"])
+		if action != correct:
+			return action
+	return "__wrong__"
 
 func _fail(message: String) -> void:
 	push_error(message)
