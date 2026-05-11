@@ -361,29 +361,36 @@ MERGE_RIGHT_USER,pass user text as user,pasar texto como user
 MERGE_SUCCESS,CONFLICT RESOLVED!,¡CONFLICTO RESUELTO!
 MERGE_TIMEOUT_SUCCESS,MERGE CLEAN,MERGE LIMPIO
 MERGE_FAIL,CI IS ON FIRE,CI ESTÁ ARDIENDO
-GAME_VACUUM_TITLE,Token Vacuum,Aspiradora de Tokens
-GAME_VACUUM_DESC,Stop the model when it starts overexplaining or the token vacuum eats the whole budget.,Para el modelo cuando empieza a sobreexplicar o la aspiradora de tokens se come todo el presupuesto.
-VACUUM_INSTRUCTIONS,Press STOP when the answer starts rambling.,Pulsa STOP cuando la respuesta empiece a enrollarse.
-VACUUM_BUDGET_TITLE,TOKEN BUDGET,PRESUPUESTO TOKEN
-VACUUM_OUTPUT_TITLE,MODEL OUTPUT,SALIDA DEL MODELO
-VACUUM_MOUTH,VACUUM,ASPIRADORA
-VACUUM_STOP,STOP,STOP
-VACUUM_SHORT,Short useful answer.,Respuesta corta y útil.
-VACUUM_RAMBLE_1,First let us define intelligence across history...,Primero definamos inteligencia a lo largo de la historia...
-VACUUM_RAMBLE_2,There are 47 nuanced caveats before the fix...,Hay 47 matices antes del arreglo...
-VACUUM_RAMBLE_3,Here is a complete framework migration plan...,Aquí va un plan completo de migración de framework...
-VACUUM_RAMBLE_4,To answer hello we need a taxonomy...,Para responder hola necesitamos una taxonomía...
-VACUUM_ON,SUCKING TOKENS,CHUPANDO TOKENS
-VACUUM_IDLE,quiet for now,tranquilo por ahora
-VACUUM_WASTED,false stop,stop falso
-VACUUM_TOO_EARLY,Too early. It was concise.,Demasiado pronto. Era conciso.
-VACUUM_STOPS,Stops: %d/%d,Stops: %d/%d
-VACUUM_MISTAKES,Waste: %d,Derroche: %d
-VACUUM_STATUS,Budget: %d  |  stops: %d/%d  |  waste: %d,Presupuesto: %d  |  stops: %d/%d  |  derroche: %d
-VACUUM_SUCCESS,TOKENS SAVED!,¡TOKENS SALVADOS!
-VACUUM_TIMEOUT_SUCCESS,BUDGET SURVIVED,PRESUPUESTO VIVO
-VACUUM_FAIL_EMPTY,TOKEN BUDGET EMPTY,PRESUPUESTO TOKEN VACÍO
-VACUUM_FAIL,TOKENS GOT VACUUMED,TOKENS ASPIRADOS
+GAME_VACUUM_TITLE,Downgrade Crisis,Crisis Downgrade
+GAME_VACUUM_DESC,Users pile in and token usage burns the CPUs; downgrade between 75 and 100 percent to save the company,Los usuarios se amontonan y el consumo quema las CPUs; baja el modelo entre 75 y 100 por ciento para salvar la empresa
+VACUUM_INSTRUCTIONS,Press DOWNGRADE when usage enters the red zone.,Pulsa DOWNGRADE cuando el consumo entre en la zona roja.
+VACUUM_BUDGET_TITLE,TOKEN LIMIT,LIMITE TOKEN
+VACUUM_OUTPUT_TITLE,USER LOAD,CARGA DE USUARIOS
+VACUUM_MOUTH,CPU,CPU
+VACUUM_STOP,DOWNGRADE,DOWNGRADE
+VACUUM_SHORT,users joining,usuarios entrando
+VACUUM_RAMBLE_1,more users,mas usuarios
+VACUUM_RAMBLE_2,CPUs heating,CPUs ardiendo
+VACUUM_RAMBLE_3,limit close,limite cerca
+VACUUM_RAMBLE_4,downgrade now,baja el modelo ya
+VACUUM_ON,CPU BURN,CPU ARDIENDO
+VACUUM_IDLE,stable,estable
+VACUUM_WASTED,too early,demasiado pronto
+VACUUM_TOO_EARLY,Wait for the red zone.,Espera a la zona roja.
+VACUUM_STOPS,Users: %d/%d,Usuarios: %d/%d
+VACUUM_MISTAKES,Angry users: %d,Usuarios cabreados: %d
+VACUUM_USERS_TITLE,USERS CONSUMING TOKENS,USUARIOS CONSUMIENDO TOKENS
+VACUUM_BIG_MODEL,BIG MODEL,MODELO GRANDE
+VACUUM_CHEAP_MODEL,CHEAP MODEL,MODELO BARATO
+VACUUM_USERS_JOINING,more and more users,mas y mas usuarios
+VACUUM_ANGRY,users are mad,usuarios cabreados
+VACUUM_LIMIT_TITLE,TOKEN USAGE,CONSUMO TOKEN
+VACUUM_DOWNGRADE,DOWNGRADE,DOWNGRADE
+VACUUM_STATUS,Users: %d  |  usage: %d%%,Usuarios: %d  |  consumo: %d%%
+VACUUM_SUCCESS,COMPANY SAVED!,EMPRESA SALVADA!
+VACUUM_TIMEOUT_SUCCESS,COMPANY SAVED,EMPRESA SALVADA
+VACUUM_FAIL_EMPTY,LIMIT EXPLODED,LIMITE REVENTADO
+VACUUM_FAIL,TOO EXPENSIVE,DEMASIADO CARO
 GAME_GPU_TITLE,GPU Black Friday,GPU Black Friday
 GAME_GPU_DESC,Move the cart to grab falling GPUs before rival models and cloud invoices ruin the shopping spree.,Mueve la cesta para atrapar GPUs antes de que modelos rivales y facturas cloud arruinen la compra.
 GPU_INSTRUCTIONS,Move with A/D or arrows. Catch GPUs and dodge bills.,Muévete con A/D o flechas. Atrapa GPUs y esquiva facturas.

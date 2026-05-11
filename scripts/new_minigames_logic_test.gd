@@ -5,6 +5,7 @@ const EvalCherryPicker := preload("res://scripts/minigames/eval_cherry_picker.gd
 const DeployFriday := preload("res://scripts/minigames/deploy_friday.gd")
 const SycophancyWhack := preload("res://scripts/minigames/sycophancy_whack.gd")
 const TokenBurner := preload("res://scripts/minigames/token_burner.gd")
+const TokenVacuum := preload("res://scripts/minigames/token_vacuum.gd")
 const ModelRouter := preload("res://scripts/minigames/model_router.gd")
 const ContextTetris := preload("res://scripts/minigames/context_tetris.gd")
 const AgentMergeConflict := preload("res://scripts/minigames/agent_merge_conflict.gd")
@@ -46,6 +47,7 @@ func _run() -> void:
 	await _test_gpu_ritual()
 	await _test_denial()
 	await _test_ollama_gpu()
+	await _test_downgrade_crisis()
 	await _test_quick_sort("Model Router", ModelRouter)
 	await _test_satellite_alignment()
 	await _test_quick_sort("Agent Merge Conflict", AgentMergeConflict)
@@ -491,6 +493,31 @@ func _test_ollama_gpu() -> void:
 	if bool(game.get("running")):
 		_fail("Cool Ollama did not finish after cooling")
 		return
+	game.queue_free()
+	await process_frame
+
+func _test_downgrade_crisis() -> void:
+	var game := TokenVacuum.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	game.call("_force_usage", 80.0)
+	game.call("_spawn_user", false)
+	game.call("_spawn_user", false)
+	game.call("_on_downgrade_pressed")
+	await create_timer(0.20).timeout
+	if not bool(game.get("downgraded")):
+		_fail("Downgrade Crisis did not enter downgraded state")
+		return
+	if float(game.get("usage")) > 11.0:
+		_fail("Downgrade Crisis did not drop token usage after downgrade")
+		return
+	var users: Array = game.get("users")
+	if users.is_empty() or not (users[0] as TextureRect).texture:
+		_fail("Downgrade Crisis did not render users")
+		return
+	await create_timer(1.0).timeout
 	game.queue_free()
 	await process_frame
 
