@@ -392,23 +392,24 @@ VACUUM_TIMEOUT_SUCCESS,COMPANY SAVED,EMPRESA SALVADA
 VACUUM_FAIL_EMPTY,LIMIT EXPLODED,LIMITE REVENTADO
 VACUUM_FAIL,TOO EXPENSIVE,DEMASIADO CARO
 GAME_GPU_TITLE,GPU Black Friday,GPU Black Friday
-GAME_GPU_DESC,Move the cart to grab falling GPUs before rival models and cloud invoices ruin the shopping spree.,Mueve la cesta para atrapar GPUs antes de que modelos rivales y facturas cloud arruinen la compra.
-GPU_INSTRUCTIONS,Move with A/D or arrows. Catch GPUs and dodge bills.,Muévete con A/D o flechas. Atrapa GPUs y esquiva facturas.
-GPU_MARKET_TITLE,GPU PANIC AISLE,PASILLO PÁNICO GPU
-GPU_MARKET_IDLE,prices changing every second,precios cambiando cada segundo
-GPU_CART,GPU CART,CESTA GPU
-GPU_STASH_TITLE,GPU STASH,ALMACÉN GPU
-GPU_AVOID_HINT,avoid cloud bills and empty hype,evita facturas cloud y hype vacío
+GAME_GPU_DESC,Move Sam's cart and empty the aisle before rivals grab the GPUs and RAM.,Mueve el carrito de Sam y vacía el pasillo antes de que los rivales se lleven las GPUs y la RAM.
+GPU_INSTRUCTIONS,Move with A/D or arrows. Catch GPUs and RAM.,Muévete con A/D o flechas. Atrapa GPUs y RAM.
+GPU_MARKET_TITLE,GPU AISLE,PASILLO GPU
+GPU_MARKET_IDLE,empty the shelves,vacía las estanterías
+GPU_CART,SAM CART,CARRITO SAM
+GPU_STASH_TITLE,STORE STOCK,STOCK TIENDA
+GPU_AVOID_HINT,do not miss stock,no pierdas stock
 GPU_ITEM_GPU,GPU,GPU
-GPU_ITEM_INVOICE,BILL,FACTURA
-GPU_ITEM_HYPE,HYPE,HYPE
-GPU_CAUGHT,GPU secured!,¡GPU asegurada!
-GPU_BAD_CATCH,wrong thing!,¡eso no!
-GPU_STATUS,GPUs: %d/%d  |  bad catches: %d  |  missed: %d,GPUs: %d/%d  |  basura: %d  |  perdidas: %d
-GPU_SUCCESS,GPU STASH LOADED!,¡ALMACÉN GPU LLENO!
-GPU_TIMEOUT_SUCCESS,ENOUGH GPU,SUFICIENTE GPU
-GPU_FAIL_BILL,CLOUD BILL EXPLODED,FACTURA CLOUD EXPLOTÓ
-GPU_FAIL,RIVALS BOUGHT THE GPUS,LOS RIVALES COMPRARON LAS GPUS
+GPU_ITEM_RAM,RAM,RAM
+GPU_ITEM_INVOICE,STOCK,STOCK
+GPU_ITEM_HYPE,RAM,RAM
+GPU_CAUGHT,grabbed!,¡pillado!
+GPU_BAD_CATCH,missed shelf!,¡stock perdido!
+GPU_STATUS,GPUs: %d  RAM: %d  |  missed: %d/%d,GPUs: %d  RAM: %d  |  perdidas: %d/%d
+GPU_SUCCESS,AISLE EMPTIED!,¡PASILLO VACÍO!
+GPU_TIMEOUT_SUCCESS,CART FULL,CARRITO LLENO
+GPU_FAIL_BILL,stock lost,stock perdido
+GPU_FAIL,RIVALS GOT THE STOCK,LOS RIVALES SE LLEVARON EL STOCK
 GAME_DATASET_TITLE,Dataset Laundry,Lavadora de Dataset
 GAME_DATASET_DESC,Sort clean training signal from legally spicy junk before the fine-tuned model learns cursed habits.,Separa señal limpia de basura legalmente picante antes de que el modelo fine-tuneado aprenda hábitos malditos.
 DATASET_INSTRUCTIONS,Send clean docs to training and suspicious ones to legal review.,Manda documentos limpios a entrenamiento y los sospechosos a revisión legal.

@@ -1,22 +1,37 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
-const TARGET_GPUS := 8
-const MAX_BAD_CATCHES := 3
-const CART_SPEED := 560.0
-const CART_MIN_X := 120.0
-const CART_MAX_X := 980.0
-const ITEM_MIN_SPEED := 170.0
-const ITEM_MAX_SPEED := 310.0
+const SAM_CART_PATH := "res://assets/art/gpu_black_friday_sam_cart.png"
+const GPU_PATH := "res://assets/art/gpu_black_friday_gpu.png"
+const RAM_PATH := "res://assets/art/gpu_black_friday_ram.png"
+const SHELF_PATH := "res://assets/art/gpu_black_friday_shelf.png"
+
+const TARGET_ITEMS := 12
+const TOTAL_STOCK := 15
+const MAX_MISSED := 3
+const CART_SPEED := 650.0
+const CART_MIN_X := 38.0
+const CART_MAX_X := 826.0
+const ITEM_MIN_SPEED := 205.0
+const ITEM_MAX_SPEED := 340.0
+const ITEM_SIZES := {
+	"gpu": Vector2(132, 94),
+	"ram": Vector2(132, 80)
+}
 
 var items: Array[Dictionary] = []
+var stock_queue: Array[String] = []
+var stock_icons: Array[TextureRect] = []
 var spawn_timer := 0.0
+var collected := 0
 var gpus := 0
-var bad_catches := 0
+var ram := 0
 var missed := 0
-var cart: PanelContainer
-var gpu_bar: ProgressBar
-var cart_label: Label
+var cart: TextureRect
+var cart_shadow: ColorRect
+var cart_hitbox := Rect2()
 var market_label: Label
+var stock_panel: PanelContainer
+var sold_out_stamp: Label
 
 func _ready() -> void:
 	configure(
@@ -31,17 +46,21 @@ func _ready() -> void:
 func start_minigame() -> void:
 	super.start_minigame()
 	items.clear()
-	spawn_timer = 0.0
+	stock_queue = _make_stock_queue()
+	spawn_timer = 0.12
+	collected = 0
 	gpus = 0
-	bad_catches = 0
+	ram = 0
 	missed = 0
 	score = 0
 	_clear_items()
-	cart.position = Vector2(555, 536)
+	_reset_stock_icons()
+	cart.position = Vector2(134, 322)
 	cart.rotation = 0.0
-	gpu_bar.value = 0
-	cart_label.text = tr("GPU_CART")
+	cart_shadow.position = Vector2(256, 633)
 	market_label.text = tr("GPU_MARKET_IDLE")
+	sold_out_stamp.visible = false
+	_update_cart_hitbox()
 	_update_status()
 
 func _process(delta: float) -> void:
@@ -54,83 +73,111 @@ func _process(delta: float) -> void:
 	_update_items(delta)
 
 func _build_stage() -> void:
-	var bg := ColorRect.new()
-	bg.position = Vector2(0, 0)
-	bg.size = Vector2(1280, 720)
-	bg.color = Color("#17202e")
-	add_child(bg)
-	move_child(bg, 0)
-
-	_build_market()
-	_build_cart()
-	_build_score_panel()
-
-func _build_market() -> void:
-	var market := PanelContainer.new()
-	market.position = Vector2(80, 220)
-	market.size = Vector2(880, 398)
-	market.add_theme_stylebox_override("panel", make_style(Color("#f2f7ff"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(market)
-
-	var title := make_label(tr("GPU_MARKET_TITLE"), 34, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(112, 238)
-	title.size = Vector2(816, 48)
-	title.add_theme_color_override("font_outline_color", Color("#ffffff"))
-	title.add_theme_constant_override("outline_size", 3)
-	content_layer.add_child(title)
+	var wall := ColorRect.new()
+	wall.position = Vector2(0, 196)
+	wall.size = Vector2(1280, 262)
+	wall.color = Color("#2e6d78")
+	content_layer.add_child(wall)
 
 	var floor := ColorRect.new()
-	floor.position = Vector2(108, 598)
-	floor.size = Vector2(824, 12)
-	floor.color = Color("#1d1d1d")
+	floor.position = Vector2(0, 458)
+	floor.size = Vector2(1280, 262)
+	floor.color = Color("#e7c891")
 	content_layer.add_child(floor)
 
-	market_label = make_label("", 24, Color("#fff06a"), HORIZONTAL_ALIGNMENT_CENTER)
-	market_label.position = Vector2(198, 294)
-	market_label.size = Vector2(640, 38)
-	market_label.add_theme_color_override("font_outline_color", Color("#111111"))
-	market_label.add_theme_constant_override("outline_size", 5)
-	content_layer.add_child(market_label)
+	for index in range(9):
+		var tile_line := ColorRect.new()
+		tile_line.position = Vector2(40 + index * 148, 458)
+		tile_line.size = Vector2(4, 262)
+		tile_line.color = Color("#cfae78")
+		tile_line.rotation = -0.17
+		content_layer.add_child(tile_line)
 
-func _build_cart() -> void:
-	cart = PanelContainer.new()
-	cart.position = Vector2(555, 536)
-	cart.size = Vector2(170, 62)
-	cart.pivot_offset = Vector2(85, 52)
-	cart.add_theme_stylebox_override("panel", make_style(Color("#bdfb7f"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(cart)
+	var horizon := ColorRect.new()
+	horizon.position = Vector2(0, 456)
+	horizon.size = Vector2(1280, 8)
+	horizon.color = Color("#1d1d1d")
+	content_layer.add_child(horizon)
 
-	cart_label = make_label(tr("GPU_CART"), 23, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	cart.add_child(cart_label)
+	var shelf_shadow := ColorRect.new()
+	shelf_shadow.position = Vector2(590, 256)
+	shelf_shadow.size = Vector2(630, 344)
+	shelf_shadow.color = Color("#00000055")
+	content_layer.add_child(shelf_shadow)
 
-func _build_score_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(1000, 220)
-	panel.size = Vector2(220, 398)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(panel)
+	var shelf := make_sprite(SHELF_PATH, Vector2(618, 376))
+	shelf.position = Vector2(570, 210)
+	content_layer.add_child(shelf)
 
-	var sam := make_sprite("res://assets/sprites/sam_face.png", Vector2(142, 126))
-	sam.position = Vector2(1039, 248)
-	content_layer.add_child(sam)
+	_build_stock_strip()
+	_build_cart()
+	_build_labeling()
+	status_label.position = Vector2(520, 640)
+	status_label.size = Vector2(700, 45)
 
-	var title := make_label(tr("GPU_STASH_TITLE"), 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(1022, 390)
-	title.size = Vector2(176, 42)
+func _build_labeling() -> void:
+	var title := make_label(tr("GPU_MARKET_TITLE"), 31, Color("#fff8cf"), HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = Vector2(150, 216)
+	title.size = Vector2(360, 46)
+	title.add_theme_color_override("font_outline_color", Color("#111111"))
+	title.add_theme_constant_override("outline_size", 7)
 	content_layer.add_child(title)
 
-	gpu_bar = ProgressBar.new()
-	gpu_bar.position = Vector2(1030, 450)
-	gpu_bar.size = Vector2(160, 34)
-	gpu_bar.min_value = 0
-	gpu_bar.max_value = TARGET_GPUS
-	gpu_bar.show_percentage = false
-	content_layer.add_child(gpu_bar)
+	market_label = make_label("", 25, Color("#fff6b3"), HORIZONTAL_ALIGNMENT_CENTER)
+	market_label.position = Vector2(160, 264)
+	market_label.size = Vector2(350, 40)
+	market_label.add_theme_color_override("font_outline_color", Color("#111111"))
+	market_label.add_theme_constant_override("outline_size", 7)
+	content_layer.add_child(market_label)
 
-	var hint := make_label(tr("GPU_AVOID_HINT"), 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = Vector2(1022, 512)
-	hint.size = Vector2(176, 64)
-	content_layer.add_child(hint)
+	sold_out_stamp = make_label(tr("GPU_SUCCESS"), 56, Color("#ff4e5c"), HORIZONTAL_ALIGNMENT_CENTER)
+	sold_out_stamp.position = Vector2(632, 354)
+	sold_out_stamp.size = Vector2(486, 96)
+	sold_out_stamp.rotation = -0.13
+	sold_out_stamp.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	sold_out_stamp.add_theme_constant_override("outline_size", 10)
+	sold_out_stamp.visible = false
+	sold_out_stamp.z_index = 25
+	content_layer.add_child(sold_out_stamp)
+
+func _build_stock_strip() -> void:
+	stock_panel = PanelContainer.new()
+	stock_panel.position = Vector2(52, 520)
+	stock_panel.size = Vector2(238, 82)
+	stock_panel.add_theme_stylebox_override("panel", make_style(Color("#fff6d7"), Color("#1d1d1d"), 4, 8))
+	content_layer.add_child(stock_panel)
+
+	var grid := GridContainer.new()
+	grid.columns = 5
+	grid.position = Vector2(10, 8)
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 3)
+	stock_panel.add_child(grid)
+
+	stock_icons.clear()
+	for index in range(TOTAL_STOCK):
+		var kind := "gpu" if index % 2 == 0 else "ram"
+		var icon := make_sprite(GPU_PATH if kind == "gpu" else RAM_PATH, Vector2(38, 24))
+		icon.custom_minimum_size = Vector2(38, 20)
+		icon.modulate = Color(1, 1, 1, 0.92)
+		icon.set_meta("kind", kind)
+		icon.set_meta("depleted", false)
+		grid.add_child(icon)
+		stock_icons.append(icon)
+
+func _build_cart() -> void:
+	cart_shadow = ColorRect.new()
+	cart_shadow.position = Vector2(256, 633)
+	cart_shadow.size = Vector2(260, 22)
+	cart_shadow.color = Color("#00000042")
+	cart_shadow.rotation = -0.02
+	content_layer.add_child(cart_shadow)
+
+	cart = make_sprite(SAM_CART_PATH, Vector2(374, 380))
+	cart.position = Vector2(134, 322)
+	cart.pivot_offset = Vector2(190, 332)
+	cart.z_index = 18
+	content_layer.add_child(cart)
 
 func _update_cart(delta: float) -> void:
 	var direction := Input.get_axis("ui_left", "ui_right")
@@ -141,82 +188,128 @@ func _update_cart(delta: float) -> void:
 	direction = clamp(direction, -1.0, 1.0)
 
 	cart.position.x = clamp(cart.position.x + direction * CART_SPEED * delta, CART_MIN_X, CART_MAX_X)
-	cart.rotation = lerp(cart.rotation, direction * 0.09, 0.18)
+	cart.rotation = lerp(cart.rotation, direction * 0.045, 0.18)
+	cart_shadow.position.x = cart.position.x + 122.0
+	_update_cart_hitbox()
+
+func _update_cart_hitbox() -> void:
+	cart_hitbox = Rect2(
+		cart.global_position + Vector2(cart.size.x * 0.43, cart.size.y * 0.36),
+		Vector2(cart.size.x * 0.48, cart.size.y * 0.32)
+	)
 
 func _update_spawner(delta: float) -> void:
+	if stock_queue.is_empty():
+		if items.is_empty() and collected < TARGET_ITEMS:
+			call_deferred("_finish_out_of_stock")
+		return
+
 	spawn_timer -= delta
 	if spawn_timer > 0.0:
 		return
 
-	spawn_timer = randf_range(0.34, 0.68)
-	_spawn_item()
+	spawn_timer = randf_range(0.38, 0.62)
+	_spawn_item(stock_queue.pop_front())
 
 func _update_items(delta: float) -> void:
 	for item in items.duplicate():
 		var node := item["node"] as Control
 		node.position.y += float(item["speed"]) * delta
+		node.position.x += sin(float(item["wiggle"]) + Time.get_ticks_msec() * 0.004) * 0.55
 		node.rotation += float(item["spin"]) * delta
 
-		if cart.get_global_rect().intersects(node.get_global_rect()):
+		if cart_hitbox.intersects(node.get_global_rect()):
 			_catch_item(item)
-		elif node.position.y > 638.0:
-			if item["kind"] == "gpu":
-				missed += 1
-			_remove_item(item)
-			_update_status()
+		elif node.position.y > 636.0:
+			_miss_item(item)
 
-func _spawn_item() -> void:
-	var roll := randf()
-	var kind := "gpu"
-	var label_key := "GPU_ITEM_GPU"
-	var fill := Color("#66c6ff")
-	if roll > 0.66 and roll <= 0.83:
-		kind = "invoice"
-		label_key = "GPU_ITEM_INVOICE"
-		fill = Color("#ff7777")
-	elif roll > 0.83:
-		kind = "hype"
-		label_key = "GPU_ITEM_HYPE"
-		fill = Color("#ffef5f")
+func _make_stock_queue() -> Array[String]:
+	var queue: Array[String] = []
+	for index in range(TOTAL_STOCK):
+		queue.append("gpu" if index % 2 == 0 else "ram")
+	queue.shuffle()
+	return queue
 
-	var item_panel := PanelContainer.new()
-	item_panel.name = "DynamicGpuItem"
-	item_panel.position = Vector2(randf_range(130, 846), 206)
-	item_panel.size = Vector2(116, 64)
-	item_panel.pivot_offset = Vector2(58, 32)
-	item_panel.add_theme_stylebox_override("panel", make_style(fill, Color("#1d1d1d"), 4, 8))
-	content_layer.add_child(item_panel)
+func _spawn_item(kind: String) -> void:
+	var item_size: Vector2 = ITEM_SIZES[kind]
+	var item := Control.new()
+	item.name = "DynamicGpuItem"
+	item.position = Vector2(randf_range(520, 1040), 205)
+	item.size = item_size
+	item.pivot_offset = item_size * 0.5
+	item.z_index = 14
+	content_layer.add_child(item)
 
-	var label := make_label(tr(label_key), 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	item_panel.add_child(label)
+	var shadow := ColorRect.new()
+	shadow.position = Vector2(8, item_size.y - 10)
+	shadow.size = Vector2(item_size.x - 18, 12)
+	shadow.color = Color("#00000032")
+	item.add_child(shadow)
 
+	var sprite := make_sprite(GPU_PATH if kind == "gpu" else RAM_PATH, item_size)
+	sprite.position = Vector2.ZERO
+	item.add_child(sprite)
+
+	_deplete_next_stock_icon(kind)
 	items.append({
-		"node": item_panel,
+		"node": item,
 		"kind": kind,
 		"speed": randf_range(ITEM_MIN_SPEED, ITEM_MAX_SPEED),
-		"spin": randf_range(-1.1, 1.1)
+		"spin": randf_range(-0.9, 0.9),
+		"wiggle": randf_range(0.0, TAU)
 	})
 
+func _deplete_next_stock_icon(kind: String) -> void:
+	for icon in stock_icons:
+		if not bool(icon.get_meta("depleted")) and String(icon.get_meta("kind")) == kind:
+			icon.modulate = Color(1, 1, 1, 0.20)
+			icon.set_meta("depleted", true)
+			return
+	for icon in stock_icons:
+		if not bool(icon.get_meta("depleted")):
+			icon.modulate = Color(1, 1, 1, 0.20)
+			icon.set_meta("depleted", true)
+			return
+
 func _catch_item(item: Dictionary) -> void:
-	if item["kind"] == "gpu":
+	var kind := String(item["kind"])
+	_remove_item(item)
+	_register_catch(kind)
+
+func _register_catch(kind: String) -> void:
+	collected += 1
+	if kind == "gpu":
 		gpus += 1
-		score = gpus
-		gpu_bar.value = gpus
-		market_label.text = tr("GPU_CAUGHT")
-		play_action_sound("collect")
-		_remove_item(item)
-		_update_status()
-		if gpus >= TARGET_GPUS:
-			await finish_with_result(true, "GPU_SUCCESS", 0.7)
 	else:
-		bad_catches += 1
-		market_label.text = tr("GPU_BAD_CATCH")
-		_remove_item(item)
-		_update_status()
-		if bad_catches >= MAX_BAD_CATCHES:
-			await finish_with_result(false, "GPU_FAIL_BILL", 0.55)
-		else:
-			play_action_sound("bad")
+		ram += 1
+	score = collected
+	market_label.text = tr("GPU_CAUGHT")
+	play_action_sound("collect")
+	_update_status()
+	if collected >= TARGET_ITEMS:
+		_show_sold_out()
+		call_deferred("_finish_success")
+
+func _miss_item(item: Dictionary) -> void:
+	missed += 1
+	_remove_item(item)
+	market_label.text = tr("GPU_FAIL_BILL")
+	play_action_sound("bad")
+	_update_status()
+	if missed >= MAX_MISSED:
+		call_deferred("_finish_out_of_stock")
+
+func _show_sold_out() -> void:
+	sold_out_stamp.visible = true
+	for icon in stock_icons:
+		icon.modulate = Color(1, 1, 1, 0.12)
+		icon.set_meta("depleted", true)
+
+func _finish_success() -> void:
+	await finish_with_result(true, "GPU_SUCCESS", 0.72)
+
+func _finish_out_of_stock() -> void:
+	await finish_with_result(false, "GPU_FAIL", 0.58)
 
 func _remove_item(item: Dictionary) -> void:
 	items.erase(item)
@@ -230,9 +323,17 @@ func _clear_items() -> void:
 			child.queue_free()
 	items.clear()
 
+func _reset_stock_icons() -> void:
+	for icon in stock_icons:
+		icon.visible = true
+		icon.modulate = Color(1, 1, 1, 0.92)
+		icon.set_meta("depleted", false)
+
 func _update_status() -> void:
-	set_status(tr("GPU_STATUS") % [gpus, TARGET_GPUS, bad_catches, missed])
+	set_status(tr("GPU_STATUS") % [gpus, ram, missed, MAX_MISSED])
 
 func on_timeout() -> void:
-	var success := gpus >= TARGET_GPUS
+	var success := collected >= TARGET_ITEMS
+	if success:
+		_show_sold_out()
 	await finish_with_result(success, "GPU_TIMEOUT_SUCCESS" if success else "GPU_FAIL", 0.45)

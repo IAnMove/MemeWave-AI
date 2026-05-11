@@ -128,6 +128,7 @@ const PENDING_DELETE_GAME_TITLE_KEYS := [
 	"GAME_MERGE_TITLE",
 	"GAME_DATASET_TITLE",
 	"GAME_DEPLOY_TITLE",
+	"GAME_CASINO_TITLE",
 	"GAME_PR_TITLE",
 	"GAME_TOS_TITLE",
 	"GAME_PROMPT_GATE_TITLE",
@@ -250,7 +251,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_GPU_TITLE",
 		"script": GpuBlackFriday,
 		"description_key": "GAME_GPU_DESC",
-		"thumbnail": "res://assets/art/object_spritesheet.png"
+		"thumbnail": "res://assets/art/gpu_black_friday_sam_cart.png"
 	},
 	{
 		"title_key": "GAME_DATASET_TITLE",
