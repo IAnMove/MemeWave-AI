@@ -56,7 +56,7 @@ func _run() -> void:
 	await _test_quick_sort("Agent Task Swarm", AgentTaskSwarm)
 	await _test_quick_sort("Grok Rage Mode", GrokRageMode)
 	await _test_quick_sort("Prompt Archaeologist", PromptArchaeologist)
-	await _test_quick_sort("Elon Rename Button", ElonRenameButton)
+	await _test_red_button()
 	await _test_quick_sort("Open Source Funeral", OpenSourceFuneral)
 	await _test_chrome_ram()
 	await _test_quick_sort("Benchmark Photoshop", BenchmarkPhotoshop)
@@ -490,6 +490,36 @@ func _test_ollama_gpu() -> void:
 	await create_timer(0.25).timeout
 	if bool(game.get("running")):
 		_fail("Cool Ollama did not finish after cooling")
+		return
+	game.queue_free()
+	await process_frame
+
+func _test_red_button() -> void:
+	var game := ElonRenameButton.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	game.call("_press_red_button")
+	await create_timer(0.90).timeout
+	if bool(game.get("running")):
+		_fail("Red Button did not fail after pressing")
+		return
+	if not bool((game.get("scold_sprite") as TextureRect).visible):
+		_fail("Red Button did not show the scolding character")
+		return
+
+	game.queue_free()
+	await process_frame
+
+	game = ElonRenameButton.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await create_timer(4.45).timeout
+	if bool(game.get("running")):
+		_fail("Red Button did not finish after waiting")
 		return
 	game.queue_free()
 	await process_frame

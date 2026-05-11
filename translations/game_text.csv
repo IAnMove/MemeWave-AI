@@ -888,43 +888,45 @@ ARCHAEOLOGY_SUCCESS,PROMPT UNEARTHED!,PROMPT DESENTERRADO!
 ARCHAEOLOGY_TIMEOUT_SUCCESS,CONTEXT CLEANED,CONTEXTO LIMPIO
 ARCHAEOLOGY_TIMEOUT_FAIL,LOST IN CONTEXT,PERDIDO EN CONTEXTO
 ARCHAEOLOGY_FAIL,NOISE WON,GANO EL RUIDO
-GAME_RENAME_TITLE,Elon Rename Button,Boton Renombrar Elon
-GAME_RENAME_DESC,Pick the new absurd product name before the old one gets renamed again,Elige el nuevo nombre absurdo antes de que el viejo cambie otra vez
-RENAME_INSTRUCTIONS,Click the absurd new name fast.,Haz clic en el nuevo nombre absurdo rapido.
-RENAME_BOARD_TITLE,Product rename panic,Panico de renombres
-RENAME_SIDE_TITLE,Brand chaos,Caos de marca
-RENAME_IDLE,waiting for rename,esperando renombre
-RENAME_GOOD,renamed correctly,renombre correcto
-RENAME_BAD,too normal,demasiado normal
-RENAME_STATUS,Renamed: %d/%d  |  mistakes: %d,Renombrados: %d/%d  |  errores: %d
-RENAME_OLD_TWITTER,Twitter,Twitter
-RENAME_NEW_X,X,X
-RENAME_WRONG_BIRDAPP,BirdApp,BirdApp
-RENAME_WRONG_POSTY,Posty,Posty
-RENAME_OLD_ROCKET,Rocket company,Empresa cohete
-RENAME_NEW_STARPIPE,StarPipe,StarPipe
-RENAME_WRONG_MOONBUS,MoonBus,MoonBus
-RENAME_WRONG_BOOMTUBE,BoomTube,BoomTube
-RENAME_OLD_AI_CHAT,AI chat,Chat IA
-RENAME_NEW_TRUTH_BLENDER,TruthBlender,TruthBlender
-RENAME_WRONG_HELPBOT,HelpBot,HelpBot
-RENAME_WRONG_CALMBOX,CalmBox,CalmBox
-RENAME_OLD_CAR,Electric car,Coche electrico
-RENAME_NEW_WHEEL_X,Wheel X,Wheel X
-RENAME_WRONG_ROADPOD,RoadPod,RoadPod
-RENAME_WRONG_AUTOCUBE,AutoCube,AutoCube
-RENAME_OLD_BUTTON,Blue button,Boton azul
-RENAME_NEW_MEGA_X,Mega X,Mega X
-RENAME_WRONG_OK_BUTTON,OK Button,Boton OK
-RENAME_WRONG_NORMAL_NAME,Normal Name,Nombre Normal
-RENAME_OLD_COMPANY,Everything app,App de todo
-RENAME_NEW_X_EVERYTHING,X Everything,X Todo
-RENAME_WRONG_OPEN_THING,Open Thing,Open Thing
-RENAME_WRONG_CLOUDCHAT,CloudChat,CloudChat
-RENAME_SUCCESS,BRAND RENAMED!,MARCA RENOMBRADA!
-RENAME_TIMEOUT_SUCCESS,NAME CHAOS WON,CAOS DE NOMBRES
-RENAME_TIMEOUT_FAIL,BRAND TOO STABLE,MARCA MUY ESTABLE
-RENAME_FAIL,NORMAL NAME DETECTED,NOMBRE NORMAL DETECTADO
+GAME_RENAME_TITLE,Red Button,Boton rojo
+GAME_RENAME_DESC,A giant red button begs to be pressed; do nothing and survive the temptation,Un boton rojo gigante pide ser pulsado; no hagas nada y sobrevive a la tentacion
+RENAME_INSTRUCTIONS,Do not press the red button.,No pulses el boton rojo.
+RENAME_BOARD_TITLE,Do not press,No pulsar
+RENAME_SIDE_TITLE,Temptation,Tentacion
+RENAME_IDLE,do nothing,no hagas nada
+RENAME_GOOD,good restraint,buen autocontrol
+RENAME_BAD,pressed!,pulsado!
+RENAME_STATUS,Wait: %d/%d  |  mistakes: %d,Espera: %d/%d  |  errores: %d
+RENAME_OLD_TWITTER,button,boton
+RENAME_NEW_X,do not press,no pulsar
+RENAME_WRONG_BIRDAPP,press,pulsar
+RENAME_WRONG_POSTY,touch,tocar
+RENAME_OLD_ROCKET,button,boton
+RENAME_NEW_STARPIPE,do not press,no pulsar
+RENAME_WRONG_MOONBUS,press,pulsar
+RENAME_WRONG_BOOMTUBE,touch,tocar
+RENAME_OLD_AI_CHAT,button,boton
+RENAME_NEW_TRUTH_BLENDER,do not press,no pulsar
+RENAME_WRONG_HELPBOT,press,pulsar
+RENAME_WRONG_CALMBOX,touch,tocar
+RENAME_OLD_CAR,button,boton
+RENAME_NEW_WHEEL_X,do not press,no pulsar
+RENAME_WRONG_ROADPOD,press,pulsar
+RENAME_WRONG_AUTOCUBE,touch,tocar
+RENAME_OLD_BUTTON,red button,boton rojo
+RENAME_NEW_MEGA_X,do not press,no pulsar
+RENAME_WRONG_OK_BUTTON,press,pulsar
+RENAME_WRONG_NORMAL_NAME,touch,tocar
+RENAME_OLD_COMPANY,button,boton
+RENAME_NEW_X_EVERYTHING,do not press,no pulsar
+RENAME_WRONG_OPEN_THING,press,pulsar
+RENAME_WRONG_CLOUDCHAT,touch,tocar
+RENAME_NO_PRESS,DO NOT PRESS,NO PULSAR
+RENAME_SCOLD,Why did you press?,Por que has pulsado?
+RENAME_SUCCESS,SELF CONTROL!,AUTOCONTROL!
+RENAME_TIMEOUT_SUCCESS,NOT PRESSED,NO PULSADO
+RENAME_TIMEOUT_FAIL,ALARM!,ALARMA!
+RENAME_FAIL,WHY DID YOU PRESS?,POR QUE HAS PULSADO?
 GAME_FUNERAL_TITLE,Open Source Funeral,Funeral Open Source
 GAME_FUNERAL_DESC,Sort repos into community research or private vault before the open promise gets buried,Clasifica repos en comunidad investigacion o boveda privada antes de enterrar la promesa open
 FUNERAL_INSTRUCTIONS,Send each repo to the right resting place.,Envia cada repo a su destino correcto.

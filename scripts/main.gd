@@ -359,7 +359,7 @@ const GAME_DEFS := [
 		"script": ElonRenameButton,
 		"description_key": "GAME_RENAME_DESC",
 		"instruction_key": "RENAME_INSTRUCTIONS",
-		"thumbnail": "res://assets/sprites/elon_face.png"
+		"thumbnail": "res://assets/art/red_button_bg.png"
 	},
 	{
 		"title_key": "GAME_FUNERAL_TITLE",

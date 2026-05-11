@@ -1,183 +1,204 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
-const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
-const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
+const BG_PATH := "res://assets/art/red_button_bg.png"
+const SCOLD_PATH := "res://assets/art/red_button_scold.png"
+const WAIT_SECONDS := 4.2
 
-const TARGET_RENAMES := 6
-const MISTAKE_LIMIT := 3
-const PRODUCTS := [
-	{"old_key": "RENAME_OLD_TWITTER", "new_key": "RENAME_NEW_X", "wrong": ["RENAME_WRONG_BIRDAPP", "RENAME_WRONG_POSTY"]},
-	{"old_key": "RENAME_OLD_ROCKET", "new_key": "RENAME_NEW_STARPIPE", "wrong": ["RENAME_WRONG_MOONBUS", "RENAME_WRONG_BOOMTUBE"]},
-	{"old_key": "RENAME_OLD_AI_CHAT", "new_key": "RENAME_NEW_TRUTH_BLENDER", "wrong": ["RENAME_WRONG_HELPBOT", "RENAME_WRONG_CALMBOX"]},
-	{"old_key": "RENAME_OLD_CAR", "new_key": "RENAME_NEW_WHEEL_X", "wrong": ["RENAME_WRONG_ROADPOD", "RENAME_WRONG_AUTOCUBE"]},
-	{"old_key": "RENAME_OLD_BUTTON", "new_key": "RENAME_NEW_MEGA_X", "wrong": ["RENAME_WRONG_OK_BUTTON", "RENAME_WRONG_NORMAL_NAME"]},
-	{"old_key": "RENAME_OLD_COMPANY", "new_key": "RENAME_NEW_X_EVERYTHING", "wrong": ["RENAME_WRONG_OPEN_THING", "RENAME_WRONG_CLOUDCHAT"]}
-]
-
-var queue: Array[int] = []
-var current_product := -1
-var rename_count := 0
-var mistakes := 0
-var product_label: Label
-var verdict_label: Label
-var rename_bar: ProgressBar
-var option_buttons: Array[Button] = []
+var safe_time := 0.0
+var pressed_red := false
+var pulse := 0.0
+var button_base: PanelContainer
+var button_top: TextureButton
+var button_label: Label
+var progress_bar: ProgressBar
+var alarm_overlay: ColorRect
+var scold_sprite: TextureRect
+var scold_label: Label
+var sparks: Array[Line2D] = []
 
 func _ready() -> void:
-	configure("GAME_RENAME_TITLE", "RENAME_INSTRUCTIONS", "GAME_RENAME_DESC", "res://assets/sprites/elon_face.png")
+	configure("GAME_RENAME_TITLE", "RENAME_INSTRUCTIONS", "GAME_RENAME_DESC", BG_PATH)
 	super._ready()
+	hide_common_minigame_header()
+	hide_base_status()
+	_hide_base_header_panel()
+	if tutorial_panel:
+		tutorial_panel.visible = false
 	_build_stage()
 
 func start_minigame() -> void:
 	super.start_minigame()
-	queue.clear()
-	for index in range(PRODUCTS.size()):
-		queue.append(index)
-	queue.shuffle()
-	current_product = -1
-	rename_count = 0
-	mistakes = 0
+	safe_time = 0.0
+	pressed_red = false
 	score = 0
-	rename_bar.value = 0
-	verdict_label.text = tr("RENAME_IDLE")
-	verdict_label.add_theme_color_override("font_color", Color("#151515"))
-	_set_buttons_enabled(true)
-	_next_product()
-	_update_status()
+	button_base.visible = true
+	button_top.disabled = false
+	button_top.scale = Vector2.ONE
+	button_top.position = Vector2(396, 222)
+	alarm_overlay.visible = false
+	alarm_overlay.color = Color("#ff000000")
+	scold_sprite.visible = false
+	scold_label.visible = false
+	progress_bar.value = 0
+	for spark in sparks:
+		spark.visible = true
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not running or not (event is InputEventKey and event.pressed and not event.echo):
+func _process(delta: float) -> void:
+	super._process(delta)
+	if not running or pressed_red:
 		return
-	if event.keycode >= KEY_1 and event.keycode <= KEY_3:
-		var index := int(event.keycode - KEY_1)
-		if index >= 0 and index < option_buttons.size():
-			get_viewport().set_input_as_handled()
-			_on_option_pressed(String(option_buttons[index].get_meta("name_key")))
+
+	safe_time += delta
+	score = roundi(safe_time * 100.0 / WAIT_SECONDS)
+	progress_bar.value = safe_time
+	pulse += delta * 18.0
+	var shake := Vector2(sin(pulse) * 7.0, cos(pulse * 1.35) * 5.0)
+	button_top.position = Vector2(396, 222) + shake
+	button_top.scale = Vector2.ONE * (1.0 + sin(pulse * 0.7) * 0.035)
+	for index in range(sparks.size()):
+		sparks[index].modulate.a = 0.45 + sin(pulse + index) * 0.35
+
+	if safe_time >= WAIT_SECONDS:
+		_survive_button()
 
 func _build_stage() -> void:
-	var bg := ColorRect.new()
-	bg.position = Vector2.ZERO
-	bg.size = Vector2(1280, 720)
-	bg.color = Color("#fbf7eb")
-	add_child(bg)
-	move_child(bg, 0)
+	_build_button()
+	_build_safe_meter()
+	_build_alarm()
+	_build_scold()
+	_build_sparks()
 
-	_sketch_panel(Vector2(70, 214), Vector2(760, 410), Color("#fffdf8"), true)
-	_sketch_panel(Vector2(884, 214), Vector2(320, 410), Color("#f2f7ff"), false)
+func _build_button() -> void:
+	button_base = PanelContainer.new()
+	button_base.position = Vector2(300, 310)
+	button_base.size = Vector2(420, 210)
+	button_base.add_theme_stylebox_override("panel", make_style(Color("#5f1616"), Color("#151515"), 8, 42))
+	content_layer.add_child(button_base)
 
-	var title := _outlined_label(tr("RENAME_BOARD_TITLE"), 36, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(112, 238)
-	title.size = Vector2(676, 52)
-	content_layer.add_child(title)
+	button_top = TextureButton.new()
+	button_top.position = Vector2(396, 222)
+	button_top.size = Vector2(238, 238)
+	button_top.ignore_texture_size = true
+	button_top.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	button_top.texture_normal = _make_button_texture(Color("#ff2727"), Color("#151515"))
+	button_top.texture_hover = _make_button_texture(Color("#ff4a4a"), Color("#151515"))
+	button_top.texture_pressed = _make_button_texture(Color("#b51620"), Color("#151515"))
+	button_top.pivot_offset = Vector2(119, 119)
+	button_top.pressed.connect(_press_red_button)
+	content_layer.add_child(button_top)
 
-	_sketch_panel(Vector2(150, 326), Vector2(600, 104), Color("#fff7d6"), false, Color("#1d1d1d"))
-	product_label = _outlined_label("", 34, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	product_label.position = Vector2(176, 344)
-	product_label.size = Vector2(548, 68)
-	content_layer.add_child(product_label)
+	button_label = make_label(tr("RENAME_NO_PRESS"), 38, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	button_label.position = Vector2(402, 314)
+	button_label.size = Vector2(226, 62)
+	button_label.add_theme_color_override("font_outline_color", Color("#151515"))
+	button_label.add_theme_constant_override("outline_size", 7)
+	button_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(button_label)
 
-	option_buttons.clear()
-	for index in range(3):
-		var button := make_button("", 25, Color("#ffef5f"))
-		button.position = Vector2(110 + index * 236, 504)
-		button.size = Vector2(196, 76)
-		button.pressed.connect(_on_button_pressed.bind(button))
-		content_layer.add_child(button)
-		option_buttons.append(button)
+func _build_safe_meter() -> void:
+	progress_bar = ProgressBar.new()
+	progress_bar.position = Vector2(296, 552)
+	progress_bar.size = Vector2(426, 28)
+	progress_bar.max_value = WAIT_SECONDS
+	progress_bar.show_percentage = false
+	progress_bar.modulate = Color("#66f28b")
+	content_layer.add_child(progress_bar)
 
-	var face := make_sprite("res://assets/sprites/elon_face.png", Vector2(140, 132))
-	face.position = Vector2(974, 248)
-	content_layer.add_child(face)
+func _build_alarm() -> void:
+	alarm_overlay = ColorRect.new()
+	alarm_overlay.position = Vector2.ZERO
+	alarm_overlay.size = Vector2(1280, 720)
+	alarm_overlay.color = Color("#ff000000")
+	alarm_overlay.visible = false
+	alarm_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	alarm_overlay.z_index = 40
+	content_layer.add_child(alarm_overlay)
 
-	var side_title := _outlined_label(tr("RENAME_SIDE_TITLE"), 30, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	side_title.position = Vector2(918, 390)
-	side_title.size = Vector2(250, 46)
-	content_layer.add_child(side_title)
+func _build_scold() -> void:
+	scold_sprite = make_sprite(SCOLD_PATH, Vector2(300, 390))
+	scold_sprite.position = Vector2(890, 184)
+	scold_sprite.z_index = 45
+	scold_sprite.visible = false
+	scold_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(scold_sprite)
 
-	rename_bar = ProgressBar.new()
-	rename_bar.position = Vector2(930, 460)
-	rename_bar.size = Vector2(230, 30)
-	rename_bar.min_value = 0
-	rename_bar.max_value = TARGET_RENAMES
-	rename_bar.show_percentage = false
-	content_layer.add_child(rename_bar)
+	scold_label = make_label(tr("RENAME_SCOLD"), 28, Color("#bf2030"), HORIZONTAL_ALIGNMENT_CENTER)
+	scold_label.position = Vector2(862, 562)
+	scold_label.size = Vector2(358, 78)
+	scold_label.z_index = 46
+	scold_label.visible = false
+	scold_label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	scold_label.add_theme_constant_override("outline_size", 6)
+	content_layer.add_child(scold_label)
 
-	verdict_label = _outlined_label("", 25, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	verdict_label.position = Vector2(922, 520)
-	verdict_label.size = Vector2(246, 54)
-	content_layer.add_child(verdict_label)
+func _build_sparks() -> void:
+	sparks.clear()
+	var center := Vector2(515, 340)
+	for index in range(14):
+		var angle := TAU * float(index) / 14.0
+		var spark := Line2D.new()
+		spark.width = 6.0
+		spark.default_color = Color("#ff5b5b")
+		spark.points = PackedVector2Array([
+			center + Vector2(cos(angle), sin(angle)) * 146.0,
+			center + Vector2(cos(angle), sin(angle)) * 190.0
+		])
+		spark.z_index = 11
+		content_layer.add_child(spark)
+		sparks.append(spark)
 
-func _next_product() -> void:
-	if rename_count >= TARGET_RENAMES:
-		await finish_with_result(true, "RENAME_SUCCESS", 0.7)
+func _make_button_texture(fill: Color, border: Color) -> ImageTexture:
+	var image := Image.create(238, 238, false, Image.FORMAT_RGBA8)
+	image.fill(Color("#00000000"))
+	var center := Vector2(119, 119)
+	for y in range(238):
+		for x in range(238):
+			var dist := center.distance_to(Vector2(x, y))
+			if dist <= 108.0:
+				var shade := 1.0 - dist / 180.0
+				image.set_pixel(x, y, fill.lightened(shade * 0.24))
+			elif dist <= 119.0:
+				image.set_pixel(x, y, border)
+	return ImageTexture.create_from_image(image)
+
+func _press_red_button() -> void:
+	if not running or pressed_red:
 		return
-	if queue.is_empty():
-		for index in range(PRODUCTS.size()):
-			queue.append(index)
-		queue.shuffle()
-
-	current_product = queue.pop_back()
-	var data: Dictionary = PRODUCTS[current_product]
-	product_label.text = tr(data["old_key"])
-	var options: Array[String] = [String(data["new_key"])]
-	for wrong_key in data["wrong"]:
-		options.append(String(wrong_key))
-	options.shuffle()
-	for index in range(option_buttons.size()):
-		option_buttons[index].text = tr(options[index])
-		option_buttons[index].set_meta("name_key", options[index])
-
-func _on_button_pressed(button: Button) -> void:
-	_on_option_pressed(String(button.get_meta("name_key")))
-
-func _on_option_pressed(name_key: String) -> void:
-	if not running or current_product < 0:
-		return
-	var data: Dictionary = PRODUCTS[current_product]
-	if name_key == String(data["new_key"]):
-		rename_count += 1
-		score = rename_count
-		rename_bar.value = rename_count
-		verdict_label.text = tr("RENAME_GOOD")
-		verdict_label.add_theme_color_override("font_color", Color("#11883a"))
-	else:
-		mistakes += 1
-		verdict_label.text = tr("RENAME_BAD")
-		verdict_label.add_theme_color_override("font_color", Color("#d91e18"))
-		_shake(product_label)
-		if mistakes >= MISTAKE_LIMIT:
-			await finish_with_result(false, "RENAME_FAIL", 0.6)
-			return
-	_update_status()
-	_next_product()
-
-func _set_buttons_enabled(enabled: bool) -> void:
-	for button in option_buttons:
-		button.disabled = not enabled
-
-func _shake(node: Control) -> void:
-	var original := node.position
+	pressed_red = true
+	button_top.disabled = true
+	play_action_sound("bad")
+	alarm_overlay.visible = true
+	scold_sprite.visible = true
+	scold_label.text = tr("RENAME_SCOLD")
+	scold_label.visible = true
+	for spark in sparks:
+		spark.visible = false
 	var tween := create_tween()
-	tween.tween_property(node, "position:x", original.x - 10, 0.04)
-	tween.tween_property(node, "position:x", original.x + 10, 0.04)
-	tween.tween_property(node, "position", original, 0.05)
+	tween.set_loops(5)
+	tween.tween_property(alarm_overlay, "color", Color("#ff00005a"), 0.08)
+	tween.tween_property(alarm_overlay, "color", Color("#ff000000"), 0.08)
+	await get_tree().create_timer(0.82).timeout
+	await finish_with_result(false, "RENAME_FAIL", 0.45)
 
-func _update_status() -> void:
-	set_status(tr("RENAME_STATUS") % [rename_count, TARGET_RENAMES, mistakes])
+func _survive_button() -> void:
+	if not running:
+		return
+	play_action_sound("collect")
+	button_top.disabled = true
+	for spark in sparks:
+		spark.visible = false
+	await finish_with_result(true, "RENAME_SUCCESS", 0.45)
 
-func _sketch_panel(pos: Vector2, panel_size: Vector2, fill: Color, hatch: bool, border: Color = Color("#111111")) -> Control:
-	var panel: Control = SketchPanel.new()
-	panel.position = pos
-	panel.size = panel_size
-	panel.call("configure", fill, border, 4.0, 1.5, hatch, Color("#0000000b"))
-	content_layer.add_child(panel)
-	return panel
-
-func _outlined_label(text: String, font_size: int, color: Color, align: HorizontalAlignment) -> Label:
-	var label := make_label(text, font_size, color, align)
-	label.add_theme_color_override("font_outline_color", Color("#ffffff"))
-	label.add_theme_constant_override("outline_size", 3)
-	return label
+func _hide_base_header_panel() -> void:
+	if not title_label:
+		return
+	var node: Node = title_label
+	for _step in range(3):
+		node = node.get_parent()
+		if not node:
+			return
+	if node is Control:
+		(node as Control).visible = false
 
 func on_timeout() -> void:
-	await finish_with_result(rename_count >= TARGET_RENAMES, "RENAME_TIMEOUT_SUCCESS" if rename_count >= TARGET_RENAMES else "RENAME_TIMEOUT_FAIL", 0.45)
+	await finish_with_result(not pressed_red, "RENAME_SUCCESS" if not pressed_red else "RENAME_FAIL", 0.45)
