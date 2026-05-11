@@ -18,6 +18,9 @@ var connected := 0
 var mistakes := 0
 var cable_layer: Node2D
 var dangling_cable: Line2D
+var dangling_cable_shadow: Line2D
+var dangling_cable_jacket: Line2D
+var dangling_cable_highlight: Line2D
 var altar_panel: Control
 var altar_label: Label
 var ritual_bar: ProgressBar
@@ -27,6 +30,8 @@ var pips: Array[ColorRect] = []
 func _ready() -> void:
 	configure("GAME_GPU_RITUAL_TITLE", "GPU_RITUAL_INSTRUCTIONS", "GAME_GPU_RITUAL_DESC", "res://assets/art/object_spritesheet.png")
 	super._ready()
+	if overlay_label:
+		overlay_label.z_index = 200
 	_build_stage()
 
 func start_minigame() -> void:
@@ -151,8 +156,13 @@ func _add_socket(side: String, pair_id: String, label_text: String, wire_color: 
 	content_layer.add_child(card)
 
 	var label := make_label(label_text, 18, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	label.custom_minimum_size = Vector2(218, 52)
+	label.position = Vector2(14, 2)
+	label.size = Vector2(160, 54)
+	if side == "right":
+		label.position.x = 58
 	card.add_child(label)
+
+	_add_rope_anchor_icon(card, side, wire_color)
 
 	sockets.append({
 		"node": card,
@@ -229,14 +239,10 @@ func _connect_pair(first_index: int, second_index: int) -> void:
 func _draw_cable(first: Dictionary, second: Dictionary) -> void:
 	var first_node := first["node"] as Control
 	var second_node := second["node"] as Control
-	var line := Line2D.new()
-	line.width = 10
-	line.default_color = first["color"]
 	var start := _socket_anchor(first_node, String(first["side"]))
 	var end := _socket_anchor(second_node, String(second["side"]))
-	line.points = PackedVector2Array([start, start.lerp(end, 0.5) + Vector2(0, 34), end])
-	line.z_index = 1
-	cable_layer.add_child(line)
+	var points := _rope_points(start, end)
+	cable_layer.add_child(_make_rope_bundle(first["color"], points, 1))
 
 func _select_socket(index: int) -> void:
 	if selected_index != -1:
@@ -258,21 +264,29 @@ func _draw_dangling_cable(index: int) -> void:
 	var side := String(socket["side"])
 	var start := _socket_anchor(node, side)
 	var direction := 1.0 if side == "left" else -1.0
-	dangling_cable = Line2D.new()
-	dangling_cable.width = 10
-	dangling_cable.default_color = socket["color"]
-	dangling_cable.points = PackedVector2Array([
-		start,
-		start + Vector2(42.0 * direction, 38),
-		start + Vector2(78.0 * direction, 58)
-	])
-	dangling_cable.z_index = 2
+	var points := _rope_points(start, start + Vector2(96.0 * direction, 58))
+	dangling_cable_shadow = _make_rope_line(Color("#00000070"), 24, points, 2, Vector2(0, 7))
+	dangling_cable_jacket = _make_rope_line(Color("#171116"), 18, points, 3)
+	dangling_cable = _make_rope_line((socket["color"] as Color).lightened(0.02), 12, points, 4)
+	dangling_cable_highlight = _make_rope_line((socket["color"] as Color).lightened(0.52), 3, points, 5, Vector2(-2, -3))
+	cable_layer.add_child(dangling_cable_shadow)
+	cable_layer.add_child(dangling_cable_jacket)
 	cable_layer.add_child(dangling_cable)
+	cable_layer.add_child(dangling_cable_highlight)
 
 func _clear_dangling_cable() -> void:
 	if dangling_cable and is_instance_valid(dangling_cable):
 		dangling_cable.queue_free()
 	dangling_cable = null
+	if dangling_cable_shadow and is_instance_valid(dangling_cable_shadow):
+		dangling_cable_shadow.queue_free()
+	dangling_cable_shadow = null
+	if dangling_cable_jacket and is_instance_valid(dangling_cable_jacket):
+		dangling_cable_jacket.queue_free()
+	dangling_cable_jacket = null
+	if dangling_cable_highlight and is_instance_valid(dangling_cable_highlight):
+		dangling_cable_highlight.queue_free()
+	dangling_cable_highlight = null
 
 func _drop_wrong_cable(first: Dictionary, second: Dictionary) -> void:
 	_clear_dangling_cable()
@@ -280,24 +294,104 @@ func _drop_wrong_cable(first: Dictionary, second: Dictionary) -> void:
 	var second_node := second["node"] as Control
 	var start := _socket_anchor(first_node, String(first["side"]))
 	var end := _socket_anchor(second_node, String(second["side"]))
-	var line := Line2D.new()
-	line.width = 10
-	line.default_color = first["color"]
-	line.points = PackedVector2Array([start, start.lerp(end, 0.55) + Vector2(0, 54), end])
-	line.z_index = 2
-	cable_layer.add_child(line)
+	var rope := _make_rope_bundle(first["color"], _rope_points(start, end, 58.0), 2)
+	cable_layer.add_child(rope)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(line, "position:y", line.position.y + 150.0, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(line, "rotation", 0.18, 0.36)
-	tween.tween_property(line, "modulate:a", 0.0, 0.36)
-	tween.chain().tween_callback(Callable(line, "queue_free"))
+	tween.tween_property(rope, "position:y", rope.position.y + 150.0, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(rope, "rotation", 0.18, 0.36)
+	tween.tween_property(rope, "modulate:a", 0.0, 0.36)
+	tween.chain().tween_callback(Callable(rope, "queue_free"))
 
 func _socket_anchor(node: Control, side: String) -> Vector2:
 	var rect := node.get_global_rect()
 	if side == "left":
 		return rect.position + Vector2(rect.size.x, rect.size.y * 0.5)
 	return rect.position + Vector2(0, rect.size.y * 0.5)
+
+func _rope_points(start: Vector2, end: Vector2, extra_sag: float = 0.0) -> PackedVector2Array:
+	var distance := start.distance_to(end)
+	var sag := clampf(distance * 0.17 + 24.0 + extra_sag, 32.0, 164.0)
+	var points := PackedVector2Array()
+	for step in range(34):
+		var t := float(step) / 33.0
+		var point := start.lerp(end, t)
+		point.y += sin(t * PI) * sag
+		points.append(point)
+	return points
+
+func _make_rope_bundle(color: Color, points: PackedVector2Array, z: int) -> Node2D:
+	var bundle := Node2D.new()
+	bundle.z_index = z
+	bundle.add_child(_make_rope_line(Color("#00000068"), 24, points, 0, Vector2(0, 7)))
+	bundle.add_child(_make_rope_line(Color("#171116"), 18, points, 1))
+	bundle.add_child(_make_rope_line((color as Color).lightened(0.02), 12, points, 2))
+	bundle.add_child(_make_rope_line((color as Color).lightened(0.52), 3, points, 3, Vector2(-2, -3)))
+	_add_rope_twists(bundle, color, points)
+	return bundle
+
+func _make_rope_line(color: Color, width: float, points: PackedVector2Array, z: int, offset: Vector2 = Vector2.ZERO) -> Line2D:
+	var line := Line2D.new()
+	line.width = width
+	line.default_color = color
+	line.points = points
+	line.position = offset
+	line.z_index = z
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.antialiased = true
+	return line
+
+func _add_rope_twists(bundle: Node2D, color: Color, points: PackedVector2Array) -> void:
+	var twist_color := (color as Color).darkened(0.28)
+	for index in range(4, points.size() - 4, 5):
+		var tangent := (points[index + 2] - points[index - 2]).normalized()
+		var normal := Vector2(-tangent.y, tangent.x)
+		var center := points[index]
+		var line := Line2D.new()
+		line.width = 3.0
+		line.default_color = twist_color
+		line.points = PackedVector2Array([
+			center - normal * 7.0 - tangent * 3.5,
+			center + normal * 7.0 + tangent * 3.5
+		])
+		line.z_index = 4
+		line.antialiased = true
+		bundle.add_child(line)
+
+func _add_rope_anchor_icon(parent: Control, side: String, rope_color: Color) -> void:
+	var icon := Control.new()
+	icon.position = Vector2(172, 9) if side == "left" else Vector2(8, 9)
+	icon.size = Vector2(48, 40)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(icon)
+
+	var stub := Line2D.new()
+	stub.width = 8.0
+	stub.default_color = rope_color
+	stub.points = PackedVector2Array([Vector2(0, 20), Vector2(18, 20)]) if side == "left" else PackedVector2Array([Vector2(48, 20), Vector2(30, 20)])
+	stub.antialiased = true
+	icon.add_child(stub)
+
+	var ring := Line2D.new()
+	ring.width = 5.0
+	ring.default_color = Color("#151515")
+	var center := Vector2(30, 20) if side == "left" else Vector2(18, 20)
+	var points := PackedVector2Array()
+	for step in range(24):
+		var angle := TAU * float(step) / 23.0
+		points.append(center + Vector2(cos(angle) * 11.0, sin(angle) * 11.0))
+	ring.points = points
+	ring.antialiased = true
+	icon.add_child(ring)
+
+	var knot := ColorRect.new()
+	knot.position = center - Vector2(5, 5)
+	knot.size = Vector2(10, 10)
+	knot.color = rope_color.lightened(0.16)
+	knot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.add_child(knot)
 
 func _flash_wrong(index: int) -> void:
 	_set_socket_style(index, "wrong")
