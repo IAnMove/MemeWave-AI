@@ -46,10 +46,12 @@ func _test_energy_links() -> void:
 	game.start_minigame()
 	await process_frame
 	var correct_pair := _find_pair(game, true)
-	game.call("_try_connect", correct_pair[0], correct_pair[1])
+	game.call("_begin_drag_from_socket", correct_pair[0])
+	var target_node := (game.get("sockets") as Array)[correct_pair[1]]["node"] as Control
+	game.call("_finish_drag", target_node.get_global_rect().get_center())
 	await process_frame
 	if int(game.get("connected")) != 1:
-		_fail("Model Power Grid should connect a matching pair.")
+		_fail("Model Power Grid should connect a matching pair by dragging the cable.")
 		return
 	while int(game.get("connected")) < 4:
 		correct_pair = _find_unconnected_pair(game)
