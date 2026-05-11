@@ -453,6 +453,7 @@ GAMEPLAY_PAIR_MATCHING,Pair matching,Conectar parejas
 GAMEPLAY_MEMORY,Memory cards,Cartas de memoria
 GAMEPLAY_OPTION_SORTING,Choice / classification,Eleccion / clasificacion
 GAMEPLAY_OTHER,Other,Otros
+GAMEPLAY_PENDING_DELETE,Pending deletion,Pendientes de borrar
 QUICK_PROGRESS,Progress,Progreso
 QUICK_SORT_GOOD,Good!,Bien!
 QUICK_SORT_BAD,Wrong!,Mal!

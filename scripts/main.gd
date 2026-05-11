@@ -123,6 +123,22 @@ const DEV_GAMEPLAY_GROUPS := [
 		]
 	}
 ]
+const PENDING_DELETE_GAME_TITLE_KEYS := [
+	"GAME_HALLU_TITLE",
+	"GAME_ROUTER_TITLE",
+	"GAME_MERGE_TITLE",
+	"GAME_DATASET_TITLE",
+	"GAME_DEPLOY_TITLE",
+	"GAME_PR_TITLE",
+	"GAME_TOS_TITLE",
+	"GAME_PROMPT_GATE_TITLE",
+	"GAME_SWARM_TITLE",
+	"GAME_GROK_RAGE_TITLE",
+	"GAME_ARCHAEOLOGY_TITLE",
+	"GAME_FUNERAL_TITLE",
+	"GAME_PHOTOSHOP_TITLE",
+	"GAME_APOLOGY_TITLE"
+]
 
 const GAME_DEFS := [
 	{
@@ -712,6 +728,16 @@ func _build_developer_gameplay_groups() -> Array:
 			continue
 		title_to_index[String(GAME_DEFS[index]["title_key"])] = index
 
+	var pending_indexes := []
+	var pending_lookup := {}
+	for game_title_key in PENDING_DELETE_GAME_TITLE_KEYS:
+		var key := String(game_title_key)
+		if not title_to_index.has(key):
+			continue
+		var game_index := int(title_to_index[key])
+		pending_lookup[game_index] = true
+		pending_indexes.append(game_index)
+
 	var used := {}
 	var groups := []
 	for group_def in DEV_GAMEPLAY_GROUPS:
@@ -724,6 +750,8 @@ func _build_developer_gameplay_groups() -> Array:
 			var game_index := int(title_to_index[key])
 			if used.has(game_index):
 				continue
+			if pending_lookup.has(game_index):
+				continue
 
 			used[game_index] = true
 			indexes.append(game_index)
@@ -733,11 +761,14 @@ func _build_developer_gameplay_groups() -> Array:
 
 	var other_indexes := []
 	for index in _active_game_indexes():
-		if not used.has(index):
+		if not used.has(index) and not pending_lookup.has(index):
 			other_indexes.append(index)
 
 	if not other_indexes.is_empty():
 		groups.append({"title_key": "GAMEPLAY_OTHER", "indexes": other_indexes})
+
+	if not pending_indexes.is_empty():
+		groups.append({"title_key": "GAMEPLAY_PENDING_DELETE", "indexes": pending_indexes})
 
 	return groups
 
