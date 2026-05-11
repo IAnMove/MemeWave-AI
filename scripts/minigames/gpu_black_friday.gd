@@ -1,6 +1,7 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
-const SAM_CART_PATH := "res://assets/art/gpu_black_friday_sam_cart.png"
+const SAM_CART_EMPTY_PATH := "res://assets/art/gpu_black_friday_sam_cart_empty.png"
+const SAM_CART_FULL_PATH := "res://assets/art/gpu_black_friday_sam_cart.png"
 const GPU_PATH := "res://assets/art/gpu_black_friday_gpu.png"
 const RAM_PATH := "res://assets/art/gpu_black_friday_ram.png"
 const SHELF_PATH := "res://assets/art/gpu_black_friday_shelf.png"
@@ -17,6 +18,20 @@ const ITEM_SIZES := {
 	"gpu": Vector2(132, 94),
 	"ram": Vector2(132, 80)
 }
+const CART_LOAD_SLOTS := [
+	{"pos": Vector2(236, 173), "size": Vector2(56, 38), "rotation": -0.24},
+	{"pos": Vector2(278, 165), "size": Vector2(52, 34), "rotation": 0.20},
+	{"pos": Vector2(315, 182), "size": Vector2(48, 32), "rotation": -0.10},
+	{"pos": Vector2(220, 201), "size": Vector2(58, 36), "rotation": 0.12},
+	{"pos": Vector2(265, 203), "size": Vector2(54, 35), "rotation": -0.18},
+	{"pos": Vector2(310, 210), "size": Vector2(50, 32), "rotation": 0.24},
+	{"pos": Vector2(235, 229), "size": Vector2(58, 35), "rotation": -0.05},
+	{"pos": Vector2(283, 231), "size": Vector2(54, 33), "rotation": 0.16},
+	{"pos": Vector2(324, 236), "size": Vector2(48, 31), "rotation": -0.18},
+	{"pos": Vector2(251, 256), "size": Vector2(54, 32), "rotation": 0.08},
+	{"pos": Vector2(299, 258), "size": Vector2(50, 31), "rotation": -0.14},
+	{"pos": Vector2(337, 260), "size": Vector2(44, 28), "rotation": 0.18}
+]
 
 var items: Array[Dictionary] = []
 var stock_queue: Array[String] = []
@@ -26,7 +41,9 @@ var collected := 0
 var gpus := 0
 var ram := 0
 var missed := 0
+var closing := false
 var cart: TextureRect
+var cart_load_layer: Control
 var cart_shadow: ColorRect
 var cart_hitbox := Rect2()
 var market_label: Label
@@ -52,11 +69,15 @@ func start_minigame() -> void:
 	gpus = 0
 	ram = 0
 	missed = 0
+	closing = false
 	score = 0
 	_clear_items()
+	_clear_cart_load()
 	_reset_stock_icons()
+	cart.texture = load(SAM_CART_EMPTY_PATH)
 	cart.position = Vector2(134, 322)
 	cart.rotation = 0.0
+	cart_load_layer.visible = true
 	cart_shadow.position = Vector2(256, 633)
 	market_label.text = tr("GPU_MARKET_IDLE")
 	sold_out_stamp.visible = false
@@ -65,7 +86,7 @@ func start_minigame() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	if not running:
+	if not running or closing:
 		return
 
 	_update_cart(delta)
@@ -174,11 +195,17 @@ func _build_cart() -> void:
 	cart_shadow.rotation = -0.02
 	content_layer.add_child(cart_shadow)
 
-	cart = make_sprite(SAM_CART_PATH, Vector2(374, 380))
+	cart = make_sprite(SAM_CART_EMPTY_PATH, Vector2(374, 380))
 	cart.position = Vector2(134, 322)
 	cart.pivot_offset = Vector2(190, 332)
 	cart.z_index = 18
 	content_layer.add_child(cart)
+
+	cart_load_layer = Control.new()
+	cart_load_layer.position = Vector2.ZERO
+	cart_load_layer.size = cart.size
+	cart_load_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cart.add_child(cart_load_layer)
 
 func _update_cart(delta: float) -> void:
 	var direction := Input.get_axis("ui_left", "ui_right")
@@ -273,35 +300,47 @@ func _deplete_next_stock_icon(kind: String) -> void:
 			return
 
 func _catch_item(item: Dictionary) -> void:
+	if closing:
+		return
 	var kind := String(item["kind"])
 	_remove_item(item)
 	_register_catch(kind)
 
 func _register_catch(kind: String) -> void:
+	if closing:
+		return
 	collected += 1
 	if kind == "gpu":
 		gpus += 1
 	else:
 		ram += 1
 	score = collected
+	_add_cart_load(kind)
 	market_label.text = tr("GPU_CAUGHT")
 	play_action_sound("collect")
 	_update_status()
 	if collected >= TARGET_ITEMS:
+		closing = true
 		_show_sold_out()
 		call_deferred("_finish_success")
 
 func _miss_item(item: Dictionary) -> void:
+	if closing:
+		return
 	missed += 1
 	_remove_item(item)
 	market_label.text = tr("GPU_FAIL_BILL")
 	play_action_sound("bad")
 	_update_status()
 	if missed >= MAX_MISSED:
+		closing = true
 		call_deferred("_finish_out_of_stock")
 
 func _show_sold_out() -> void:
-	sold_out_stamp.visible = true
+	sold_out_stamp.visible = false
+	_clear_items()
+	cart.texture = load(SAM_CART_FULL_PATH)
+	cart_load_layer.visible = false
 	for icon in stock_icons:
 		icon.modulate = Color(1, 1, 1, 0.12)
 		icon.set_meta("depleted", true)
@@ -316,13 +355,38 @@ func _remove_item(item: Dictionary) -> void:
 	items.erase(item)
 	var node := item["node"] as Control
 	if is_instance_valid(node):
+		node.visible = false
 		node.queue_free()
 
 func _clear_items() -> void:
+	for item in items.duplicate():
+		var node := item["node"] as Control
+		if is_instance_valid(node):
+			node.visible = false
+			node.queue_free()
 	for child in content_layer.get_children():
-		if child.name == "DynamicGpuItem":
+		if String(child.name).begins_with("DynamicGpuItem"):
+			child.visible = false
 			child.queue_free()
 	items.clear()
+
+func _add_cart_load(kind: String) -> void:
+	var slot_index := mini(collected - 1, CART_LOAD_SLOTS.size() - 1)
+	var slot: Dictionary = CART_LOAD_SLOTS[slot_index]
+	var load_sprite := make_sprite(GPU_PATH if kind == "gpu" else RAM_PATH, slot["size"])
+	load_sprite.name = "CartLoadItem"
+	load_sprite.position = slot["pos"]
+	load_sprite.rotation = float(slot["rotation"])
+	load_sprite.pivot_offset = load_sprite.size * 0.5
+	load_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cart_load_layer.add_child(load_sprite)
+
+func _clear_cart_load() -> void:
+	if not cart_load_layer:
+		return
+	for child in cart_load_layer.get_children():
+		child.queue_free()
+	cart_load_layer.visible = true
 
 func _reset_stock_icons() -> void:
 	for icon in stock_icons:

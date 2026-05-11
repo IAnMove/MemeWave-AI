@@ -17,6 +17,14 @@ func _test_collects_gpu_and_ram() -> void:
 	await process_frame
 	game.start_minigame()
 	await process_frame
+	var cart := game.get("cart") as TextureRect
+	var load_layer := game.get("cart_load_layer") as Control
+	if not cart or not cart.texture or not cart.texture.resource_path.ends_with("gpu_black_friday_sam_cart_empty.png"):
+		_fail("GPU Black Friday did not start with the empty cart sprite")
+		return
+	if not load_layer or load_layer.get_child_count() != 0:
+		_fail("GPU Black Friday did not start with an empty cart load layer")
+		return
 
 	game.call("_spawn_item", "gpu")
 	await process_frame
@@ -35,6 +43,9 @@ func _test_collects_gpu_and_ram() -> void:
 	if int(game.get("gpus")) != 1 or int(game.get("score")) != 1:
 		_fail("GPU Black Friday did not count a caught GPU")
 		return
+	if load_layer.get_child_count() != 1:
+		_fail("GPU Black Friday did not add the caught GPU into the cart")
+		return
 
 	for index in range(11):
 		game.call("_register_catch", "ram" if index % 2 == 0 else "gpu")
@@ -44,6 +55,12 @@ func _test_collects_gpu_and_ram() -> void:
 		return
 	if int(game.get("score")) < 12:
 		_fail("GPU Black Friday did not keep the final cart score")
+		return
+	if load_layer.visible:
+		_fail("GPU Black Friday did not switch away from the incremental cart layer at success")
+		return
+	if not cart.texture or not cart.texture.resource_path.ends_with("gpu_black_friday_sam_cart.png"):
+		_fail("GPU Black Friday did not switch to the full cart sprite at success")
 		return
 	game.queue_free()
 	await process_frame
