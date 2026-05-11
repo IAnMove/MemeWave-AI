@@ -56,7 +56,7 @@ func _run() -> void:
 	await _test_quick_sort("Prompt Archaeologist", PromptArchaeologist)
 	await _test_quick_sort("Elon Rename Button", ElonRenameButton)
 	await _test_quick_sort("Open Source Funeral", OpenSourceFuneral)
-	await _test_quick_sort("Thread of Doom", ThreadOfDoom)
+	await _test_chrome_ram()
 	await _test_quick_sort("Benchmark Photoshop", BenchmarkPhotoshop)
 	await _test_quick_sort("Robot Apology Generator", RobotApologyGenerator)
 	await _test_wake_pet()
@@ -418,6 +418,51 @@ func _test_wake_pet() -> void:
 	await create_timer(0.75).timeout
 	if bool(game.get("running")):
 		_fail("Plug Server did not finish after powering on")
+		return
+	game.queue_free()
+	await process_frame
+
+func _test_chrome_ram() -> void:
+	var game := ThreadOfDoom.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	var active := int(game.get("active_tab"))
+	var tab_count := 20
+	var inactive := 0 if active != 0 else 1
+	game.call("_close_tab", inactive)
+	await create_timer(0.16).timeout
+	if int(game.get("closed_count")) < 1:
+		_fail("Chrome RAM did not close an inactive tab")
+		return
+
+	game.call("_close_tab", active)
+	await create_timer(0.80).timeout
+	if bool(game.get("running")):
+		_fail("Chrome RAM did not fail after closing the active tab")
+		return
+
+	game.queue_free()
+	await process_frame
+
+	game = ThreadOfDoom.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	active = int(game.get("active_tab"))
+	tab_count = 20
+	for index in range(tab_count):
+		if index != active:
+			game.call("_close_tab", index)
+	await create_timer(0.90).timeout
+	if bool(game.get("running")):
+		_fail("Chrome RAM did not finish after closing extra tabs")
+		return
+	if int(game.get("score")) < tab_count - 1:
+		_fail("Chrome RAM did not count all closed tabs")
 		return
 	game.queue_free()
 	await process_frame

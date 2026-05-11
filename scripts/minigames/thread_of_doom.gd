@@ -1,193 +1,238 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
-const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
+const BG_PATH := "res://assets/art/chrome_ram_bg.png"
+const TAB_COUNT := 20
+const ACTIVE_COLOR := Color("#dff8ff")
+const TAB_COLOR := Color("#fff7c7")
+const CLOSED_COLOR := Color("#d6d0be")
+const DANGER_COLOR := Color("#ff5b5b")
+const OK_COLOR := Color("#66f28b")
 
-const TARGET_POSTS := 8
-const MISTAKE_LIMIT := 3
-const POSTS := [
-	{"key": "THREAD_SAFE_BUG", "safe": true},
-	{"key": "THREAD_SAFE_DOC", "safe": true},
-	{"key": "THREAD_SAFE_TEST", "safe": true},
-	{"key": "THREAD_SAFE_REVIEW", "safe": true},
-	{"key": "THREAD_DOOM_TAKE", "safe": false},
-	{"key": "THREAD_DOOM_BENCH", "safe": false},
-	{"key": "THREAD_DOOM_CEO", "safe": false},
-	{"key": "THREAD_DOOM_FLAME", "safe": false},
-	{"key": "THREAD_DOOM_THREAD", "safe": false}
-]
-
-var queue: Array[int] = []
-var current_post := -1
-var handled := 0
-var mistakes := 0
-var focus := 100
-var post_label: Label
-var verdict_label: Label
-var focus_bar: ProgressBar
-var reply_button: Button
-var mute_button: Button
-var history: Array[Label] = []
+var active_tab := 0
+var closed_count := 0
+var panic := false
+var pulse := 0.0
+var tabs: Array[Button] = []
+var closed_tabs: Array[bool] = []
+var ram_bar: ProgressBar
+var speech_label: Label
+var message_box: PanelContainer
+var message_lines: Array[Line2D] = []
+var computer_face: PanelContainer
+var alarm_overlay: ColorRect
 
 func _ready() -> void:
-	configure("GAME_THREAD_TITLE", "THREAD_INSTRUCTIONS", "GAME_THREAD_DESC", "res://assets/art/agent_task_swarm_bg.png")
+	configure("GAME_THREAD_TITLE", "THREAD_INSTRUCTIONS", "GAME_THREAD_DESC", BG_PATH)
 	super._ready()
+	hide_common_minigame_header()
+	hide_base_status()
+	_hide_base_header_panel()
+	if tutorial_panel:
+		tutorial_panel.visible = false
 	_build_stage()
 
 func start_minigame() -> void:
 	super.start_minigame()
-	queue.clear()
-	for index in range(POSTS.size()):
-		queue.append(index)
-	queue.shuffle()
-	current_post = -1
-	handled = 0
-	mistakes = 0
-	focus = 100
+	active_tab = randi_range(0, TAB_COUNT - 1)
+	closed_count = 0
+	panic = false
 	score = 0
-	focus_bar.value = focus
-	verdict_label.text = tr("THREAD_IDLE")
-	verdict_label.add_theme_color_override("font_color", Color("#151515"))
-	_clear_history()
-	_next_post()
-	_update_status()
+	closed_tabs.clear()
+	for _index in range(TAB_COUNT):
+		closed_tabs.append(false)
+	_reset_tabs()
+	_update_ram()
+	_set_speech("THREAD_RAM_PANIC", DANGER_COLOR)
+	_set_message_visible(true)
+	alarm_overlay.visible = false
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not running or not (event is InputEventKey and event.pressed and not event.echo):
+func _process(delta: float) -> void:
+	super._process(delta)
+	if not running:
 		return
-	if event.keycode == KEY_ENTER or event.keycode == KEY_SPACE:
-		_on_action_pressed("reply")
-	elif event.keycode == KEY_BACKSPACE or event.keycode == KEY_DELETE:
-		_on_action_pressed("mute")
+
+	pulse += delta * 8.0
+	for index in range(tabs.size()):
+		var tab := tabs[index]
+		if index == active_tab and tab.visible:
+			tab.scale = Vector2.ONE * (1.0 + sin(pulse) * 0.025)
+	_update_message_wiggle()
 
 func _build_stage() -> void:
-	var bg := ColorRect.new()
-	bg.position = Vector2.ZERO
-	bg.size = Vector2(1280, 720)
-	bg.color = Color("#eef3f8")
-	add_child(bg)
-	move_child(bg, 0)
+	_build_browser_interaction()
+	_build_computer_status()
 
-	_sketch_panel(Vector2(176, 210), Vector2(620, 420), Color("#fffdf8"), false)
-	_sketch_panel(Vector2(858, 210), Vector2(260, 420), Color("#fff7d6"), true)
+	alarm_overlay = ColorRect.new()
+	alarm_overlay.position = Vector2.ZERO
+	alarm_overlay.size = Vector2(1280, 720)
+	alarm_overlay.color = Color("#ff000000")
+	alarm_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	alarm_overlay.z_index = 50
+	content_layer.add_child(alarm_overlay)
 
-	var title := _outlined_label(tr("THREAD_FEED_TITLE"), 35, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(220, 232)
-	title.size = Vector2(532, 52)
-	content_layer.add_child(title)
+func _build_browser_interaction() -> void:
+	tabs.clear()
+	var start := Vector2(86, 146)
+	var tab_size := Vector2(72, 36)
+	for index in range(TAB_COUNT):
+		var col := index % 10
+		var row := index / 10
+		var tab := make_button("x", 24, TAB_COLOR)
+		tab.position = start + Vector2(col * 78, row * 44)
+		tab.size = tab_size
+		tab.z_index = 10
+		tab.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		tab.pressed.connect(_close_tab.bind(index))
+		content_layer.add_child(tab)
+		tabs.append(tab)
 
-	_sketch_panel(Vector2(230, 324), Vector2(512, 104), Color("#f8fbff"), false, Color("#1f5fbf"))
-	post_label = _outlined_label("", 28, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	post_label.position = Vector2(256, 340)
-	post_label.size = Vector2(460, 72)
-	content_layer.add_child(post_label)
+	message_box = PanelContainer.new()
+	message_box.position = Vector2(172, 344)
+	message_box.size = Vector2(566, 142)
+	message_box.add_theme_stylebox_override("panel", make_style(Color("#e9fff8"), Color("#151515"), 5, 10))
+	content_layer.add_child(message_box)
 
-	mute_button = make_button(tr("THREAD_MUTE"), 29, Color("#ffe0dc"))
-	mute_button.position = Vector2(228, 510)
-	mute_button.size = Vector2(220, 72)
-	mute_button.pressed.connect(_on_action_pressed.bind("mute"))
-	content_layer.add_child(mute_button)
+	for row in range(4):
+		var y := 374.0 + row * 29.0
+		for col in range(6):
+			var line := Line2D.new()
+			line.width = 5.0
+			line.default_color = [Color("#151515"), Color("#1f7ad1"), Color("#ff5fa8")][(row + col) % 3]
+			line.points = PackedVector2Array([
+				Vector2(212 + col * 78, y),
+				Vector2(258 + col * 78, y + randf_range(-8.0, 8.0))
+			])
+			line.z_index = 8
+			content_layer.add_child(line)
+			message_lines.append(line)
 
-	reply_button = make_button(tr("THREAD_REPLY"), 29, Color("#dff8da"))
-	reply_button.position = Vector2(522, 510)
-	reply_button.size = Vector2(220, 72)
-	reply_button.pressed.connect(_on_action_pressed.bind("reply"))
-	content_layer.add_child(reply_button)
+func _build_computer_status() -> void:
+	computer_face = PanelContainer.new()
+	computer_face.position = Vector2(970, 250)
+	computer_face.size = Vector2(200, 140)
+	computer_face.add_theme_stylebox_override("panel", make_style(Color("#1b2d3b"), Color("#151515"), 5, 10))
+	content_layer.add_child(computer_face)
 
-	var side_title := _outlined_label(tr("THREAD_FOCUS_TITLE"), 28, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	side_title.position = Vector2(890, 234)
-	side_title.size = Vector2(196, 42)
-	content_layer.add_child(side_title)
+	_add_eye(Vector2(1010, 300))
+	_add_eye(Vector2(1095, 300))
+	var mouth := Line2D.new()
+	mouth.width = 7.0
+	mouth.default_color = Color("#ff5b5b")
+	mouth.points = PackedVector2Array([Vector2(1038, 360), Vector2(1070, 346), Vector2(1110, 360)])
+	mouth.z_index = 9
+	content_layer.add_child(mouth)
 
-	focus_bar = ProgressBar.new()
-	focus_bar.position = Vector2(900, 306)
-	focus_bar.size = Vector2(176, 30)
-	focus_bar.min_value = 0
-	focus_bar.max_value = 100
-	focus_bar.show_percentage = false
-	content_layer.add_child(focus_bar)
+	ram_bar = ProgressBar.new()
+	ram_bar.position = Vector2(972, 430)
+	ram_bar.size = Vector2(196, 28)
+	ram_bar.max_value = TAB_COUNT
+	ram_bar.show_percentage = false
+	content_layer.add_child(ram_bar)
 
-	verdict_label = _outlined_label("", 24, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	verdict_label.position = Vector2(886, 358)
-	verdict_label.size = Vector2(204, 58)
-	content_layer.add_child(verdict_label)
+	speech_label = make_label("", 24, DANGER_COLOR, HORIZONTAL_ALIGNMENT_CENTER)
+	speech_label.position = Vector2(918, 464)
+	speech_label.size = Vector2(310, 74)
+	speech_label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	speech_label.add_theme_constant_override("outline_size", 5)
+	content_layer.add_child(speech_label)
 
-	for index in range(4):
-		var label := _outlined_label("", 18, Color("#3d3d3d"), HORIZONTAL_ALIGNMENT_CENTER)
-		label.position = Vector2(886, 448 + index * 36)
-		label.size = Vector2(204, 28)
-		content_layer.add_child(label)
-		history.append(label)
+func _add_eye(pos: Vector2) -> void:
+	var eye := PanelContainer.new()
+	eye.position = pos
+	eye.size = Vector2(35, 38)
+	eye.add_theme_stylebox_override("panel", make_style(Color("#ffffff"), Color("#151515"), 4, 12))
+	content_layer.add_child(eye)
+	var pupil := ColorRect.new()
+	pupil.position = pos + Vector2(14, 12)
+	pupil.size = Vector2(11, 15)
+	pupil.color = Color("#151515")
+	content_layer.add_child(pupil)
 
-func _next_post() -> void:
-	if handled >= TARGET_POSTS:
-		await finish_with_result(true, "THREAD_SUCCESS", 0.7)
+func _reset_tabs() -> void:
+	for index in range(tabs.size()):
+		var tab := tabs[index]
+		tab.visible = true
+		tab.disabled = false
+		tab.scale = Vector2.ONE
+		tab.modulate = Color.WHITE
+		tab.text = "x"
+		_set_tab_style(tab, ACTIVE_COLOR if index == active_tab else TAB_COLOR)
+
+func _close_tab(index: int) -> void:
+	if not running or panic or index < 0 or index >= tabs.size() or closed_tabs[index]:
 		return
-	if queue.is_empty():
-		for index in range(POSTS.size()):
-			queue.append(index)
-		queue.shuffle()
-	current_post = queue.pop_back()
-	post_label.text = tr(POSTS[current_post]["key"])
 
-func _on_action_pressed(action: String) -> void:
-	if not running or current_post < 0:
+	if index == active_tab:
+		_lose_message()
 		return
-	var post: Dictionary = POSTS[current_post]
-	var safe := bool(post["safe"])
-	var correct := (action == "reply") == safe
-	if correct:
-		handled += 1
-		score = handled
-		focus = min(100, focus + 3)
-		verdict_label.text = tr("THREAD_GOOD_REPLY") if safe else tr("THREAD_GOOD_MUTE")
-		verdict_label.add_theme_color_override("font_color", Color("#11883a"))
-		_push_history("THREAD_HISTORY_OK")
-	else:
-		mistakes += 1
-		focus = max(0, focus - 24)
-		verdict_label.text = tr("THREAD_BAD")
-		verdict_label.add_theme_color_override("font_color", Color("#d91e18"))
-		_push_history("THREAD_HISTORY_BAD")
-		_shake(post_label)
-		if mistakes >= MISTAKE_LIMIT or focus <= 0:
-			await finish_with_result(false, "THREAD_FAIL", 0.6)
-			return
-	focus_bar.value = focus
-	_update_status()
-	_next_post()
 
-func _push_history(key: String) -> void:
-	for index in range(history.size() - 1, 0, -1):
-		history[index].text = history[index - 1].text
-	history[0].text = tr(key)
-
-func _clear_history() -> void:
-	for label in history:
-		label.text = ""
-
-func _shake(node: Control) -> void:
-	var original := node.position
+	closed_tabs[index] = true
+	closed_count += 1
+	score = closed_count
+	play_action_sound("collect")
+	var tab := tabs[index]
+	_set_tab_style(tab, CLOSED_COLOR)
+	tab.disabled = true
 	var tween := create_tween()
-	tween.tween_property(node, "position:x", original.x - 10, 0.04)
-	tween.tween_property(node, "position:x", original.x + 10, 0.04)
-	tween.tween_property(node, "position", original, 0.05)
+	tween.set_parallel(true)
+	tween.tween_property(tab, "scale", Vector2(0.08, 0.08), 0.12)
+	tween.tween_property(tab, "modulate:a", 0.0, 0.12)
+	tween.chain().tween_callback(func() -> void: tab.visible = false)
+	_update_ram()
 
-func _update_status() -> void:
-	set_status(tr("THREAD_STATUS") % [handled, TARGET_POSTS, focus, mistakes])
+	if closed_count >= TAB_COUNT - 1:
+		_set_speech("THREAD_SUCCESS", OK_COLOR)
+		await get_tree().create_timer(0.35).timeout
+		await finish_with_result(true, "THREAD_SUCCESS", 0.35)
 
-func _sketch_panel(pos: Vector2, panel_size: Vector2, fill: Color, hatch: bool, border: Color = Color("#111111")) -> Control:
-	var panel: Control = SketchPanel.new()
-	panel.position = pos
-	panel.size = panel_size
-	panel.call("configure", fill, border, 4.0, 1.5, hatch, Color("#0000000b"))
-	content_layer.add_child(panel)
-	return panel
+func _lose_message() -> void:
+	panic = true
+	play_action_sound("bad")
+	_set_message_visible(false)
+	_set_speech("THREAD_LOST_MESSAGE", DANGER_COLOR)
+	alarm_overlay.visible = true
+	var tween := create_tween()
+	tween.set_loops(4)
+	tween.tween_property(alarm_overlay, "color", Color("#ff000055"), 0.09)
+	tween.tween_property(alarm_overlay, "color", Color("#ff000000"), 0.09)
+	await get_tree().create_timer(0.72).timeout
+	await finish_with_result(false, "THREAD_FAIL", 0.45)
 
-func _outlined_label(text: String, font_size: int, color: Color, align: HorizontalAlignment) -> Label:
-	var label := make_label(text, font_size, color, align)
-	label.add_theme_color_override("font_outline_color", Color("#ffffff"))
-	label.add_theme_constant_override("outline_size", 3)
-	return label
+func _update_ram() -> void:
+	if ram_bar:
+		ram_bar.value = TAB_COUNT - closed_count
+		ram_bar.modulate = Color("#ff7777") if closed_count < 10 else Color("#fff06a") if closed_count < 17 else OK_COLOR
+
+func _set_speech(key: String, color: Color) -> void:
+	speech_label.text = tr(key)
+	speech_label.add_theme_color_override("font_color", color)
+
+func _set_message_visible(visible: bool) -> void:
+	if message_box:
+		message_box.visible = visible
+	for line in message_lines:
+		line.visible = visible
+
+func _update_message_wiggle() -> void:
+	for index in range(message_lines.size()):
+		var line := message_lines[index]
+		line.position.x = sin(pulse * 0.7 + float(index)) * 1.8
+
+func _set_tab_style(tab: Button, fill: Color) -> void:
+	tab.add_theme_stylebox_override("normal", make_style(fill, Color("#151515"), 3, 7))
+	tab.add_theme_stylebox_override("hover", make_style(fill.lightened(0.13), Color("#151515"), 3, 7))
+	tab.add_theme_stylebox_override("pressed", make_style(fill.darkened(0.10), Color("#151515"), 3, 7))
+
+func _hide_base_header_panel() -> void:
+	if not title_label:
+		return
+	var node: Node = title_label
+	for _step in range(3):
+		node = node.get_parent()
+		if not node:
+			return
+	if node is Control:
+		(node as Control).visible = false
 
 func on_timeout() -> void:
-	await finish_with_result(handled >= TARGET_POSTS, "THREAD_TIMEOUT_SUCCESS" if handled >= TARGET_POSTS else "THREAD_TIMEOUT_FAIL", 0.45)
+	await finish_with_result(closed_count >= TAB_COUNT - 1, "THREAD_SUCCESS" if closed_count >= TAB_COUNT - 1 else "THREAD_TIMEOUT_FAIL", 0.45)

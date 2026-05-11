@@ -373,7 +373,7 @@ const GAME_DEFS := [
 		"script": ThreadOfDoom,
 		"description_key": "GAME_THREAD_DESC",
 		"instruction_key": "THREAD_INSTRUCTIONS",
-		"thumbnail": "res://assets/art/agent_task_swarm_bg.png"
+		"thumbnail": "res://assets/art/chrome_ram_bg.png"
 	},
 	{
 		"title_key": "GAME_PHOTOSHOP_TITLE",
