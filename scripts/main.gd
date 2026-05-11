@@ -184,7 +184,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_CONTEXT_TITLE",
 		"script": ContextTetris,
 		"description_key": "GAME_CONTEXT_DESC",
-		"thumbnail": "res://assets/sprites/token.png"
+		"thumbnail": "res://assets/art/satellite_signal_bg.png"
 	},
 	{
 		"title_key": "GAME_INJECTION_TITLE",

@@ -214,31 +214,31 @@ MEMORY_STATUS,Pairs: %d/%d  |  misses: %d,Parejas: %d/%d  |  fallos: %d
 MEMORY_SUCCESS,CAST COMPLETE!,CAST COMPLETO!
 MEMORY_TIMEOUT_SUCCESS,MEMORY LOCKED!,MEMORIA CERRADA!
 MEMORY_FAIL,MEMORY LEAK!,FUGA DE MEMORIA!
-GAME_CONTEXT_TITLE,Context Window Tetris,Tetris de Contexto
-GAME_CONTEXT_DESC,Pack useful debugging context into a tiny window without stuffing it with expensive nonsense.,Encaja contexto útil de depuración en una ventana pequeña sin llenarla de basura cara.
-CONTEXT_INSTRUCTIONS,Click useful blocks. Fill signal without overflowing tokens.,Haz clic en bloques útiles. Llena la señal sin desbordar tokens.
-CONTEXT_BLOCKS_TITLE,CONTEXT BLOCKS,BLOQUES DE CONTEXTO
-CONTEXT_WINDOW_TITLE,CONTEXT WINDOW,VENTANA DE CONTEXTO
-CONTEXT_MODEL_TITLE,MODEL BRAIN,CEREBRO MODELO
-CONTEXT_MODEL_HINT,needs signal not vibes,necesita señal no vibes
-CONTEXT_BLOCK_REPRO,Repro steps,Pasos repro
-CONTEXT_BLOCK_LOGS,Crash logs,Logs crash
-CONTEXT_BLOCK_ERROR,Error line,Línea error
-CONTEXT_BLOCK_TEST,Failing test,Test fallando
-CONTEXT_BLOCK_TWEET,CEO tweet,Tuit de jefe
-CONTEXT_BLOCK_NODE_MODULES,node_modules,node_modules
-CONTEXT_BLOCK_OLD_CHAT,old chat dump,chat viejo entero
-CONTEXT_BLOCK_VIBES,vibes only,solo vibes
-CONTEXT_TOKENS,Tokens: %d/%d,Tokens: %d/%d
-CONTEXT_SIGNAL,Signal: %d/%d,Señal: %d/%d
-CONTEXT_STATUS,Tokens: %d/%d  |  signal: %d  |  junk: %d,Tokens: %d/%d  |  señal: %d  |  basura: %d
-CONTEXT_VERDICT_EMPTY,pack the bug report,empaqueta el bug report
-CONTEXT_VERDICT_GOOD,enough signal!,¡señal suficiente!
-CONTEXT_VERDICT_OVERFLOW,context overflow!,¡contexto desbordado!
-CONTEXT_SUCCESS,PERFECT CONTEXT!,¡CONTEXTO PERFECTO!
-CONTEXT_TIMEOUT_SUCCESS,CONTEXT FITS,EL CONTEXTO ENCAJA
-CONTEXT_FAIL_OVERFLOW,CONTEXT OVERFLOW,CONTEXTO DESBORDADO
-CONTEXT_FAIL,MODEL STILL CONFUSED,MODELO TODAVÍA CONFUSO
+GAME_CONTEXT_TITLE,Align Satellite,Alinea el satelite
+GAME_CONTEXT_DESC,Slide the antenna until the signal waves overlap and the model wakes up,Desliza la antena hasta que las ondas encajen y el modelo despierte
+CONTEXT_INSTRUCTIONS,Drag the antenna until the waves line up.,Arrastra la antena hasta que las ondas encajen.
+CONTEXT_BLOCKS_TITLE,SIGNAL WAVES,ONDAS DE SENAL
+CONTEXT_WINDOW_TITLE,RECEIVER,RECEPTOR
+CONTEXT_MODEL_TITLE,MODEL,MODELO
+CONTEXT_MODEL_HINT,needs signal,necesita senal
+CONTEXT_BLOCK_REPRO,antenna,antena
+CONTEXT_BLOCK_LOGS,waves,ondas
+CONTEXT_BLOCK_ERROR,receiver,receptor
+CONTEXT_BLOCK_TEST,signal,senal
+CONTEXT_BLOCK_TWEET,noise,ruido
+CONTEXT_BLOCK_NODE_MODULES,static,estatica
+CONTEXT_BLOCK_OLD_CHAT,wrong orbit,orbita mala
+CONTEXT_BLOCK_VIBES,wobble,temblor
+CONTEXT_TOKENS,Signal: %d/%d,Senal: %d/%d
+CONTEXT_SIGNAL,Signal: %d/%d,Senal: %d/%d
+CONTEXT_STATUS,Signal: %d  |  lock: %d,Senal: %d  |  enlace: %d
+CONTEXT_VERDICT_EMPTY,line up the waves,encaja las ondas
+CONTEXT_VERDICT_GOOD,signal locked!,senal conectada!
+CONTEXT_VERDICT_OVERFLOW,signal lost!,senal perdida!
+CONTEXT_SUCCESS,SIGNAL LOCKED!,SENAL CONECTADA!
+CONTEXT_TIMEOUT_SUCCESS,SIGNAL LOCKED,SENAL CONECTADA
+CONTEXT_FAIL_OVERFLOW,SIGNAL LOST,SENAL PERDIDA
+CONTEXT_FAIL,NO SIGNAL,SIN SENAL
 GAME_INJECTION_TITLE,Prompt Injection Sushi,Sushi Prompt Injection
 GAME_INJECTION_DESC,Malicious instructions ride the sushi belt. Block the jailbreak plates before the model eats them.,Instrucciones maliciosas viajan por la cinta de sushi. Bloquea los platos jailbreak antes de que el modelo se los coma.
 INJECTION_INSTRUCTIONS,Click malicious plates. Let safe prompts pass.,Haz clic en los platos maliciosos. Deja pasar los prompts sanos.

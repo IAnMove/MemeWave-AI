@@ -47,7 +47,7 @@ func _run() -> void:
 	await _test_denial()
 	await _test_ollama_gpu()
 	await _test_quick_sort("Model Router", ModelRouter)
-	await _test_quick_sort("Context Tetris", ContextTetris)
+	await _test_satellite_alignment()
 	await _test_quick_sort("Agent Merge Conflict", AgentMergeConflict)
 	await _test_quick_sort("Dataset Laundry", DatasetLaundry)
 	await _test_quick_sort("PR Review Inferno", PrReviewInferno)
@@ -520,6 +520,23 @@ func _test_red_button() -> void:
 	await create_timer(4.45).timeout
 	if bool(game.get("running")):
 		_fail("Red Button did not finish after waiting")
+		return
+	game.queue_free()
+	await process_frame
+
+func _test_satellite_alignment() -> void:
+	var game := ContextTetris.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	if not bool(game.get("running")):
+		_fail("Satellite Alignment did not start")
+		return
+	game.call("_set_dish_x", 286.0)
+	await create_timer(0.80).timeout
+	if bool(game.get("running")):
+		_fail("Satellite Alignment did not finish after locking signal")
 		return
 	game.queue_free()
 	await process_frame

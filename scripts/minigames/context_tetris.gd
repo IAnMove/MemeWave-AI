@@ -1,231 +1,216 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
-const WINDOW_LIMIT := 100
-const TARGET_SIGNAL := 62
-const BLOCKS := [
-	{"key": "CONTEXT_BLOCK_REPRO", "tokens": 18, "signal": 18, "color": "#bdfb7f"},
-	{"key": "CONTEXT_BLOCK_LOGS", "tokens": 22, "signal": 22, "color": "#bdfb7f"},
-	{"key": "CONTEXT_BLOCK_ERROR", "tokens": 16, "signal": 16, "color": "#bdfb7f"},
-	{"key": "CONTEXT_BLOCK_TEST", "tokens": 20, "signal": 20, "color": "#bdfb7f"},
-	{"key": "CONTEXT_BLOCK_TWEET", "tokens": 24, "signal": -8, "color": "#ff9fd6"},
-	{"key": "CONTEXT_BLOCK_NODE_MODULES", "tokens": 52, "signal": -15, "color": "#ff7777"},
-	{"key": "CONTEXT_BLOCK_OLD_CHAT", "tokens": 36, "signal": 2, "color": "#ffef5f"},
-	{"key": "CONTEXT_BLOCK_VIBES", "tokens": 14, "signal": -4, "color": "#ffb25f"}
-]
+const BG_PATH := "res://assets/art/satellite_signal_bg.png"
+const DISH_PATH := "res://assets/art/satellite_dish.png"
+const RECEIVER_OFF_PATH := "res://assets/art/satellite_receiver_off.png"
+const RECEIVER_ON_PATH := "res://assets/art/satellite_receiver_on.png"
 
-var block_buttons: Array[Button] = []
-var placed_blocks: Array[Control] = []
-var tokens_used := 0
-var signal_score := 0
-var mistakes := 0
-var context_bar: ProgressBar
-var signal_bar: ProgressBar
-var context_label: Label
-var signal_label: Label
-var verdict_label: Label
-var placed_area: Control
+const DISH_SIZE := Vector2(315, 271)
+const RECEIVER_SIZE := Vector2(286, 262)
+const DISH_Y := 318.0
+const RAIL_LEFT := 72.0
+const RAIL_RIGHT := 456.0
+const TARGET_DISH_X := 286.0
+const ALIGN_TOLERANCE := 34.0
+const LOCK_SECONDS := 0.55
+
+var dish_x := TARGET_DISH_X - 150.0
+var dragging := false
+var lock_time := 0.0
+var pulse := 0.0
+var dish_sprite: TextureRect
+var receiver_sprite: TextureRect
+var lock_bar: ProgressBar
+var target_waves: Array[Line2D] = []
+var live_waves: Array[Line2D] = []
+var spark_lines: Array[Line2D] = []
 
 func _ready() -> void:
-	configure(
-		"GAME_CONTEXT_TITLE",
-		"CONTEXT_INSTRUCTIONS",
-		"GAME_CONTEXT_DESC",
-		""
-	)
+	configure("GAME_CONTEXT_TITLE", "CONTEXT_INSTRUCTIONS", "GAME_CONTEXT_DESC", BG_PATH)
 	super._ready()
+	hide_common_minigame_header()
+	hide_base_status()
+	_hide_base_header_panel()
+	if tutorial_panel:
+		tutorial_panel.visible = false
 	_build_stage()
 
 func start_minigame() -> void:
 	super.start_minigame()
-	tokens_used = 0
-	signal_score = 0
-	mistakes = 0
-	_clear_placed_blocks()
-	_reset_buttons()
-	_update_meters()
-	_update_status()
-	verdict_label.text = tr("CONTEXT_VERDICT_EMPTY")
-	verdict_label.add_theme_color_override("font_color", Color("#fff1c6"))
+	dish_x = RAIL_LEFT + 52.0
+	dragging = false
+	lock_time = 0.0
+	score = 0
+	receiver_sprite.texture = load(RECEIVER_OFF_PATH)
+	lock_bar.value = 0.0
+	_set_dish_x(dish_x)
+
+func _process(delta: float) -> void:
+	super._process(delta)
+	if not running:
+		return
+
+	pulse += delta * 8.0
+	var alignment := _alignment_strength()
+	score = roundi(alignment * 100.0)
+	lock_bar.value = alignment
+	receiver_sprite.texture = load(RECEIVER_ON_PATH) if alignment >= 0.86 else load(RECEIVER_OFF_PATH)
+	receiver_sprite.scale = Vector2.ONE * (1.0 + maxf(alignment - 0.8, 0.0) * sin(pulse * 2.0) * 0.025)
+
+	if alignment >= 0.94:
+		lock_time += delta
+		for line in spark_lines:
+			line.visible = true
+			line.modulate.a = 0.55 + sin(pulse + float(spark_lines.find(line))) * 0.35
+	else:
+		lock_time = 0.0
+		for line in spark_lines:
+			line.visible = false
+
+	_update_waves(alignment)
+	if lock_time >= LOCK_SECONDS:
+		await _finish_signal_lock()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not running:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			if _mouse_hits_dish(event.position) or _mouse_hits_rail(event.position):
+				dragging = true
+				play_action_sound("move")
+				_set_dish_x(event.position.x - DISH_SIZE.x * 0.54)
+				get_viewport().set_input_as_handled()
+		else:
+			dragging = false
+	elif event is InputEventMouseMotion and dragging:
+		_set_dish_x(event.position.x - DISH_SIZE.x * 0.54)
+		get_viewport().set_input_as_handled()
 
 func _build_stage() -> void:
-	var bg := ColorRect.new()
-	bg.position = Vector2(0, 0)
-	bg.size = Vector2(1280, 720)
-	bg.color = Color("#13212b")
-	add_child(bg)
-	move_child(bg, 0)
+	_build_target_waves()
 
-	_build_blocks_panel()
-	_build_context_panel()
-	_build_model_panel()
+	dish_sprite = make_sprite(DISH_PATH, DISH_SIZE)
+	dish_sprite.position = Vector2(dish_x, DISH_Y)
+	dish_sprite.z_index = 12
+	content_layer.add_child(dish_sprite)
 
-func _build_blocks_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(42, 220)
-	panel.size = Vector2(410, 398)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(panel)
+	receiver_sprite = make_sprite(RECEIVER_OFF_PATH, RECEIVER_SIZE)
+	receiver_sprite.position = Vector2(860, 282)
+	receiver_sprite.pivot_offset = RECEIVER_SIZE * 0.5
+	receiver_sprite.z_index = 11
+	content_layer.add_child(receiver_sprite)
 
-	var title := make_label(tr("CONTEXT_BLOCKS_TITLE"), 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(68, 238)
-	title.size = Vector2(358, 42)
-	content_layer.add_child(title)
+	_build_live_waves()
+	_build_lock_bar()
+	_build_sparks()
+	_set_dish_x(dish_x)
 
-	block_buttons.clear()
-	for index in range(BLOCKS.size()):
-		var block: Dictionary = BLOCKS[index]
-		var col := index % 2
-		var row := index / 2
-		var button := make_button(_block_text(block), 17, Color(block["color"]))
-		button.position = Vector2(66 + col * 186, 302 + row * 72)
-		button.size = Vector2(166, 58)
-		button.pressed.connect(_on_block_pressed.bind(index))
-		content_layer.add_child(button)
-		block_buttons.append(button)
+func _build_target_waves() -> void:
+	target_waves.clear()
+	var origin := _signal_origin_for(TARGET_DISH_X)
+	for index in range(3):
+		var line := _make_wave_line(origin, index, Color("#ffffff82"), 7.0)
+		line.z_index = 5
+		content_layer.add_child(line)
+		target_waves.append(line)
 
-func _build_context_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(488, 220)
-	panel.size = Vector2(420, 398)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#eff7ff"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(panel)
+func _build_live_waves() -> void:
+	live_waves.clear()
+	for index in range(3):
+		var line := _make_wave_line(_signal_origin_for(dish_x), index, Color("#ff5b5b"), 9.0)
+		line.z_index = 14
+		content_layer.add_child(line)
+		live_waves.append(line)
 
-	var title := make_label(tr("CONTEXT_WINDOW_TITLE"), 31, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(514, 238)
-	title.size = Vector2(368, 42)
-	content_layer.add_child(title)
+func _build_lock_bar() -> void:
+	lock_bar = ProgressBar.new()
+	lock_bar.position = Vector2(826, 596)
+	lock_bar.size = Vector2(330, 22)
+	lock_bar.min_value = 0.0
+	lock_bar.max_value = 1.0
+	lock_bar.show_percentage = false
+	lock_bar.modulate = Color("#67e887")
+	content_layer.add_child(lock_bar)
 
-	context_label = make_label("", 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
-	context_label.position = Vector2(526, 294)
-	context_label.size = Vector2(340, 26)
-	content_layer.add_child(context_label)
+func _build_sparks() -> void:
+	spark_lines.clear()
+	var center := Vector2(1003, 392)
+	for index in range(8):
+		var angle := TAU * float(index) / 8.0
+		var line := Line2D.new()
+		line.width = 7.0
+		line.default_color = Color("#ffef5f")
+		line.points = PackedVector2Array([
+			center + Vector2(cos(angle), sin(angle)) * 142.0,
+			center + Vector2(cos(angle), sin(angle)) * 180.0
+		])
+		line.visible = false
+		line.z_index = 16
+		content_layer.add_child(line)
+		spark_lines.append(line)
 
-	context_bar = ProgressBar.new()
-	context_bar.position = Vector2(526, 326)
-	context_bar.size = Vector2(340, 32)
-	context_bar.min_value = 0
-	context_bar.max_value = WINDOW_LIMIT
-	context_bar.show_percentage = false
-	content_layer.add_child(context_bar)
+func _set_dish_x(new_x: float) -> void:
+	dish_x = clampf(new_x, RAIL_LEFT, RAIL_RIGHT)
+	if dish_sprite:
+		dish_sprite.position = Vector2(dish_x, DISH_Y)
+	_update_waves(_alignment_strength())
 
-	signal_label = make_label("", 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
-	signal_label.position = Vector2(526, 374)
-	signal_label.size = Vector2(340, 26)
-	content_layer.add_child(signal_label)
+func _alignment_strength() -> float:
+	return clampf(1.0 - absf(dish_x - TARGET_DISH_X) / ALIGN_TOLERANCE, 0.0, 1.0)
 
-	signal_bar = ProgressBar.new()
-	signal_bar.position = Vector2(526, 406)
-	signal_bar.size = Vector2(340, 32)
-	signal_bar.min_value = 0
-	signal_bar.max_value = TARGET_SIGNAL
-	signal_bar.show_percentage = false
-	content_layer.add_child(signal_bar)
+func _signal_origin_for(x: float) -> Vector2:
+	return Vector2(x + 232.0, DISH_Y + 116.0)
 
-	placed_area = Control.new()
-	placed_area.position = Vector2(526, 458)
-	placed_area.size = Vector2(340, 100)
-	content_layer.add_child(placed_area)
+func _make_wave_line(origin: Vector2, index: int, color: Color, width: float) -> Line2D:
+	var line := Line2D.new()
+	line.width = width
+	line.default_color = color
+	line.points = _wave_points(origin, index)
+	return line
 
-	verdict_label = make_label("", 23, Color("#fff1c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	verdict_label.position = Vector2(512, 570)
-	verdict_label.size = Vector2(372, 40)
-	verdict_label.add_theme_color_override("font_outline_color", Color("#111111"))
-	verdict_label.add_theme_constant_override("outline_size", 4)
-	content_layer.add_child(verdict_label)
+func _update_waves(alignment: float) -> void:
+	var origin := _signal_origin_for(dish_x)
+	var color := Color("#ff5b5b").lerp(Color("#63f46f"), alignment)
+	for index in range(live_waves.size()):
+		live_waves[index].points = _wave_points(origin, index)
+		live_waves[index].default_color = color
+		live_waves[index].width = 7.0 + alignment * 4.0
+		live_waves[index].modulate.a = 0.65 + sin(pulse + float(index)) * 0.16
 
-func _build_model_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(944, 220)
-	panel.size = Vector2(280, 398)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#1c2532"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(panel)
+func _wave_points(origin: Vector2, index: int) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var radius_x := 135.0 + float(index) * 126.0
+	var radius_y := 72.0 + float(index) * 58.0
+	for step in range(34):
+		var angle := lerpf(-0.62, 0.62, float(step) / 33.0)
+		points.append(origin + Vector2(cos(angle) * radius_x, sin(angle) * radius_y))
+	return points
 
-	var model := make_sprite("res://assets/sprites/hungry_model.png", Vector2(178, 160))
-	model.position = Vector2(995, 260)
-	content_layer.add_child(model)
+func _mouse_hits_dish(point: Vector2) -> bool:
+	return Rect2(dish_sprite.position, DISH_SIZE).grow(22.0).has_point(point)
 
-	var title := make_label(tr("CONTEXT_MODEL_TITLE"), 29, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(972, 430)
-	title.size = Vector2(224, 44)
-	title.add_theme_color_override("font_outline_color", Color("#111111"))
-	title.add_theme_constant_override("outline_size", 5)
-	content_layer.add_child(title)
+func _mouse_hits_rail(point: Vector2) -> bool:
+	return Rect2(Vector2(70, 524), Vector2(694, 88)).has_point(point)
 
-	var hint := make_label(tr("CONTEXT_MODEL_HINT"), 21, Color("#fff1c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = Vector2(974, 492)
-	hint.size = Vector2(220, 74)
-	hint.add_theme_color_override("font_outline_color", Color("#111111"))
-	hint.add_theme_constant_override("outline_size", 4)
-	content_layer.add_child(hint)
-
-func _on_block_pressed(index: int) -> void:
-	if not running or index < 0 or index >= BLOCKS.size():
+func _finish_signal_lock() -> void:
+	if not running:
 		return
+	play_action_sound("collect")
+	for line in live_waves:
+		line.default_color = Color("#63f46f")
+	await finish_with_result(true, "CONTEXT_SUCCESS", 0.45)
 
-	var block: Dictionary = BLOCKS[index]
-	var button := block_buttons[index]
-	button.disabled = true
-	button.modulate = Color(0.55, 0.55, 0.55, 1.0)
-
-	tokens_used += int(block["tokens"])
-	signal_score += int(block["signal"])
-	if int(block["signal"]) <= 0:
-		mistakes += 1
-
-	_add_placed_block(block)
-	_update_meters()
-	_update_status()
-
-	if tokens_used > WINDOW_LIMIT:
-		verdict_label.text = tr("CONTEXT_VERDICT_OVERFLOW")
-		verdict_label.add_theme_color_override("font_color", Color("#ff5b5b"))
-		await finish_with_result(false, "CONTEXT_FAIL_OVERFLOW", 0.65)
+func _hide_base_header_panel() -> void:
+	if not title_label:
 		return
-
-	if signal_score >= TARGET_SIGNAL:
-		verdict_label.text = tr("CONTEXT_VERDICT_GOOD")
-		verdict_label.add_theme_color_override("font_color", Color("#5cff86"))
-		await finish_with_result(true, "CONTEXT_SUCCESS", 0.7)
-
-func _add_placed_block(block: Dictionary) -> void:
-	var index := placed_blocks.size()
-	var chip := PanelContainer.new()
-	chip.position = Vector2((index % 2) * 172, (index / 2) * 34)
-	chip.size = Vector2(160, 28)
-	chip.add_theme_stylebox_override("panel", make_style(Color(block["color"]), Color("#1d1d1d"), 3, 5))
-	placed_area.add_child(chip)
-	placed_blocks.append(chip)
-
-	var label := make_label("%s tk" % int(block["tokens"]), 15, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	chip.add_child(label)
-
-func _update_meters() -> void:
-	if context_bar:
-		context_bar.value = min(tokens_used, WINDOW_LIMIT)
-	if signal_bar:
-		signal_bar.value = clamp(signal_score, 0, TARGET_SIGNAL)
-	if context_label:
-		context_label.text = tr("CONTEXT_TOKENS") % [tokens_used, WINDOW_LIMIT]
-	if signal_label:
-		signal_label.text = tr("CONTEXT_SIGNAL") % [max(signal_score, 0), TARGET_SIGNAL]
-
-func _update_status() -> void:
-	set_status(tr("CONTEXT_STATUS") % [tokens_used, WINDOW_LIMIT, max(signal_score, 0), mistakes])
-
-func _reset_buttons() -> void:
-	for button in block_buttons:
-		button.disabled = false
-		button.modulate = Color.WHITE
-
-func _clear_placed_blocks() -> void:
-	for block in placed_blocks:
-		if is_instance_valid(block):
-			block.queue_free()
-	placed_blocks.clear()
-
-func _block_text(block: Dictionary) -> String:
-	return "%s\n%d tk" % [tr(block["key"]), int(block["tokens"])]
+	var node: Node = title_label
+	for _step in range(3):
+		node = node.get_parent()
+		if not node:
+			return
+	if node is Control:
+		(node as Control).visible = false
 
 func on_timeout() -> void:
-	var success := signal_score >= TARGET_SIGNAL and tokens_used <= WINDOW_LIMIT
-	await finish_with_result(success, "CONTEXT_TIMEOUT_SUCCESS" if success else "CONTEXT_FAIL", 0.45)
+	await finish_with_result(false, "CONTEXT_FAIL", 0.45)
