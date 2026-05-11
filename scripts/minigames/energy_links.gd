@@ -36,6 +36,8 @@ var mistakes := 0
 var cable_layer: Node2D
 var dangling_cable: Line2D
 var dangling_cable_shadow: Line2D
+var dangling_cable_jacket: Line2D
+var dangling_cable_highlight: Line2D
 var dangling_plug: Control
 var model_panel: PanelContainer
 var model_status: Label
@@ -55,6 +57,8 @@ func _ready() -> void:
 		""
 	)
 	super._ready()
+	if overlay_label:
+		overlay_label.z_index = 200
 	_build_stage()
 
 func start_minigame() -> void:
@@ -331,10 +335,7 @@ func _draw_cable(first: Dictionary, second: Dictionary) -> void:
 	var start := _socket_anchor(first_node, String(first["side"]))
 	var end := _socket_anchor(second_node, String(second["side"]))
 	var points := _cable_points(start, end)
-	var shadow := _make_cable_line(Color("#111111"), 18, points, 0)
-	var line := _make_cable_line(first["color"], 10, points, 1)
-	cable_layer.add_child(shadow)
-	cable_layer.add_child(line)
+	cable_layer.add_child(_make_cable_bundle(first["color"], points, 0))
 
 func _select_socket(index: int) -> void:
 	if selected_index != -1:
@@ -383,14 +384,17 @@ func _draw_dangling_cable(index: int, tip: Vector2 = Vector2(-99999.0, -99999.0)
 	if end.x < -90000.0:
 		end = start + Vector2(98.0 * direction, 58)
 	var points := _cable_points(start, end)
-	dangling_cable_shadow = _make_cable_line(Color("#111111"), 18, points, 2)
-	dangling_cable = _make_cable_line(socket["color"], 10, points, 3)
-	dangling_cable.z_index = 2
+	dangling_cable_shadow = _make_cable_line(Color("#00000076"), 24, points, 2, Vector2(0, 7))
+	dangling_cable_jacket = _make_cable_line(Color("#111111"), 18, points, 3)
+	dangling_cable = _make_cable_line((socket["color"] as Color).lightened(0.04), 12, points, 4)
+	dangling_cable_highlight = _make_cable_line((socket["color"] as Color).lightened(0.48), 3, points, 5, Vector2(-2, -3))
 	cable_layer.add_child(dangling_cable_shadow)
+	cable_layer.add_child(dangling_cable_jacket)
 	cable_layer.add_child(dangling_cable)
+	cable_layer.add_child(dangling_cable_highlight)
 	dangling_plug = _make_drag_plug(socket["color"])
 	content_layer.add_child(dangling_plug)
-	_place_drag_plug(start, end)
+	_place_drag_plug(points)
 
 func _update_dangling_cable(tip: Vector2) -> void:
 	if selected_index == -1 or not dangling_cable:
@@ -402,7 +406,11 @@ func _update_dangling_cable(tip: Vector2) -> void:
 	dangling_cable.points = points
 	if dangling_cable_shadow:
 		dangling_cable_shadow.points = points
-	_place_drag_plug(start, tip)
+	if dangling_cable_jacket:
+		dangling_cable_jacket.points = points
+	if dangling_cable_highlight:
+		dangling_cable_highlight.points = points
+	_place_drag_plug(points)
 
 func _clear_dangling_cable() -> void:
 	if dangling_cable and is_instance_valid(dangling_cable):
@@ -411,6 +419,12 @@ func _clear_dangling_cable() -> void:
 	if dangling_cable_shadow and is_instance_valid(dangling_cable_shadow):
 		dangling_cable_shadow.queue_free()
 	dangling_cable_shadow = null
+	if dangling_cable_jacket and is_instance_valid(dangling_cable_jacket):
+		dangling_cable_jacket.queue_free()
+	dangling_cable_jacket = null
+	if dangling_cable_highlight and is_instance_valid(dangling_cable_highlight):
+		dangling_cable_highlight.queue_free()
+	dangling_cable_highlight = null
 	if dangling_plug and is_instance_valid(dangling_plug):
 		dangling_plug.queue_free()
 	dangling_plug = null
@@ -424,8 +438,7 @@ func _drop_wrong_cable(first: Dictionary, second: Dictionary) -> void:
 	var group := Node2D.new()
 	group.z_index = 2
 	var points := _cable_points(start, end, 58.0)
-	group.add_child(_make_cable_line(Color("#111111"), 18, points, 0))
-	group.add_child(_make_cable_line(first["color"], 10, points, 1))
+	group.add_child(_make_cable_bundle(first["color"], points, 0))
 	cable_layer.add_child(group)
 	var tween := create_tween()
 	tween.set_parallel(true)
@@ -442,23 +455,35 @@ func _socket_anchor(node: Control, side: String) -> Vector2:
 
 func _cable_points(start: Vector2, end: Vector2, extra_sag: float = 0.0) -> PackedVector2Array:
 	var distance := start.distance_to(end)
-	var sag := clampf(distance * 0.12 + 18.0 + extra_sag, 28.0, 118.0)
-	return PackedVector2Array([
-		start,
-		start.lerp(end, 0.34) + Vector2(0, sag * 0.45),
-		start.lerp(end, 0.68) + Vector2(0, sag),
-		end
-	])
+	var sag := clampf(distance * 0.16 + 22.0 + extra_sag, 30.0, 154.0)
+	var points := PackedVector2Array()
+	for step in range(32):
+		var t := float(step) / 31.0
+		var point := start.lerp(end, t)
+		point.y += sin(t * PI) * sag
+		points.append(point)
+	return points
 
-func _make_cable_line(color: Color, width: float, points: PackedVector2Array, z: int) -> Line2D:
+func _make_cable_bundle(color: Color, points: PackedVector2Array, z: int) -> Node2D:
+	var bundle := Node2D.new()
+	bundle.z_index = z
+	bundle.add_child(_make_cable_line(Color("#00000068"), 24, points, 0, Vector2(0, 7)))
+	bundle.add_child(_make_cable_line(Color("#111111"), 18, points, 1))
+	bundle.add_child(_make_cable_line((color as Color).lightened(0.04), 12, points, 2))
+	bundle.add_child(_make_cable_line((color as Color).lightened(0.48), 3, points, 3, Vector2(-2, -3)))
+	return bundle
+
+func _make_cable_line(color: Color, width: float, points: PackedVector2Array, z: int, offset: Vector2 = Vector2.ZERO) -> Line2D:
 	var line := Line2D.new()
 	line.width = width
 	line.default_color = color
 	line.points = points
+	line.position = offset
 	line.z_index = z
 	line.joint_mode = Line2D.LINE_JOINT_ROUND
 	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
 	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.antialiased = true
 	return line
 
 func _add_connector_icon(parent: Control, side: String, wire_color: Color) -> void:
@@ -515,38 +540,61 @@ func _add_connector_icon(parent: Control, side: String, wire_color: Color) -> vo
 
 func _make_drag_plug(wire_color: Color) -> Control:
 	var plug := Control.new()
-	plug.size = Vector2(74, 42)
-	plug.pivot_offset = Vector2(66, 21)
+	plug.size = Vector2(88, 54)
+	plug.pivot_offset = Vector2(80, 27)
 	plug.z_index = 8
 	plug.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	var shadow := PanelContainer.new()
+	shadow.position = Vector2(25, 13)
+	shadow.size = Vector2(40, 32)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shadow.modulate = Color("#0000005f")
+	shadow.add_theme_stylebox_override("panel", make_style(Color("#0000005f"), Color("#00000000"), 0, 10))
+	plug.add_child(shadow)
+
 	var cord := ColorRect.new()
-	cord.position = Vector2(0, 17)
-	cord.size = Vector2(31, 9)
+	cord.position = Vector2(0, 22)
+	cord.size = Vector2(33, 10)
 	cord.color = wire_color
 	cord.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plug.add_child(cord)
 
+	var cord_highlight := ColorRect.new()
+	cord_highlight.position = Vector2(0, 22)
+	cord_highlight.size = Vector2(33, 3)
+	cord_highlight.color = (wire_color as Color).lightened(0.45)
+	cord_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plug.add_child(cord_highlight)
+
 	var body := PanelContainer.new()
-	body.position = Vector2(26, 7)
-	body.size = Vector2(31, 28)
+	body.position = Vector2(28, 9)
+	body.size = Vector2(35, 34)
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_theme_stylebox_override("panel", make_style(Color("#f6f0d5"), Color("#111111"), 4, 8))
+	body.add_theme_stylebox_override("panel", make_style(Color("#f6f0d5"), Color("#111111"), 4, 10))
 	plug.add_child(body)
 
-	for y in [12, 27]:
+	var shine := ColorRect.new()
+	shine.position = Vector2(34, 15)
+	shine.size = Vector2(21, 5)
+	shine.color = Color("#ffffff99")
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plug.add_child(shine)
+
+	for y in [16, 33]:
 		var prong := ColorRect.new()
-		prong.position = Vector2(55, y)
-		prong.size = Vector2(17, 5)
+		prong.position = Vector2(61, y)
+		prong.size = Vector2(23, 5)
 		prong.color = Color("#111111")
 		prong.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		plug.add_child(prong)
 	return plug
 
-func _place_drag_plug(start: Vector2, tip: Vector2) -> void:
+func _place_drag_plug(points: PackedVector2Array) -> void:
 	if not dangling_plug:
 		return
-	var direction := tip - start
+	var tip := points[points.size() - 1]
+	var direction := tip - points[maxi(points.size() - 4, 0)]
 	if direction.length() < 1.0:
 		direction = Vector2.RIGHT
 	dangling_plug.rotation = direction.angle()
