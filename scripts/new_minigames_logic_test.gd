@@ -6,6 +6,8 @@ const DeployFriday := preload("res://scripts/minigames/deploy_friday.gd")
 const SycophancyWhack := preload("res://scripts/minigames/sycophancy_whack.gd")
 const TokenBurner := preload("res://scripts/minigames/token_burner.gd")
 const TokenVacuum := preload("res://scripts/minigames/token_vacuum.gd")
+const ClaudeCodeCopycat := preload("res://scripts/minigames/claude_code_copycat.gd")
+const DaybreakCopycat := preload("res://scripts/minigames/daybreak_copycat.gd")
 const ModelRouter := preload("res://scripts/minigames/model_router.gd")
 const ContextTetris := preload("res://scripts/minigames/context_tetris.gd")
 const AgentMergeConflict := preload("res://scripts/minigames/agent_merge_conflict.gd")
@@ -34,11 +36,11 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 
-	if int(main.get("GAME_DEFS").size()) != 42:
-		_fail("Expected 42 minigames in GAME_DEFS")
+	if int(main.get("GAME_DEFS").size()) != 44:
+		_fail("Expected 44 minigames in GAME_DEFS")
 		return
-	if int((main.call("_active_game_indexes") as Array).size()) != 35:
-		_fail("Expected 35 active minigames after retiring duplicates")
+	if int((main.call("_active_game_indexes") as Array).size()) != 37:
+		_fail("Expected 37 active minigames after retiring duplicates")
 		return
 	main.queue_free()
 
@@ -48,6 +50,8 @@ func _run() -> void:
 	await _test_denial()
 	await _test_ollama_gpu()
 	await _test_downgrade_crisis()
+	await _test_copycat("Claude Code Copycat", ClaudeCodeCopycat, true)
+	await _test_copycat("Daybreak Copycat", DaybreakCopycat, false)
 	await _test_quick_sort("Model Router", ModelRouter)
 	await _test_satellite_alignment()
 	await _test_quick_sort("Agent Merge Conflict", AgentMergeConflict)
@@ -518,6 +522,37 @@ func _test_downgrade_crisis() -> void:
 		_fail("Downgrade Crisis did not render users")
 		return
 	await create_timer(1.0).timeout
+	game.queue_free()
+	await process_frame
+
+func _test_copycat(game_name: String, script: GDScript, test_success: bool) -> void:
+	var game: Control = script.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	game.call("_force_dario_watching", false)
+	game.call("_force_hold", true)
+	await create_timer(0.35).timeout
+	if float(game.get("copy_progress")) <= 8.0:
+		_fail("%s did not copy while holding in safe state" % game_name)
+		return
+
+	if test_success:
+		game.set("copy_progress", 98.0)
+		game.call("_update_copy_visual")
+		await create_timer(0.20).timeout
+		if bool(game.get("running")):
+			_fail("%s did not finish after completing the copy" % game_name)
+			return
+	else:
+		game.call("_force_dario_watching", true)
+		await create_timer(0.24).timeout
+		if bool(game.get("running")):
+			_fail("%s did not fail when copying while Dario watches" % game_name)
+			return
+
 	game.queue_free()
 	await process_frame
 

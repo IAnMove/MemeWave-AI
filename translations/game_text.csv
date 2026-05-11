@@ -410,6 +410,18 @@ GPU_SUCCESS,AISLE EMPTIED!,¡PASILLO VACÍO!
 GPU_TIMEOUT_SUCCESS,CART FULL,CARRITO LLENO
 GPU_FAIL_BILL,stock lost,stock perdido
 GPU_FAIL,RIVALS GOT THE STOCK,LOS RIVALES SE LLEVARON EL STOCK
+GAME_COPY_CODEX_TITLE,Copy Claude Code,Copia Claude Code
+GAME_COPY_CODEX_DESC,Sam peeks at Dario's Claude Code homework. Hold to copy Codex and release when Dario looks.,Sam mira los deberes de Claude Code de Dario. Mantén para copiar Codex y suelta cuando Dario mire.
+GAME_COPY_DAYBREAK_TITLE,Copy Mythos,Copia Mythos
+GAME_COPY_DAYBREAK_DESC,Sam peeks at Dario's security homework. Hold to copy Daybreak and release when Dario looks.,Sam mira los deberes de seguridad de Dario. Mantén para copiar Daybreak y suelta cuando Dario mire.
+COPYCAT_INSTRUCTIONS,Hold click to copy. Release when Dario looks.,Mantén clic para copiar. Suelta cuando Dario mire.
+COPYCAT_COPY_LABEL,COPY,COPIA
+COPYCAT_SAFE,copying... %d%%,copiando... %d%%
+COPYCAT_DANGER,DARIO LOOKS!,¡DARIO MIRA!
+COPYCAT_CAUGHT,CAUGHT COPYING!,¡TE PILLARON!
+COPYCAT_TIMEOUT_FAIL,HALF COPIED,COPIA A MEDIAS
+COPY_CODEX_SUCCESS,CODEX LAUNCHED!,¡CODEX LANZADO!
+COPY_DAYBREAK_SUCCESS,DAYBREAK LAUNCHED!,¡DAYBREAK LANZADO!
 GAME_DATASET_TITLE,Dataset Laundry,Lavadora de Dataset
 GAME_DATASET_DESC,Sort clean training signal from legally spicy junk before the fine-tuned model learns cursed habits.,Separa señal limpia de basura legalmente picante antes de que el modelo fine-tuneado aprenda hábitos malditos.
 DATASET_INSTRUCTIONS,Send clean docs to training and suspicious ones to legal review.,Manda documentos limpios a entrenamiento y los sospechosos a revisión legal.
@@ -961,9 +973,9 @@ FUNERAL_SUCCESS,OPEN PROMISE FILED!,PROMESA OPEN ARCHIVADA!
 FUNERAL_TIMEOUT_SUCCESS,REPOS SORTED,REPOS CLASIFICADOS
 FUNERAL_TIMEOUT_FAIL,REPO LIMBO,LIMBO DE REPOS
 FUNERAL_FAIL,LICENSE TEARS,LAGRIMAS DE LICENCIA
-GAME_THREAD_TITLE,RAM Tabs,Pestanas RAM
-GAME_THREAD_DESC,Close the extra browser tabs without losing the open message,Cierra las pestanas extra sin perder el mensaje abierto
-THREAD_INSTRUCTIONS,Close every extra tab. Keep the open one.,Cierra las pestanas extra. Deja la abierta.
+GAME_THREAD_TITLE,Tab Panic,Panico de pestanas
+GAME_THREAD_DESC,Close junk browser tabs to free RAM without killing the active prompt,Cierra pestanas basura para liberar RAM sin matar el prompt activo
+THREAD_INSTRUCTIONS,Close junk tabs. Protect the active prompt.,Cierra pestanas basura. Protege el prompt activo.
 THREAD_FEED_TITLE,Chrome panic,Panico Chrome
 THREAD_FOCUS_TITLE,RAM,RAM
 THREAD_REPLY,CLOSE,CERRAR
@@ -985,6 +997,12 @@ THREAD_DOOM_FLAME,open message,mensaje abierto
 THREAD_DOOM_THREAD,open message,mensaje abierto
 THREAD_STATUS,Tabs: %d/%d  |  ram: %d%%  |  mistakes: %d,Pestanas: %d/%d  |  ram: %d%%  |  errores: %d
 THREAD_RAM_PANIC,I am running out of RAM!,Me estoy quedando sin RAM!
+THREAD_KEEP_OPEN,keep this tab open,manten esta pestana abierta
+THREAD_BROWSER_GOAL,free,libera
+THREAD_RAM_USED,RAM used,RAM usada
+THREAD_PAGE_LINE_1,Active prompt draft,Borrador de prompt activo
+THREAD_PAGE_LINE_2,Final reply loading,Respuesta final cargando
+THREAD_PAGE_LINE_3,Do not close this tab,No cierres esta pestana
 THREAD_LOST_MESSAGE,Oh no! We lost the message!,Oh no! Hemos perdido el mensaje!
 THREAD_SUCCESS,RAM SAVED!,RAM SALVADA!
 THREAD_TIMEOUT_SUCCESS,RAM SAVED,RAM SALVADA

@@ -18,6 +18,8 @@ const ChoiceComplexTasks := preload("res://scripts/minigames/choice_complex_task
 const AgentMergeConflict := preload("res://scripts/minigames/agent_merge_conflict.gd")
 const TokenVacuum := preload("res://scripts/minigames/token_vacuum.gd")
 const GpuBlackFriday := preload("res://scripts/minigames/gpu_black_friday.gd")
+const ClaudeCodeCopycat := preload("res://scripts/minigames/claude_code_copycat.gd")
+const DaybreakCopycat := preload("res://scripts/minigames/daybreak_copycat.gd")
 const DatasetLaundry := preload("res://scripts/minigames/dataset_laundry.gd")
 const StartupRunwayRunner := preload("res://scripts/minigames/startup_runway_runner.gd")
 const FinetuneKitchen := preload("res://scripts/minigames/finetune_kitchen.gd")
@@ -105,7 +107,9 @@ const DEV_GAMEPLAY_GROUPS := [
 		"game_title_keys": [
 			"GAME_BENCH_TITLE",
 			"GAME_VACUUM_TITLE",
-			"GAME_CASINO_TITLE"
+			"GAME_CASINO_TITLE",
+			"GAME_COPY_CODEX_TITLE",
+			"GAME_COPY_DAYBREAK_TITLE"
 		]
 	},
 	{
@@ -255,6 +259,20 @@ const GAME_DEFS := [
 		"script": GpuBlackFriday,
 		"description_key": "GAME_GPU_DESC",
 		"thumbnail": "res://assets/art/gpu_black_friday_sam_cart.png"
+	},
+	{
+		"title_key": "GAME_COPY_CODEX_TITLE",
+		"script": ClaudeCodeCopycat,
+		"description_key": "GAME_COPY_CODEX_DESC",
+		"instruction_key": "COPYCAT_INSTRUCTIONS",
+		"thumbnail": "res://assets/art/copycat_classroom_safe.png"
+	},
+	{
+		"title_key": "GAME_COPY_DAYBREAK_TITLE",
+		"script": DaybreakCopycat,
+		"description_key": "GAME_COPY_DAYBREAK_DESC",
+		"instruction_key": "COPYCAT_INSTRUCTIONS",
+		"thumbnail": "res://assets/art/copycat_classroom_danger.png"
 	},
 	{
 		"title_key": "GAME_DATASET_TITLE",
