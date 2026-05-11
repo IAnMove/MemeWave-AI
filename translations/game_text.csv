@@ -26,28 +26,28 @@ REPO_SAM_SPEECH,"Sam: close these repos.","Sam: cierra estos repos."
 REPO_ELON_SPEECH,Elon: this is not open anymore!,Elon: esto ya no es open!
 REPO_SUCCESS,THIS IS NOT OPEN ANYMORE!,ESTO YA NO ES OPEN!
 REPO_FAIL,THE REPO IS STILL OPEN,EL REPO SIGUE ABIERTO
-GAME_TOKENS_TITLE,Token Burner,Quemador de Tokens
-GAME_TOKENS_DESC,"CHAGTPT is hungry: drop tokens into its mouth and avoid 429s, the rate-limit errors.","CHAGTPT tiene hambre: deja caer tokens en su boca y evita los 429, que son errores de límite de uso."
-TOKENS_INSTRUCTIONS,Click and drag tokens to the right. Avoid red 429 errors.,Haz clic y arrastra los tokens hacia la derecha. Evita los errores rojos 429.
-TOKENS_STATUS,Fed tokens: %d/%d  |  Errors: %d,Tokens alimentados: %d/%d  |  Errores: %d
-TOKENS_MODEL_LINE_1,HUNGRY,MODELO
-TOKENS_MODEL_LINE_2,MODEL,HAMBRIENTO
-TOKENS_MOUTH,OPEN MOUTH,BOCA ABIERTA
-TOKENS_CPU_NAME,CHAGTPT,CHAGTPT
-TOKENS_CPU_IDLE,hungry for tokens,tiene hambre de tokens
-TOKENS_CPU_FED,token accepted,token aceptado
-TOKENS_CPU_RATE,429 indigestion,indigestion 429
-TOKENS_TOKEN_MISSED,token missed,token perdido
-TOKENS_DROP_HINT,Drag sideways. Let gravity finish it.,Arrastra en horizontal. Deja que caiga solo.
-TOKENS_WALL_HINT,Too low? The CPU wall blocks it.,Si baja demasiado la pared de CPU lo bloquea.
-TOKENS_RATE_LIMIT_HINT,429 = rate limit. Do not feed it.,429 = rate limit. No lo alimentes.
-TOKENS_SAM_HINT,Feed tokens only. 429s burn the session.,Solo tokens. Los 429 queman la sesion.
-TOKENS_SAM_RATE_WARN,That was a rate limit.,Eso era un rate limit.
-TOKENS_TOKEN_POP,+ TOKEN,+ TOKEN
-TOKENS_RATE_POP,429 FED!,429 ALIMENTADO!
-TOKENS_SUCCESS,INVOICE PAID,FACTURA PAGADA
-TOKENS_TIMEOUT_SUCCESS,MODEL FED,MODELO SACIADO
-TOKENS_FAIL,NO TOKENS,SIN TOKENS
+GAME_TOKENS_TITLE,Cool Ollama,Sopla la GPU
+GAME_TOKENS_DESC,Local Ollama makes the laptop boil; drag the fan onto the GPU until it calms down,Ollama local pone el portatil hirviendo; arrastra el ventilador a la GPU hasta enfriarla
+TOKENS_INSTRUCTIONS,Drag the fan onto the hot laptop.,Arrastra el ventilador al portatil caliente.
+TOKENS_STATUS,Heat: %d%%  |  cool: %d%%,Calor: %d%%  |  frio: %d%%
+TOKENS_MODEL_LINE_1,HOT,GPU
+TOKENS_MODEL_LINE_2,GPU,ARDIENDO
+TOKENS_MOUTH,FAN,VENTILADOR
+TOKENS_CPU_NAME,OLLAMA,OLLAMA
+TOKENS_CPU_IDLE,boiling!,hirviendo!
+TOKENS_CPU_FED,cooling!,enfriando!
+TOKENS_CPU_RATE,too hot!,muy caliente!
+TOKENS_TOKEN_MISSED,fan missed,ventilador lejos
+TOKENS_DROP_HINT,Move the fan over the laptop.,Mueve el ventilador encima.
+TOKENS_WALL_HINT,Keep it close.,Mantenlo cerca.
+TOKENS_RATE_LIMIT_HINT,Heat is rising.,El calor sube.
+TOKENS_SAM_HINT,Local model is cooking the machine.,El modelo local cocina la maquina.
+TOKENS_SAM_RATE_WARN,Too hot.,Demasiado calor.
+TOKENS_TOKEN_POP,cool!,frio!
+TOKENS_RATE_POP,hot!,calor!
+TOKENS_SUCCESS,GPU SAVED!,GPU SALVADA!
+TOKENS_TIMEOUT_SUCCESS,LAPTOP LIVES,PORTATIL VIVE
+TOKENS_FAIL,LAPTOP MELTED,PORTATIL FUNDIDO
 GAME_BENCH_TITLE,Benchmark Arena,Arena Benchmark
 GAME_BENCH_DESC,"Mocks leaderboards, benchmarks, and model marketing theater.","Se burla de rankings, benchmarks y teatro de marketing de modelos."
 BENCH_INSTRUCTIONS,Press RUN BENCHMARK when the cursor is in the green zone.,Pulsa RUN BENCHMARK cuando el cursor esté en verde.

@@ -4,6 +4,7 @@ const LicenseMaze := preload("res://scripts/minigames/license_maze.gd")
 const EvalCherryPicker := preload("res://scripts/minigames/eval_cherry_picker.gd")
 const DeployFriday := preload("res://scripts/minigames/deploy_friday.gd")
 const SycophancyWhack := preload("res://scripts/minigames/sycophancy_whack.gd")
+const TokenBurner := preload("res://scripts/minigames/token_burner.gd")
 const ModelRouter := preload("res://scripts/minigames/model_router.gd")
 const ContextTetris := preload("res://scripts/minigames/context_tetris.gd")
 const AgentMergeConflict := preload("res://scripts/minigames/agent_merge_conflict.gd")
@@ -44,6 +45,7 @@ func _run() -> void:
 	await _test_syco()
 	await _test_gpu_ritual()
 	await _test_denial()
+	await _test_ollama_gpu()
 	await _test_quick_sort("Model Router", ModelRouter)
 	await _test_quick_sort("Context Tetris", ContextTetris)
 	await _test_quick_sort("Agent Merge Conflict", AgentMergeConflict)
@@ -463,6 +465,31 @@ func _test_chrome_ram() -> void:
 		return
 	if int(game.get("score")) < tab_count - 1:
 		_fail("Chrome RAM did not count all closed tabs")
+		return
+	game.queue_free()
+	await process_frame
+
+func _test_ollama_gpu() -> void:
+	var game := TokenBurner.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	var before := float(game.get("temperature"))
+	game.call("_move_fan_to", Vector2(310, 306))
+	await create_timer(0.45).timeout
+	if not bool(game.get("cooling")):
+		_fail("Cool Ollama did not cool when the fan overlaps the laptop")
+		return
+	if float(game.get("temperature")) >= before:
+		_fail("Cool Ollama temperature did not go down")
+		return
+
+	game.set("temperature", 3.0)
+	await create_timer(0.25).timeout
+	if bool(game.get("running")):
+		_fail("Cool Ollama did not finish after cooling")
 		return
 	game.queue_free()
 	await process_frame

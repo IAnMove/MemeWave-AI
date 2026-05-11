@@ -135,7 +135,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_TOKENS_TITLE",
 		"script": TokenBurner,
 		"description_key": "GAME_TOKENS_DESC",
-		"thumbnail": "res://assets/art/tokens_burner_bg.png"
+		"thumbnail": "res://assets/art/ollama_laptop_hot.png"
 	},
 	{
 		"title_key": "GAME_BENCH_TITLE",
