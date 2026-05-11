@@ -107,6 +107,7 @@ func _build_stage() -> void:
 
 	var shelf := make_sprite(SHELF_PATH, Vector2(618, 376))
 	shelf.position = Vector2(570, 210)
+	shelf.stretch_mode = TextureRect.STRETCH_SCALE
 	content_layer.add_child(shelf)
 
 	_build_stock_strip()
