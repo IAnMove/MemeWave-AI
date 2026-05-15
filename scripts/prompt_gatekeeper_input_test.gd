@@ -17,8 +17,8 @@ func _run() -> void:
 		_fail("Prompt gatekeeper did not start.")
 		return
 
-	var prompt_def: Dictionary = minigame.get("PROMPTS")[int(minigame.get("current_prompt"))]
-	var expected := String(prompt_def["kind"])
+	var prompt_def: Dictionary = minigame.get("item_defs")[int(minigame.get("current_item"))]
+	var expected := String(prompt_def["correct"])
 	minigame.call("_on_choice_pressed", expected)
 	minigame.call("_on_choice_pressed", expected)
 	await process_frame

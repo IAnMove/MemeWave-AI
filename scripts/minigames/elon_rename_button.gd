@@ -2,17 +2,25 @@ extends "res://scripts/minigames/base_minigame.gd"
 
 const BG_PATH := "res://assets/art/red_button_bg.png"
 const SCOLD_PATH := "res://assets/art/red_button_scold.png"
+const THANKS_PATH := "res://assets/art/red_button_thanks.png"
+const BUTTON_NORMAL_PATH := "res://assets/sprites/red_button_top.png"
+const BUTTON_HOVER_PATH := "res://assets/sprites/red_button_top_hover.png"
+const BUTTON_PRESSED_PATH := "res://assets/sprites/red_button_top_pressed.png"
 const WAIT_SECONDS := 4.2
+const BUTTON_HOME := Vector2(396, 222)
+const BUTTON_LABEL_OFFSET := Vector2(6, 92)
 
 var safe_time := 0.0
 var pressed_red := false
+var resolved := false
 var pulse := 0.0
-var button_base: PanelContainer
+var button_base: Control
 var button_top: TextureButton
 var button_label: Label
 var progress_bar: ProgressBar
 var alarm_overlay: ColorRect
 var scold_sprite: TextureRect
+var thanks_sprite: TextureRect
 var scold_label: Label
 var sparks: Array[Line2D] = []
 
@@ -30,14 +38,17 @@ func start_minigame() -> void:
 	super.start_minigame()
 	safe_time = 0.0
 	pressed_red = false
+	resolved = false
 	score = 0
 	button_base.visible = true
 	button_top.disabled = false
 	button_top.scale = Vector2.ONE
-	button_top.position = Vector2(396, 222)
+	button_top.position = BUTTON_HOME
+	button_label.position = BUTTON_LABEL_OFFSET
 	alarm_overlay.visible = false
 	alarm_overlay.color = Color("#ff000000")
 	scold_sprite.visible = false
+	thanks_sprite.visible = false
 	scold_label.visible = false
 	progress_bar.value = 0
 	for spark in sparks:
@@ -45,7 +56,7 @@ func start_minigame() -> void:
 
 func _process(delta: float) -> void:
 	super._process(delta)
-	if not running or pressed_red:
+	if not running or pressed_red or resolved:
 		return
 
 	safe_time += delta
@@ -53,7 +64,7 @@ func _process(delta: float) -> void:
 	progress_bar.value = safe_time
 	pulse += delta * 18.0
 	var shake := Vector2(sin(pulse) * 7.0, cos(pulse * 1.35) * 5.0)
-	button_top.position = Vector2(396, 222) + shake
+	button_top.position = BUTTON_HOME + shake
 	button_top.scale = Vector2.ONE * (1.0 + sin(pulse * 0.7) * 0.035)
 	for index in range(sparks.size()):
 		sparks[index].modulate.a = 0.45 + sin(pulse + index) * 0.35
@@ -69,31 +80,34 @@ func _build_stage() -> void:
 	_build_sparks()
 
 func _build_button() -> void:
-	button_base = PanelContainer.new()
-	button_base.position = Vector2(300, 310)
-	button_base.size = Vector2(420, 210)
-	button_base.add_theme_stylebox_override("panel", make_style(Color("#5f1616"), Color("#151515"), 8, 42))
+	button_base = TextureRect.new()
+	button_base.position = Vector2(350, 402)
+	button_base.size = Vector2(332, 92)
+	button_base.texture = _make_button_shadow_texture()
+	button_base.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	button_base.stretch_mode = TextureRect.STRETCH_SCALE
+	button_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(button_base)
 
 	button_top = TextureButton.new()
-	button_top.position = Vector2(396, 222)
+	button_top.position = BUTTON_HOME
 	button_top.size = Vector2(238, 238)
 	button_top.ignore_texture_size = true
 	button_top.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	button_top.texture_normal = _make_button_texture(Color("#ff2727"), Color("#151515"))
-	button_top.texture_hover = _make_button_texture(Color("#ff4a4a"), Color("#151515"))
-	button_top.texture_pressed = _make_button_texture(Color("#b51620"), Color("#151515"))
+	button_top.texture_normal = _load_button_texture(BUTTON_NORMAL_PATH, Color("#ff2727"))
+	button_top.texture_hover = _load_button_texture(BUTTON_HOVER_PATH, Color("#ff4a4a"))
+	button_top.texture_pressed = _load_button_texture(BUTTON_PRESSED_PATH, Color("#b51620"))
 	button_top.pivot_offset = Vector2(119, 119)
 	button_top.pressed.connect(_press_red_button)
 	content_layer.add_child(button_top)
 
 	button_label = make_label(tr("RENAME_NO_PRESS"), 38, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	button_label.position = Vector2(402, 314)
+	button_label.position = BUTTON_LABEL_OFFSET
 	button_label.size = Vector2(226, 62)
 	button_label.add_theme_color_override("font_outline_color", Color("#151515"))
 	button_label.add_theme_constant_override("outline_size", 7)
 	button_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_layer.add_child(button_label)
+	button_top.add_child(button_label)
 
 func _build_safe_meter() -> void:
 	progress_bar = ProgressBar.new()
@@ -121,6 +135,13 @@ func _build_scold() -> void:
 	scold_sprite.visible = false
 	scold_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(scold_sprite)
+
+	thanks_sprite = make_sprite(THANKS_PATH, Vector2(300, 390))
+	thanks_sprite.position = Vector2(890, 184)
+	thanks_sprite.z_index = 45
+	thanks_sprite.visible = false
+	thanks_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(thanks_sprite)
 
 	scold_label = make_label(tr("RENAME_SCOLD"), 28, Color("#bf2030"), HORIZONTAL_ALIGNMENT_CENTER)
 	scold_label.position = Vector2(862, 562)
@@ -161,16 +182,42 @@ func _make_button_texture(fill: Color, border: Color) -> ImageTexture:
 				image.set_pixel(x, y, border)
 	return ImageTexture.create_from_image(image)
 
+func _load_button_texture(path: String, fallback_fill: Color) -> Texture2D:
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return _make_button_texture(fallback_fill, Color("#151515"))
+
+func _make_button_shadow_texture() -> ImageTexture:
+	var image := Image.create(332, 92, false, Image.FORMAT_RGBA8)
+	image.fill(Color("#00000000"))
+	var center := Vector2(166, 46)
+	for y in range(92):
+		for x in range(332):
+			var normalized := Vector2((float(x) - center.x) / 166.0, (float(y) - center.y) / 46.0)
+			var dist := normalized.length()
+			if dist <= 1.0:
+				var alpha := 0.44 * (1.0 - dist * 0.52)
+				image.set_pixel(x, y, Color(0.07, 0.04, 0.04, alpha))
+	for stripe in range(9):
+		var x0 := 18 + stripe * 34
+		for step in range(54):
+			var x := x0 + step
+			var y := 66 - step / 3
+			if x >= 0 and x < 332 and y >= 0 and y < 92:
+				var color := image.get_pixel(x, y)
+				if color.a > 0.0:
+					image.set_pixel(x, y, Color(0.45, 0.22, 0.20, minf(color.a + 0.12, 0.52)))
+	return ImageTexture.create_from_image(image)
+
 func _press_red_button() -> void:
 	if not running or pressed_red:
 		return
 	pressed_red = true
+	resolved = true
 	button_top.disabled = true
 	play_action_sound("bad")
 	alarm_overlay.visible = true
-	scold_sprite.visible = true
-	scold_label.text = tr("RENAME_SCOLD")
-	scold_label.visible = true
+	_show_feedback(scold_sprite, "RENAME_SCOLD", Color("#bf2030"))
 	for spark in sparks:
 		spark.visible = false
 	var tween := create_tween()
@@ -183,11 +230,23 @@ func _press_red_button() -> void:
 func _survive_button() -> void:
 	if not running:
 		return
+	resolved = true
 	play_action_sound("collect")
 	button_top.disabled = true
 	for spark in sparks:
 		spark.visible = false
-	await finish_with_result(true, "RENAME_SUCCESS", 0.45)
+	progress_bar.value = WAIT_SECONDS
+	_show_feedback(thanks_sprite, "RENAME_THANKS", Color("#11883a"))
+	await finish_with_result(true, "RENAME_SUCCESS", 0.18)
+
+func _show_feedback(sprite: TextureRect, text_key: String, color: Color) -> void:
+	scold_sprite.visible = false
+	if thanks_sprite:
+		thanks_sprite.visible = false
+	sprite.visible = true
+	scold_label.text = tr(text_key)
+	scold_label.add_theme_color_override("font_color", color)
+	scold_label.visible = true
 
 func _hide_base_header_panel() -> void:
 	if not title_label:

@@ -4,13 +4,10 @@ var scenario_key := ""
 var winner_id := ""
 var success_text_key := ""
 var fail_text_key := ""
-var claude_reason_key := ""
-var codex_reason_key := ""
 var choice_made := false
 var claude_button: Button
 var codex_button: Button
 var result_label: Label
-var winner_label: Label
 
 func initialize_choice(
 	title_key: String,
@@ -20,15 +17,13 @@ func initialize_choice(
 	new_winner_id: String,
 	new_success_text_key: String,
 	new_fail_text_key: String,
-	new_claude_reason_key: String,
-	new_codex_reason_key: String
+	_new_claude_reason_key: String,
+	_new_codex_reason_key: String
 ) -> void:
 	scenario_key = new_scenario_key
 	winner_id = new_winner_id
 	success_text_key = new_success_text_key
 	fail_text_key = new_fail_text_key
-	claude_reason_key = new_claude_reason_key
-	codex_reason_key = new_codex_reason_key
 	configure(title_key, instructions_key, description_key, "")
 
 func start_minigame() -> void:
@@ -36,12 +31,11 @@ func start_minigame() -> void:
 	choice_made = false
 	score = 0
 	result_label.visible = false
-	winner_label.text = tr("CHOICE_WINNER_LABEL") + " " + _winner_name()
 	_set_button_style(claude_button, Color("#ff9fd6"))
 	_set_button_style(codex_button, Color("#66c6ff"))
 	claude_button.disabled = false
 	codex_button.disabled = false
-	set_status(tr("CHOICE_STATUS"))
+	set_status("")
 
 func build_choice_stage() -> void:
 	var bg := ColorRect.new()
@@ -55,7 +49,6 @@ func build_choice_stage() -> void:
 	_build_model_card(
 		Vector2(86, 266),
 		tr("CHOICE_CLAUDE_BUTTON"),
-		tr(claude_reason_key),
 		"res://assets/sprites/dario_amodei.png",
 		Color("#ff9fd6"),
 		"claude"
@@ -63,7 +56,6 @@ func build_choice_stage() -> void:
 	_build_model_card(
 		Vector2(846, 266),
 		tr("CHOICE_CODEX_BUTTON"),
-		tr(codex_reason_key),
 		"res://assets/sprites/sam_face.png",
 		Color("#66c6ff"),
 		"codex"
@@ -77,41 +69,24 @@ func build_choice_stage() -> void:
 	result_label.visible = false
 	content_layer.add_child(result_label)
 
-	winner_label = make_label("", 22, Color("#fff1c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	winner_label.position = Vector2(380, 638)
-	winner_label.size = Vector2(520, 38)
-	winner_label.add_theme_color_override("font_outline_color", Color("#111111"))
-	winner_label.add_theme_constant_override("outline_size", 4)
-	content_layer.add_child(winner_label)
-
 func _build_prompt_panel() -> void:
 	var panel := PanelContainer.new()
-	panel.position = Vector2(356, 242)
-	panel.size = Vector2(568, 300)
+	panel.position = Vector2(330, 218)
+	panel.size = Vector2(620, 236)
 	panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6"), Color("#1d1d1d"), 5, 8))
 	content_layer.add_child(panel)
 
-	var prompt_title := make_label(tr("CHOICE_PROMPT_LABEL"), 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	prompt_title.position = Vector2(388, 268)
-	prompt_title.size = Vector2(504, 42)
-	content_layer.add_child(prompt_title)
-
 	var scenario := make_label(tr(scenario_key), 38, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	scenario.position = Vector2(406, 326)
-	scenario.size = Vector2(468, 120)
+	scenario.position = Vector2(380, 250)
+	scenario.size = Vector2(520, 156)
 	scenario.add_theme_color_override("font_outline_color", Color("#ffffff"))
 	scenario.add_theme_constant_override("outline_size", 3)
 	content_layer.add_child(scenario)
 
-	var hint := make_label(tr("CHOICE_TAP_HINT"), 22, Color("#3d3d3d"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = Vector2(412, 470)
-	hint.size = Vector2(456, 42)
-	content_layer.add_child(hint)
-
-func _build_model_card(position: Vector2, model_name: String, reason: String, sprite_path: String, color: Color, model_id: String) -> void:
+func _build_model_card(position: Vector2, model_name: String, sprite_path: String, color: Color, model_id: String) -> void:
 	var panel := PanelContainer.new()
 	panel.position = position
-	panel.size = Vector2(300, 312)
+	panel.size = Vector2(300, 238)
 	panel.add_theme_stylebox_override("panel", make_style(Color("#ffffff"), Color("#1d1d1d"), 5, 8))
 	content_layer.add_child(panel)
 
@@ -119,19 +94,9 @@ func _build_model_card(position: Vector2, model_name: String, reason: String, sp
 	sprite.position = position + Vector2(60, 18)
 	content_layer.add_child(sprite)
 
-	var title := make_label(model_name, 29, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = position + Vector2(20, 164)
-	title.size = Vector2(260, 42)
-	content_layer.add_child(title)
-
-	var reason_label := make_label(reason, 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	reason_label.position = position + Vector2(24, 208)
-	reason_label.size = Vector2(252, 54)
-	content_layer.add_child(reason_label)
-
-	var button := make_button(tr("CHOICE_PICK"), 24, color)
-	button.position = position + Vector2(48, 264)
-	button.size = Vector2(204, 52)
+	var button := make_button(model_name, 24, color)
+	button.position = position + Vector2(38, 174)
+	button.size = Vector2(224, 56)
 	button.pressed.connect(_on_choice_pressed.bind(model_id))
 	content_layer.add_child(button)
 
@@ -166,9 +131,6 @@ func _set_button_style(button: Button, color: Color) -> void:
 	button.add_theme_stylebox_override("hover", make_style(color.lightened(0.15), Color("#1d1d1d"), 4, 8))
 	button.add_theme_stylebox_override("pressed", make_style(color.darkened(0.13), Color("#1d1d1d"), 4, 8))
 	button.add_theme_stylebox_override("disabled", make_style(color, Color("#1d1d1d"), 4, 8))
-
-func _winner_name() -> String:
-	return tr("CHOICE_CLAUDE_BUTTON") if winner_id == "claude" else tr("CHOICE_CODEX_BUTTON")
 
 func on_timeout() -> void:
 	await finish_with_result(false, "CHOICE_TIMEOUT", 0.45)

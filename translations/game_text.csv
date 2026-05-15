@@ -215,13 +215,13 @@ MEMORY_SUCCESS,CAST COMPLETE!,CAST COMPLETO!
 MEMORY_TIMEOUT_SUCCESS,MEMORY LOCKED!,MEMORIA CERRADA!
 MEMORY_FAIL,MEMORY LEAK!,FUGA DE MEMORIA!
 GAME_CONTEXT_TITLE,Align Satellite,Alinea el satelite
-GAME_CONTEXT_DESC,Slide the antenna until the signal waves overlap and the model wakes up,Desliza la antena hasta que las ondas encajen y el modelo despierte
-CONTEXT_INSTRUCTIONS,Drag the antenna until the waves line up.,Arrastra la antena hasta que las ondas encajen.
-CONTEXT_BLOCKS_TITLE,SIGNAL WAVES,ONDAS DE SENAL
-CONTEXT_WINDOW_TITLE,RECEIVER,RECEPTOR
-CONTEXT_MODEL_TITLE,MODEL,MODELO
-CONTEXT_MODEL_HINT,needs signal,necesita senal
-CONTEXT_BLOCK_REPRO,antenna,antena
+GAME_CONTEXT_DESC,Move the satellite into the repeater beam,Mueve el satelite hasta entrar en el haz de la repetidora
+CONTEXT_INSTRUCTIONS,Drag the satellite into the wave target.,Arrastra el satelite hasta el objetivo de ondas.
+CONTEXT_ORBIT_TITLE,LOW ORBIT,ORBITA BAJA
+CONTEXT_REPEATER_TITLE,REPEATER,REPETIDORA
+CONTEXT_TARGET,TARGET,OBJETIVO
+CONTEXT_STATUS_SEARCH,SEARCHING...,BUSCANDO...
+CONTEXT_STATUS_LOCK,SIGNAL LOCK,SENAL FIJA
 CONTEXT_BLOCK_LOGS,waves,ondas
 CONTEXT_BLOCK_ERROR,receiver,receptor
 CONTEXT_BLOCK_TEST,signal,senal
@@ -385,7 +385,7 @@ VACUUM_CHEAP_MODEL,CHEAP MODEL,MODELO BARATO
 VACUUM_USERS_JOINING,more and more users,mas y mas usuarios
 VACUUM_ANGRY,users are mad,usuarios cabreados
 VACUUM_LIMIT_TITLE,TOKEN USAGE,CONSUMO TOKEN
-VACUUM_DOWNGRADE,DOWNGRADE,DOWNGRADE
+VACUUM_DOWNGRADE,DOWNGRADE,BAJAR
 VACUUM_STATUS,Users: %d  |  usage: %d%%,Usuarios: %d  |  consumo: %d%%
 VACUUM_SUCCESS,COMPANY SAVED!,EMPRESA SALVADA!
 VACUUM_TIMEOUT_SUCCESS,COMPANY SAVED,EMPRESA SALVADA
@@ -411,12 +411,13 @@ GPU_TIMEOUT_SUCCESS,CART FULL,CARRITO LLENO
 GPU_FAIL_BILL,stock lost,stock perdido
 GPU_FAIL,RIVALS GOT THE STOCK,LOS RIVALES SE LLEVARON EL STOCK
 GAME_COPY_CODEX_TITLE,Copy Claude Code,Copia Claude Code
-GAME_COPY_CODEX_DESC,Sam peeks at Dario's Claude Code homework. Hold to copy Codex and release when Dario looks.,Sam mira los deberes de Claude Code de Dario. Mantén para copiar Codex y suelta cuando Dario mire.
+GAME_COPY_CODEX_DESC,Sam peeks at Dario's Claude Code homework. Hold to copy Codex and release when Dario looks up.,Sam mira los deberes de Claude Code de Dario. Mantén para copiar Codex y suelta cuando Dario alce la vista.
 GAME_COPY_DAYBREAK_TITLE,Copy Mythos,Copia Mythos
-GAME_COPY_DAYBREAK_DESC,Sam peeks at Dario's security homework. Hold to copy Daybreak and release when Dario looks.,Sam mira los deberes de seguridad de Dario. Mantén para copiar Daybreak y suelta cuando Dario mire.
-COPYCAT_INSTRUCTIONS,Hold click to copy. Release when Dario looks.,Mantén clic para copiar. Suelta cuando Dario mire.
+GAME_COPY_DAYBREAK_DESC,Sam peeks at Dario's security homework. Hold to copy Daybreak and release when Dario looks up.,Sam mira los deberes de seguridad de Dario. Mantén para copiar Daybreak y suelta cuando Dario alce la vista.
+COPYCAT_INSTRUCTIONS,Hold click to copy. Release when Dario looks up.,Mantén clic para copiar. Suelta cuando Dario alce la vista.
 COPYCAT_COPY_LABEL,COPY,COPIA
 COPYCAT_SAFE,copying... %d%%,copiando... %d%%
+COPYCAT_ALERT,Dario looks up!,Dario alza la vista!
 COPYCAT_DANGER,DARIO LOOKS!,¡DARIO MIRA!
 COPYCAT_CAUGHT,CAUGHT COPYING!,¡TE PILLARON!
 COPYCAT_TIMEOUT_FAIL,HALF COPIED,COPIA A MEDIAS
@@ -674,25 +675,25 @@ PROMPT_GATE_TIMEOUT_SUCCESS,PROMPTS FILTERED,PROMPTS FILTRADOS
 PROMPT_GATE_FAIL_BURNED,COMPUTER BURNED,ORDENADOR QUEMADO
 PROMPT_GATE_FAIL_DROP,SAFE PROMPT DROPPED,PROMPT SEGURO PERDIDO
 PROMPT_GATE_FAIL,DANGEROUS PROMPT QUEUE,COLA DE PROMPTS PELIGROSA
-GAME_LICENSE_TITLE,License Maze,Laberinto de Licencias
-GAME_LICENSE_DESC,Guide the open-weights model through license traps until it reaches usable land.,Guía el modelo open-weights entre trampas de licencia hasta llegar a terreno usable.
-LICENSE_INSTRUCTIONS,Move with arrows or WASD. Avoid open-ish traps and reach usable.,Mueve con flechas o WASD. Evita trampas open-ish y llega a usable.
-LICENSE_BOARD_TITLE,Open Weights Maze,Laberinto Open Weights
-LICENSE_SIDE_TITLE,License map,Mapa licencia
-LICENSE_START,START,SALIDA
-LICENSE_GOAL,USABLE,USABLE
-LICENSE_TRAP_OPENISH,open-ish,open-ish
-LICENSE_TRAP_RESEARCH,research only,research only
-LICENSE_TRAP_TERMS,terms changed,terms changed
-LICENSE_STATUS_READY,Find the real open path.,Encuentra el camino open de verdad.
-LICENSE_STATUS_GOAL,Usable without drama.,Usable sin drama.
-LICENSE_TRAP_IDLE,Do not trust suspicious licenses.,No te fíes de licencias sospechosas.
-LICENSE_TRAP_HIT,That license was a trap.,Esa licencia era trampa.
+GAME_LICENSE_TITLE,Prod Deploy Maze,Laberinto a Produccion
+GAME_LICENSE_DESC,Guide the deploy to production while avoiding risky shortcuts.,Lleva el deploy a produccion evitando atajos peligrosos.
+LICENSE_INSTRUCTIONS,Move with arrows or WASD. Reach PROD without hitting risky deploy traps.,Mueve con flechas o WASD. Llega a PROD sin caer en trampas de deploy.
+LICENSE_BOARD_TITLE,Deploy Path,Ruta a Produccion
+LICENSE_SIDE_TITLE,Prod checklist,Checklist prod
+LICENSE_START,DEV,DEV
+LICENSE_GOAL,PROD,PROD
+LICENSE_TRAP_OPENISH,no tests,sin tests
+LICENSE_TRAP_RESEARCH,Friday deploy,deploy viernes
+LICENSE_TRAP_TERMS,secrets leak,secrets leak
+LICENSE_STATUS_READY,Find the safe path to prod.,Encuentra el camino seguro a prod.
+LICENSE_STATUS_GOAL,Production survived.,Produccion viva.
+LICENSE_TRAP_IDLE,Avoid risky deploy shortcuts.,Evita atajos peligrosos de deploy.
+LICENSE_TRAP_HIT,That deploy broke prod.,Ese deploy rompio prod.
 LICENSE_MOVE_HINT,Arrows / WASD,Flechas / WASD
 LICENSE_STATUS,Steps: %d/%d,Pasos: %d/%d
-LICENSE_SUCCESS,OPEN ENOUGH!,¡OPEN DE VERDAD!
-LICENSE_FAIL_TRAP,LICENSE TRAP!,¡TRAMPA DE LICENCIA!
-LICENSE_FAIL_TIMEOUT,LICENSE FOG,NEBLINA LEGAL
+LICENSE_SUCCESS,DEPLOY SAFE!,DEPLOY SEGURO!
+LICENSE_FAIL_TRAP,PROD BROKEN!,PROD ROTA!
+LICENSE_FAIL_TIMEOUT,DEPLOY STUCK,DEPLOY ATASCADO
 GAME_EVAL_TITLE,Eval Cherry Picker,Cherry Picker de Evals
 GAME_EVAL_DESC,Keep honest benchmarks and throw away suspicious marketing bars before the leaderboard lies.,Guarda benchmarks honestos y tira barras de marketing antes de que el ranking mienta.
 EVAL_INSTRUCTIONS,Keep honest evals. Trash cherry-picked bars.,Guarda evals honestas. Tira barras cherry-picked.
@@ -944,6 +945,7 @@ RENAME_WRONG_OPEN_THING,press,pulsar
 RENAME_WRONG_CLOUDCHAT,touch,tocar
 RENAME_NO_PRESS,DO NOT PRESS,NO PULSAR
 RENAME_SCOLD,Why did you press?,Por que has pulsado?
+RENAME_THANKS,Thank you for not pressing it!,Gracias por no pulsarlo!
 RENAME_SUCCESS,SELF CONTROL!,AUTOCONTROL!
 RENAME_TIMEOUT_SUCCESS,NOT PRESSED,NO PULSADO
 RENAME_TIMEOUT_FAIL,ALARM!,ALARMA!
@@ -996,13 +998,15 @@ THREAD_DOOM_CEO,open message,mensaje abierto
 THREAD_DOOM_FLAME,open message,mensaje abierto
 THREAD_DOOM_THREAD,open message,mensaje abierto
 THREAD_STATUS,Tabs: %d/%d  |  ram: %d%%  |  mistakes: %d,Pestanas: %d/%d  |  ram: %d%%  |  errores: %d
-THREAD_RAM_PANIC,I am running out of RAM!,Me estoy quedando sin RAM!
+THREAD_RAM_PANIC,Close tabs before the computer freezes!,Cierra pestanas para evitar que el equipo se cuelgue!
 THREAD_KEEP_OPEN,keep this tab open,manten esta pestana abierta
 THREAD_BROWSER_GOAL,free,libera
 THREAD_RAM_USED,RAM used,RAM usada
-THREAD_PAGE_LINE_1,Active prompt draft,Borrador de prompt activo
-THREAD_PAGE_LINE_2,Final reply loading,Respuesta final cargando
-THREAD_PAGE_LINE_3,Do not close this tab,No cierres esta pestana
+THREAD_PAGE_TITLE,If RAM runs out close tabs!,Si te quedas sin recursos RAM cierra pestanas!
+THREAD_PAGE_LINE_1,This is a very long text you wrote...,Esto es un texto que has escrito larguisimo...
+THREAD_PAGE_LINE_2,And there is no backup copy.,Y no tienes copia de seguridad.
+THREAD_PAGE_LINE_3,Do not lose this tab.,No pierdas esta pestana.
+THREAD_RAM_ALARM,RAM USAGE ALARM!,ALARMA DE USO DE RAM!
 THREAD_LOST_MESSAGE,Oh no! We lost the message!,Oh no! Hemos perdido el mensaje!
 THREAD_SUCCESS,RAM SAVED!,RAM SALVADA!
 THREAD_TIMEOUT_SUCCESS,RAM SAVED,RAM SALVADA
@@ -1099,3 +1103,77 @@ WAKE_PET_SUCCESS,POWER ON!,ENCENDIDO!
 WAKE_PET_TIMEOUT_SUCCESS,SERVER ON,SERVIDOR ON
 WAKE_PET_TIMEOUT_FAIL,NO POWER,SIN ENERGIA
 WAKE_PET_FAIL,CABLE LOST,CABLE PERDIDO
+GAME_RAMEN_TITLE,RAMen Local,RAMen Local
+GAME_RAMEN_DESC,Feed the local rig useful parts so its power climbs. Do not click heavy junk.,Dale piezas utiles al equipo local para subir potencia. No pulses cargas pesadas.
+RAMEN_INSTRUCTIONS,Click useful parts. Ignore heavy junk.,Pulsa componentes utiles. Ignora cargas pesadas.
+RAMEN_BELT,LOCAL PARTS BELT,CINTA DE COMPONENTES
+RAMEN_PANTRY,GOOD / BAD,BUENO / MALO
+RAMEN_BOWL_TITLE,LOCAL RIG,EQUIPO LOCAL
+RAMEN_IDLE,needs parts,necesita piezas
+RAMEN_SERVED,power up!,mas potencia!
+RAMEN_SKIPPED,heavy junk skipped,carga pesada fuera
+RAMEN_JUNK_CLICKED,heavy load!,carga pesada!
+RAMEN_MISSED,part missed,pieza perdida
+RAMEN_MODEL_IDLE,low power,poca potencia
+RAMEN_MODEL_SAFE,local model awake,modelo local despierto
+RAMEN_MODEL_HIT,overloaded,sobrecargado
+RAMEN_GOOD_RAM,RAM+,RAM+
+RAMEN_GOOD_GPU,GPU+,GPU+
+RAMEN_GOOD_FAN,FAN+,FAN+
+RAMEN_GOOD_TOKEN,CELL+,CELDA+
+RAMEN_BAD_CHROME,CHROME,CHROME
+RAMEN_BAD_HEAT,70B,70B
+RAMEN_BAD_PDF,HUGE PDF,PDF GIGANTE
+RAMEN_BAD_MINER,MINER,MINER
+RAMEN_BAD_JUNK,4K VID,VIDEO 4K
+RAMEN_STATUS,Power: %d/%d  |  heavy load: %d/%d,Potencia: %d/%d  |  carga: %d/%d
+RAMEN_SUCCESS,LOCAL MODEL ONLINE!,MODELO LOCAL ONLINE!
+RAMEN_TIMEOUT_SUCCESS,RIG ONLINE,EQUIPO ONLINE
+RAMEN_FAIL,RIG OVERLOADED,EQUIPO SOBRECARGADO
+GAME_VRAM_TITLE,VRAM Hot Swap,VRAM Hot Swap
+GAME_VRAM_DESC,Fit real local AI workloads into one 24GB GPU by loading and ejecting models before the queue melts.,Encaja tareas reales de IA local en una GPU de 24GB cargando y expulsando modelos antes de que la cola arda.
+VRAM_INSTRUCTIONS,Load the needed model. Eject loaded models when 24GB is full.,Carga el modelo necesario. Expulsa modelos cargados cuando los 24GB se llenen.
+VRAM_JOB_TITLE,INCOMING JOB,TAREA ENTRANTE
+VRAM_GPU_TITLE,24GB GPU,GPU 24GB
+VRAM_DOCK_TITLE,MODEL CARTS,CARTUCHOS MODELO
+VRAM_READY,watch the VRAM,controla la VRAM
+VRAM_LOADED,model loaded,modelo cargado
+VRAM_UNLOADED,ejected,expulsado
+VRAM_STEP_DONE,job step done,paso listo
+VRAM_OOM,OOM! eject first,OOM! expulsa antes
+VRAM_WRONG_MODEL,wrong model,modelo equivocado
+VRAM_EJECT,EJECT,EXPULSAR
+VRAM_NEXT,Next: %s,Siguiente: %s
+VRAM_MODEL_WHISPER,Whisper turbo,Whisper turbo
+VRAM_MODEL_QWEN14,Qwen3 14B,Qwen3 14B
+VRAM_MODEL_GEMMA4,Gemma 4 E4B,Gemma 4 E4B
+VRAM_MODEL_GEMMA31,Gemma 4 31B,Gemma 4 31B
+VRAM_MODEL_FLUX,FLUX.1 dev,FLUX.1 dev
+VRAM_MODEL_WAN,Wan2.2,Wan2.2
+VRAM_TASK_AUDIO,transcribe audio,transcribe audio
+VRAM_TASK_SUMMARY,summarize docs,resume docs
+VRAM_TASK_IMAGE,generate image,genera imagen
+VRAM_TASK_SUBTITLES,subtitles + summary,subtitulos + resumen
+VRAM_TASK_AGENT,local coding agent,agente local codigo
+VRAM_TASK_VIDEO,make video,haz video
+VRAM_TASK_CODE,fix code,arregla codigo
+VRAM_STATUS,Jobs: %d/%d  |  VRAM: %dGB  |  errors: %d,Tareas: %d/%d  |  VRAM: %dGB  |  errores: %d
+VRAM_SUCCESS,GPU SCHEDULED!,GPU PLANIFICADA!
+VRAM_TIMEOUT_SUCCESS,QUEUE SURVIVED,COLA VIVA
+VRAM_TIMEOUT_FAIL,QUEUE MELTED,COLA FUNDIDA
+VRAM_FAIL,VRAM PANIC!,PANICO VRAM!
+GAME_ENV_TITLE,ENV Leak Panic,Panico Leak ENV
+GAME_ENV_DESC,Redact secrets before the project screenshot gets posted online.,Tapa secretos antes de publicar la captura del proyecto.
+ENV_INSTRUCTIONS,Drag black tape over exposed secrets.,Arrastra cinta negra sobre los secretos.
+ENV_TWEET_TITLE,UPLOADING TWEET,SUBIENDO TWEET
+ENV_TAPE_TRAY,BLACK TAPE,CINTA NEGRA
+ENV_READY,find the leaks,busca los leaks
+ENV_DRAGGING,cover it!,tapalo!
+ENV_COVERED,secret covered,secreto tapado
+ENV_MISSED,missed leak,leak sin tapar
+ENV_SAFE,clean screenshot,captura limpia
+ENV_STATUS,Covered: %d/%d,Tapados: %d/%d
+ENV_COVER_COUNT,Secrets: %d/%d,Secretos: %d/%d
+ENV_SUCCESS,NO LEAKS POSTED!,SIN LEAKS PUBLICADOS!
+ENV_TIMEOUT_SUCCESS,SCREENSHOT CLEAN,CAPTURA LIMPIA
+ENV_FAIL,SECRET WENT PUBLIC!,SECRETO PUBLICADO!

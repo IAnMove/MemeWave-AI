@@ -28,6 +28,9 @@ func _run() -> void:
 		if int(counts[id]) != 2:
 			_fail("Memory Cast should deal exactly two cards for %s." % id)
 			return
+	if not _cast_uses_sprite(cards, "elon", MemoryCast.ELON_NORMAL_PATH):
+		_fail("Memory Cast should use the normal Elon sprite.")
+		return
 
 	var pair := _find_matching_pair(cards)
 	if pair.is_empty():
@@ -56,6 +59,12 @@ func _find_matching_pair(cards: Array) -> Array[int]:
 			if String(cards[first]["id"]) == String(cards[second]["id"]):
 				return [first, second]
 	return []
+
+func _cast_uses_sprite(cards: Array, id: String, sprite_path: String) -> bool:
+	for card in cards:
+		if String(card["id"]) == id:
+			return String(card["sprite"]) == sprite_path
+	return false
 
 func _fail(message: String) -> void:
 	push_error(message)

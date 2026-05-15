@@ -1,15 +1,13 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const BG_PATH := "res://assets/art/ollama_gpu_bg.png"
-const LAPTOP_HOT_PATH := "res://assets/art/ollama_laptop_hot.png"
-const LAPTOP_COOL_PATH := "res://assets/art/ollama_laptop_cool.png"
+const COOL_BG_PATH := "res://assets/art/ollama_gpu_cool_bg.png"
 const FAN_PATH := "res://assets/art/ollama_fan.png"
 
-const LAPTOP_POS := Vector2(102, 230)
-const LAPTOP_SIZE := Vector2(620, 430)
 const FAN_START := Vector2(920, 342)
-const FAN_SIZE := Vector2(210, 226)
-const GPU_ZONE := Rect2(Vector2(190, 270), Vector2(520, 318))
+const FAN_SIZE := Vector2(240, 240)
+const GPU_ZONE := Rect2(Vector2(282, 316), Vector2(474, 256))
+const CPU_CENTER := Vector2(475, 424)
 const TEMPERATURE_MAX := 100.0
 const COOL_RATE := 50.0
 const HEAT_RATE := 9.0
@@ -19,8 +17,7 @@ var dragging := false
 var drag_offset := Vector2.ZERO
 var cooling := false
 var fan_spin := 0.0
-var laptop_hot: TextureRect
-var laptop_cool: TextureRect
+var cool_background: TextureRect
 var fan: TextureRect
 var temp_bar: ProgressBar
 var speech_label: Label
@@ -45,8 +42,8 @@ func start_minigame() -> void:
 	fan.position = FAN_START
 	fan.scale = Vector2.ONE
 	fan.rotation = 0.0
-	laptop_hot.visible = true
-	laptop_cool.visible = false
+	if cool_background:
+		cool_background.visible = false
 	_set_speech("TOKENS_CPU_IDLE", Color("#ff5b5b"))
 	_update_temperature_ui()
 	_update_wind(false)
@@ -88,24 +85,21 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _build_stage() -> void:
+	cool_background = make_sprite(COOL_BG_PATH, Vector2(1280, 720))
+	cool_background.position = Vector2.ZERO
+	cool_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	cool_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cool_background.visible = false
+	cool_background.z_index = 1
+	cool_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(cool_background)
+
 	burst_layer = Control.new()
 	burst_layer.position = Vector2.ZERO
 	burst_layer.size = Vector2(1280, 720)
+	burst_layer.z_index = 30
 	burst_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(burst_layer)
-
-	laptop_hot = make_sprite(LAPTOP_HOT_PATH, LAPTOP_SIZE)
-	laptop_hot.position = LAPTOP_POS
-	laptop_hot.z_index = 5
-	laptop_hot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_layer.add_child(laptop_hot)
-
-	laptop_cool = make_sprite(LAPTOP_COOL_PATH, LAPTOP_SIZE)
-	laptop_cool.position = LAPTOP_POS
-	laptop_cool.z_index = 6
-	laptop_cool.visible = false
-	laptop_cool.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content_layer.add_child(laptop_cool)
 
 	_build_temperature_panel()
 	_build_wind_lines()
@@ -169,8 +163,8 @@ func _on_fan_input(event: InputEvent) -> void:
 
 func _move_fan_to(pos: Vector2) -> void:
 	fan.position = Vector2(
-		clampf(pos.x, 46.0, 1136.0 - FAN_SIZE.x),
-		clampf(pos.y, 168.0, 642.0 - FAN_SIZE.y)
+		clampf(pos.x, 46.0, 1280.0 - FAN_SIZE.x - 36.0),
+		clampf(pos.y, 168.0, 720.0 - FAN_SIZE.y - 44.0)
 	)
 
 func _release_fan() -> void:
@@ -193,8 +187,8 @@ func _update_temperature_ui() -> void:
 			temp_bar.modulate = Color("#ffdf2e")
 		else:
 			temp_bar.modulate = Color("#66f28b")
-	laptop_hot.visible = temperature > 24.0
-	laptop_cool.visible = temperature <= 24.0
+	if cool_background:
+		cool_background.visible = temperature <= 24.0
 
 func _update_wind(active: bool) -> void:
 	for index in range(wind_lines.size()):
@@ -203,7 +197,7 @@ func _update_wind(active: bool) -> void:
 		if not active:
 			continue
 		var start := fan.position + Vector2(32, 48 + index * 17)
-		var end := Vector2(520, 334 + sin(fan_spin + index) * 34.0)
+		var end := CPU_CENTER + Vector2(26.0, -58.0 + index * 13.0 + sin(fan_spin + index) * 24.0)
 		line.points = PackedVector2Array([start, start.lerp(end, 0.48) + Vector2(0, sin(fan_spin + index) * 12.0), end])
 		line.modulate.a = 0.45 + sin(fan_spin + index) * 0.22
 
@@ -230,8 +224,8 @@ func _spawn_cool_burst() -> void:
 		ray.width = randf_range(3.0, 6.0)
 		ray.default_color = Color("#66dbff")
 		ray.points = PackedVector2Array([
-			Vector2(446, 334),
-			Vector2(446, 334) + Vector2(cos(angle), sin(angle)) * randf_range(44.0, 94.0)
+			CPU_CENTER,
+			CPU_CENTER + Vector2(cos(angle), sin(angle)) * randf_range(44.0, 94.0)
 		])
 		ray.z_index = 30
 		burst_layer.add_child(ray)

@@ -22,9 +22,25 @@ func _run() -> void:
 	if int(main.get("GAME_DEFS").size()) != 44:
 		_fail("Expected 44 minigames in navigation flow")
 		return
+	if int((main.call("_active_game_indexes") as Array).size()) != 37:
+		_fail("Expected 37 active minigames in navigation flow")
+		return
 
 	main.start_direct_game(0, true)
-	await create_timer(2.1).timeout
+	await process_frame
+	if String(main.get("current_screen")) != "game":
+		_fail("Direct launch did not enter game screen")
+		return
+
+	var escape := InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	main.call("_unhandled_input", escape)
+	await process_frame
+	if String(main.get("current_screen")) != "developer_grid":
+		_fail("Escape should return developer-launched games to the developer grid")
+		return
+
 	main.queue_free()
 	await process_frame
 

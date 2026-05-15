@@ -1,6 +1,7 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_REPOS := 8
+const ELON_ANGRY_PATH := "res://assets/sprites/elon_face.png"
 
 var private_count := 0
 var face_sprite: TextureRect
@@ -90,7 +91,7 @@ func _show_sam() -> void:
 		speech_label.text = tr("REPO_SAM_SPEECH")
 
 func _show_elon() -> void:
-	if face_sprite and ResourceLoader.exists("res://assets/sprites/elon_face.png"):
-		face_sprite.texture = load("res://assets/sprites/elon_face.png")
+	if face_sprite and ResourceLoader.exists(ELON_ANGRY_PATH):
+		face_sprite.texture = load(ELON_ANGRY_PATH)
 	if speech_label:
 		speech_label.text = tr("REPO_ELON_SPEECH")

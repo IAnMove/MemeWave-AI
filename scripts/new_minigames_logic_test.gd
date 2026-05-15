@@ -26,6 +26,9 @@ const BenchmarkPhotoshop := preload("res://scripts/minigames/benchmark_photoshop
 const FounderRunwayDenial := preload("res://scripts/minigames/founder_runway_denial.gd")
 const RobotApologyGenerator := preload("res://scripts/minigames/robot_apology_generator.gd")
 const WakePet := preload("res://scripts/minigames/wake_pet.gd")
+const RamenLocal := preload("res://scripts/minigames/prompt_injection_sushi.gd")
+const VramHotSwap := preload("res://scripts/minigames/vram_hot_swap.gd")
+const EnvLeakPanic := preload("res://scripts/minigames/env_leak_panic.gd")
 const MainScript := preload("res://scripts/main.gd")
 
 func _initialize() -> void:
@@ -36,14 +39,17 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 
-	if int(main.get("GAME_DEFS").size()) != 44:
-		_fail("Expected 44 minigames in GAME_DEFS")
+	if int(main.get("GAME_DEFS").size()) != 46:
+		_fail("Expected 46 minigames in GAME_DEFS")
 		return
-	if int((main.call("_active_game_indexes") as Array).size()) != 37:
-		_fail("Expected 37 active minigames after retiring duplicates")
+	if int((main.call("_active_game_indexes") as Array).size()) != 39:
+		_fail("Expected 39 active minigames after retiring duplicates")
 		return
 	main.queue_free()
 
+	await _test_ramen_local()
+	await _test_vram_hot_swap()
+	await _test_env_leak_panic()
 	await _test_license()
 	await _test_syco()
 	await _test_gpu_ritual()
@@ -430,6 +436,112 @@ func _test_wake_pet() -> void:
 	game.queue_free()
 	await process_frame
 
+func _test_ramen_local() -> void:
+	var game := RamenLocal.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	game.set("spawn_timer", 99.0)
+	game.call("_clear_plates")
+	game.call("_spawn_plate", "ram")
+	await process_frame
+	var plates: Array = game.get("plates")
+	if plates.is_empty():
+		_fail("RAMen Local did not spawn a RAM plate")
+		return
+	game.call("_on_plate_pressed", _plate_node_for_id(plates, "ram"))
+	await process_frame
+	if int(game.get("served")) != 1 or int(game.get("score")) != 1:
+		_fail("RAMen Local did not serve a good ingredient")
+		return
+
+	game.call("_spawn_plate", "chrome")
+	await process_frame
+	plates = game.get("plates")
+	game.call("_on_plate_pressed", _plate_node_for_id(plates, "chrome"))
+	await process_frame
+	if int(game.get("mistakes")) != 1:
+		_fail("RAMen Local did not punish clicked junk")
+		return
+	if not bool(game.get("running")):
+		_fail("RAMen Local ended too early after one junk click")
+		return
+
+	game.queue_free()
+	await process_frame
+
+func _plate_node_for_id(plates: Array, plate_id: String) -> Button:
+	for plate_variant in plates:
+		var plate: Dictionary = plate_variant
+		if String(plate.get("id", "")) == plate_id:
+			return plate["node"] as Button
+	return null
+
+func _test_vram_hot_swap() -> void:
+	var game := VramHotSwap.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	game.call("_on_model_button_pressed", "whisper")
+	await process_frame
+	if int(game.get("jobs_done")) != 1 or int(game.get("used_vram")) != 6:
+		_fail("VRAM Hot Swap did not load Whisper and finish the audio job")
+		return
+
+	game.call("_on_model_button_pressed", "gemma4")
+	await process_frame
+	if int(game.get("jobs_done")) != 2 or int(game.get("used_vram")) != 16:
+		_fail("VRAM Hot Swap did not keep loaded models across jobs")
+		return
+
+	game.call("_on_model_button_pressed", "flux")
+	await process_frame
+	if int(game.get("mistakes")) != 1:
+		_fail("VRAM Hot Swap did not reject an over-capacity load")
+		return
+
+	game.call("_eject_model", "gemma4")
+	game.call("_eject_model", "whisper")
+	await process_frame
+	game.call("_on_model_button_pressed", "flux")
+	await process_frame
+	if int(game.get("jobs_done")) != 3 or int(game.get("used_vram")) != 20:
+		_fail("VRAM Hot Swap did not recover after ejecting models")
+		return
+
+	game.queue_free()
+	await process_frame
+
+func _test_env_leak_panic() -> void:
+	var game := EnvLeakPanic.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+
+	game.call("_force_cover_all_leaks")
+	await process_frame
+	if int(game.get("covered_count")) != 4 or int(game.get("score")) != 4:
+		_fail("ENV Leak Panic did not cover all exposed secrets")
+		return
+	var leaks: Array = game.get("leaks")
+	for leak_variant in leaks:
+		var leak: Dictionary = leak_variant
+		if not bool(leak.get("covered", false)):
+			_fail("ENV Leak Panic left a leak uncovered")
+			return
+
+	await create_timer(0.70).timeout
+	if bool(game.get("running")):
+		_fail("ENV Leak Panic did not finish after all secrets were covered")
+		return
+	game.queue_free()
+	await process_frame
+
 func _test_chrome_ram() -> void:
 	var game := ThreadOfDoom.new()
 	root.add_child(game)
@@ -438,7 +550,7 @@ func _test_chrome_ram() -> void:
 	await process_frame
 
 	var active := int(game.get("active_tab"))
-	var tab_count := 20
+	var tab_count := ThreadOfDoom.TAB_COUNT
 	var inactive := 0 if active != 0 else 1
 	game.call("_close_tab", inactive)
 	await create_timer(0.16).timeout
@@ -461,7 +573,7 @@ func _test_chrome_ram() -> void:
 	game.start_minigame()
 	await process_frame
 	active = int(game.get("active_tab"))
-	tab_count = 20
+	tab_count = ThreadOfDoom.TAB_COUNT
 	for index in range(tab_count):
 		if index != active:
 			game.call("_close_tab", index)
@@ -539,6 +651,24 @@ func _test_copycat(game_name: String, script: GDScript, test_success: bool) -> v
 		_fail("%s did not copy while holding in safe state" % game_name)
 		return
 
+	var before_alert := float(game.get("copy_progress"))
+	game.call("_force_dario_alert")
+	await create_timer(0.20).timeout
+	if not bool(game.get("running")):
+		_fail("%s failed during Dario's front-facing warning phase" % game_name)
+		return
+	if bool(game.get("dario_watching")):
+		_fail("%s treated Dario's front-facing warning phase as watching" % game_name)
+		return
+	if float(game.get("copy_progress")) > before_alert + 1.0:
+		_fail("%s advanced copying during Dario's front-facing warning phase" % game_name)
+		return
+	var alert_bg := game.get("alert_bg") as TextureRect
+	if not alert_bg or not alert_bg.visible:
+		_fail("%s did not show the front-facing Dario warning background" % game_name)
+		return
+	game.call("_force_dario_watching", false)
+
 	if test_success:
 		game.set("copy_progress", 98.0)
 		game.call("_update_copy_visual")
@@ -595,7 +725,7 @@ func _test_satellite_alignment() -> void:
 	if not bool(game.get("running")):
 		_fail("Satellite Alignment did not start")
 		return
-	game.call("_set_dish_x", 286.0)
+	game.call("_set_satellite_x", ContextTetris.TARGET_SATELLITE_X)
 	await create_timer(0.80).timeout
 	if bool(game.get("running")):
 		_fail("Satellite Alignment did not finish after locking signal")

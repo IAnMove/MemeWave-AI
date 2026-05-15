@@ -6,9 +6,10 @@ const GRID_COLUMNS := 4
 const GRID_ORIGIN := Vector2(258, 210)
 const CARD_SIZE := Vector2(176, 94)
 const CARD_GAP := Vector2(18, 16)
+const ELON_NORMAL_PATH := "res://assets/sprites/elon_normal.png"
 const CAST := [
 	{"id": "sam", "name_key": "MEMORY_SAM", "sprite": "res://assets/sprites/sam_face.png"},
-	{"id": "elon", "name_key": "MEMORY_ELON", "sprite": "res://assets/sprites/elon_face.png"},
+	{"id": "elon", "name_key": "MEMORY_ELON", "sprite": ELON_NORMAL_PATH},
 	{"id": "dario", "name_key": "MEMORY_DARIO", "sprite": "res://assets/sprites/dario_amodei.png"},
 	{"id": "investor", "name_key": "MEMORY_INVESTOR", "sprite": "res://assets/sprites/investor.png"},
 	{"id": "model", "name_key": "MEMORY_MODEL", "sprite": "res://assets/sprites/hungry_model.png"},

@@ -23,6 +23,9 @@ func _run() -> void:
 	if probe.tr("REPO_SUCCESS") != "ESTO YA NO ES OPEN!":
 		_fail("Spanish translation failed for REPO_SUCCESS")
 		return
+	if probe.tr("QUICK_PROGRESS") != "Progreso":
+		_fail("Spanish translation failed for QUICK_PROGRESS")
+		return
 
 	var main: Control = MainScript.new()
 	root.add_child(main)

@@ -44,6 +44,8 @@ const BenchmarkPhotoshop := preload("res://scripts/minigames/benchmark_photoshop
 const FounderRunwayDenial := preload("res://scripts/minigames/founder_runway_denial.gd")
 const RobotApologyGenerator := preload("res://scripts/minigames/robot_apology_generator.gd")
 const WakePet := preload("res://scripts/minigames/wake_pet.gd")
+const VramHotSwap := preload("res://scripts/minigames/vram_hot_swap.gd")
+const EnvLeakPanic := preload("res://scripts/minigames/env_leak_panic.gd")
 const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
 const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 const VolumeBar := preload("res://scripts/ui/volume_bar.gd")
@@ -55,6 +57,12 @@ const UI_CLICK_SOUND_PATH := "res://assets/sounds/ui_click.wav"
 const ROUND_TRANSITION_SOUND_PATH := "res://assets/sounds/round_transition.wav"
 const MENU_MUSIC_PATH := "res://assets/sounds/Meme Mayhem_ Maximum Chaos.mp3"
 const GAME_MUSIC_PATH := "res://assets/sounds/Meme Micro Mayhem_ Extended Instrumental..mp3"
+const MENU_ICON_PATHS := {
+	"play": "res://assets/sprites/menu_icon_start.png",
+	"minigames": "res://assets/sprites/menu_icon_minigames.png",
+	"exit": "res://assets/sprites/menu_icon_exit.png",
+	"speaker": "res://assets/sprites/menu_icon_speaker.png"
+}
 const ROUND_REPEAT_COUNTS := {
 	"GAME_HALLU_TITLE": 3
 }
@@ -65,7 +73,7 @@ const DEV_GAMEPLAY_GROUPS := [
 			"GAME_REPO_TITLE",
 			"GAME_CLAUDE_TITLE",
 			"GAME_HALLU_TITLE",
-			"GAME_INJECTION_TITLE",
+			"GAME_RAMEN_TITLE",
 			"GAME_AGENT_TITLE",
 			"GAME_TOS_TITLE",
 			"GAME_SYCO_TITLE",
@@ -77,7 +85,8 @@ const DEV_GAMEPLAY_GROUPS := [
 			"GAME_RENAME_TITLE",
 			"GAME_THREAD_TITLE",
 			"GAME_PHOTOSHOP_TITLE",
-			"GAME_APOLOGY_TITLE"
+			"GAME_APOLOGY_TITLE",
+			"GAME_VRAM_TITLE"
 		]
 	},
 	{
@@ -88,7 +97,8 @@ const DEV_GAMEPLAY_GROUPS := [
 			"GAME_CONTEXT_TITLE",
 			"GAME_DATASET_TITLE",
 			"GAME_FUNERAL_TITLE",
-			"GAME_WAKE_PET_TITLE"
+			"GAME_WAKE_PET_TITLE",
+			"GAME_ENV_TITLE"
 		]
 	},
 	{
@@ -210,9 +220,9 @@ const GAME_DEFS := [
 		"thumbnail": "res://assets/art/satellite_signal_bg.png"
 	},
 	{
-		"title_key": "GAME_INJECTION_TITLE",
+		"title_key": "GAME_RAMEN_TITLE",
 		"script": PromptInjectionSushi,
-		"description_key": "GAME_INJECTION_DESC",
+		"description_key": "GAME_RAMEN_DESC",
 		"thumbnail": "res://assets/sprites/hungry_model.png"
 	},
 	{
@@ -252,7 +262,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_VACUUM_TITLE",
 		"script": TokenVacuum,
 		"description_key": "GAME_VACUUM_DESC",
-		"thumbnail": "res://assets/sprites/token.png"
+		"thumbnail": "res://assets/art/token_vacuum_bg.png"
 	},
 	{
 		"title_key": "GAME_GPU_TITLE",
@@ -438,6 +448,20 @@ const GAME_DEFS := [
 		"script": WakePet,
 		"description_key": "GAME_WAKE_PET_DESC",
 		"thumbnail": "res://assets/art/server_computer_on.png"
+	},
+	{
+		"title_key": "GAME_VRAM_TITLE",
+		"script": VramHotSwap,
+		"description_key": "GAME_VRAM_DESC",
+		"instruction_key": "VRAM_INSTRUCTIONS",
+		"thumbnail": "res://assets/art/server_room_bg.png"
+	},
+	{
+		"title_key": "GAME_ENV_TITLE",
+		"script": EnvLeakPanic,
+		"description_key": "GAME_ENV_DESC",
+		"instruction_key": "ENV_INSTRUCTIONS",
+		"thumbnail": "res://assets/art/repo_private_bg.png"
 	}
 ]
 
@@ -496,81 +520,38 @@ func show_main_menu() -> void:
 	_clear_view()
 	current_screen = "menu"
 	_set_music_mode("menu")
-	var menu := _make_screen(Color("#f4ead8"))
+	var menu := _make_screen(Color("#0d1426"))
 	current_view = menu
 
-	var paper: Control = SketchPanel.new()
-	paper.position = Vector2(8, 8)
-	paper.size = Vector2(1264, 704)
-	paper.call("configure", Color("#fffaf0"), Color("#111111"), 4.0, 2.0, true, Color("#4aa3df18"))
-	menu.add_child(paper)
+	var background := _make_texture("res://assets/art/main_menu_background.png")
+	background.position = Vector2.ZERO
+	background.size = Vector2(1280, 720)
+	menu.add_child(background)
 
-	_add_menu_doodles(menu)
+	var count_badge: Control = SketchPanel.new()
+	count_badge.position = Vector2(944, 120)
+	count_badge.size = Vector2(266, 58)
+	count_badge.call("configure", Color("#dff8ffdd"), Color("#1d5fa7"), 4.0, 1.3, true, Color("#ffffff24"))
+	menu.add_child(count_badge)
 
-	var art := _make_texture("res://assets/art/title.png")
-	art.position = Vector2(46, 206)
-	art.size = Vector2(330, 300)
-	menu.add_child(art)
+	var count_label := _make_label("%d %s" % [_active_game_indexes().size(), tr("MENU_COLLECTION")], 23, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	count_label.position = Vector2(958, 132)
+	count_label.size = Vector2(238, 34)
+	count_label.add_theme_color_override("font_outline_color", Color("#ffffff"))
+	count_label.add_theme_constant_override("outline_size", 2)
+	menu.add_child(count_label)
 
-	var title_main := _make_label("MemeWave", 88, Color("#ffcf22"), HORIZONTAL_ALIGNMENT_LEFT)
-	title_main.position = Vector2(154, 28)
-	title_main.size = Vector2(610, 100)
-	title_main.add_theme_color_override("font_outline_color", Color("#111111"))
-	title_main.add_theme_constant_override("outline_size", 8)
-	menu.add_child(title_main)
-
-	var title_ai := _make_label("AI", 88, Color("#a542ff"), HORIZONTAL_ALIGNMENT_LEFT)
-	title_ai.position = Vector2(744, 28)
-	title_ai.size = Vector2(150, 100)
-	title_ai.add_theme_color_override("font_outline_color", Color("#111111"))
-	title_ai.add_theme_constant_override("outline_size", 8)
-	menu.add_child(title_ai)
-
-	var subtitle_highlight := ColorRect.new()
-	subtitle_highlight.position = Vector2(326, 154)
-	subtitle_highlight.size = Vector2(430, 18)
-	subtitle_highlight.color = Color("#ffef5faa")
-	menu.add_child(subtitle_highlight)
-
-	var subtitle := _make_label(tr("MENU_SUBTITLE"), 23, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	subtitle.position = Vector2(318, 132)
-	subtitle.size = Vector2(456, 96)
-	subtitle.add_theme_color_override("font_outline_color", Color("#fffaf0"))
-	subtitle.add_theme_constant_override("outline_size", 2)
-	menu.add_child(subtitle)
-
-	var subtitle_underline := ColorRect.new()
-	subtitle_underline.position = Vector2(340, 230)
-	subtitle_underline.size = Vector2(390, 5)
-	subtitle_underline.color = Color("#ff5fa8")
-	menu.add_child(subtitle_underline)
-
-	_add_menu_action_button(menu, tr("MENU_START"), Vector2(446, 270), Color("#ffdf2e"), "plane", Callable(self, "start_game"), 34)
-	_add_menu_action_button(menu, tr("MENU_COLLECTION"), Vector2(446, 348), Color("#b9f56a"), "robot", func() -> void: show_collection(false), 29)
-	_add_menu_action_button(menu, tr("MENU_DESCRIPTIONS"), Vector2(446, 424), Color("#ff8fd2"), "funnel", Callable(self, "show_descriptions"), 28)
-	_add_menu_action_button(menu, tr("MENU_QUIT"), Vector2(446, 500), Color("#ff9a37"), "trash", func() -> void: get_tree().quit(), 28)
+	_add_menu_action_button(menu, tr("MENU_START"), Vector2(920, 218), Color("#ffdf2e"), "play", Callable(self, "start_game"), 32, Vector2(314, 74))
+	_add_menu_action_button(menu, tr("MENU_COLLECTION"), Vector2(920, 314), Color("#b9f56a"), "minigames", func() -> void: show_collection(false), 27, Vector2(314, 74))
+	_add_menu_action_button(menu, tr("MENU_QUIT"), Vector2(920, 410), Color("#ff9a37"), "exit", func() -> void: get_tree().quit(), 27, Vector2(314, 74))
 
 	var language_button := _make_button(_language_button_text(), 20, Color("#fffdf8"))
-	language_button.position = Vector2(918, 54)
-	language_button.size = Vector2(242, 44)
+	language_button.position = Vector2(978, 504)
+	language_button.size = Vector2(176, 40)
 	language_button.pressed.connect(_toggle_locale)
 	menu.add_child(language_button)
 
-	var dev_button := _make_button(tr("MENU_DEV_HINT"), 19, Color("#fffdf8"))
-	dev_button.position = Vector2(918, 110)
-	dev_button.size = Vector2(242, 44)
-	dev_button.pressed.connect(show_developer_menu)
-	menu.add_child(dev_button)
-
-	var gear := _make_button("⚙", 31, Color("#fffdf8"))
-	gear.position = Vector2(1194, 24)
-	gear.size = Vector2(52, 52)
-	gear.pressed.connect(func() -> void: _play_ui_click())
-	menu.add_child(gear)
-
 	_add_volume_control(menu)
-	_add_menu_computer_preview(menu)
-	_add_menu_note(menu)
 
 func show_descriptions() -> void:
 	_clear_view()
@@ -1273,21 +1254,43 @@ func _add_menu_action_button(
 		fill: Color,
 		icon_name: String,
 		action: Callable,
-		font_size: int
+		font_size: int,
+		button_size: Vector2 = Vector2(386, 58)
 	) -> void:
-	var button := _make_button(text, font_size, fill)
+	var panel: Control = SketchPanel.new()
+	panel.position = position
+	panel.size = button_size
+	panel.call("configure", fill, Color("#111111"), 5.0, 1.6, false)
+	menu.add_child(panel)
+
+	var icon_size := Vector2(92, 68)
+	if icon_name == "minigames":
+		icon_size = Vector2(86, 64)
+	var icon := _make_menu_icon_rect(icon_name, icon_size)
+	icon.position = position + Vector2(18, (button_size.y - icon_size.y) * 0.5)
+	menu.add_child(icon)
+
+	var label := _make_label(text, font_size, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+	label.position = position + Vector2(112, 0)
+	label.size = Vector2(button_size.x - 128.0, button_size.y)
+	label.add_theme_color_override("font_outline_color", Color("#fffdf8"))
+	label.add_theme_constant_override("outline_size", 2)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu.add_child(label)
+
+	var button := Button.new()
 	button.position = position
-	button.size = Vector2(386, 58)
-	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.size = button_size
+	button.text = ""
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var empty := StyleBoxEmpty.new()
+	button.add_theme_stylebox_override("normal", empty)
+	button.add_theme_stylebox_override("hover", empty)
+	button.add_theme_stylebox_override("pressed", empty)
+	button.add_theme_stylebox_override("focus", empty)
 	button.pressed.connect(action)
 	menu.add_child(button)
-
-	var icon: Control = SketchIcon.new()
-	icon.position = Vector2(18, 11)
-	icon.size = Vector2(38, 36)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.call("configure", icon_name, Color("#ffcf22") if icon_name == "plane" else fill.darkened(0.25), Color("#ffffff"))
-	button.add_child(icon)
 
 func _add_menu_computer_preview(menu: Control) -> void:
 	var panel: Control = SketchPanel.new()
@@ -1344,44 +1347,35 @@ func _add_menu_note(menu: Control) -> void:
 	menu.add_child(trophy)
 
 func _add_volume_control(menu: Control) -> void:
-	var panel := PanelContainer.new()
-	panel.position = Vector2(900, 184)
-	panel.size = Vector2(316, 114)
-	panel.add_theme_stylebox_override("panel", _make_style(Color("#e9f6ff"), Color("#2d72af"), 4, 12))
+	var panel: Control = SketchPanel.new()
+	panel.position = Vector2(906, 574)
+	panel.size = Vector2(340, 112)
+	panel.call("configure", Color("#e9f6ff"), Color("#1d5fa7"), 5.0, 1.35, false)
 	menu.add_child(panel)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	panel.add_child(margin)
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
-	margin.add_child(box)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	box.add_child(row)
-
-	var speaker: Control = SketchIcon.new()
-	speaker.custom_minimum_size = Vector2(38, 34)
-	speaker.call("configure", "speaker", Color("#111111"), Color("#ffffff"), Color("#111111"))
-	row.add_child(speaker)
-
-	var label := _make_label(_volume_label_text(), 20, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
-	label.custom_minimum_size = Vector2(226, 34)
-	row.add_child(label)
+	var speaker := _make_menu_icon_rect("speaker", Vector2(68, 52))
+	speaker.position = Vector2(918, 610)
+	menu.add_child(speaker)
 
 	var slider := VolumeBar.new()
-	slider.custom_minimum_size = Vector2(278, 38)
+	slider.position = Vector2(990, 607)
+	slider.size = Vector2(232, 50)
 	slider.call("set_value", sound_volume, false)
 	slider.value_changed.connect(func(value: float) -> void:
 		_set_sound_volume(value, true)
-		label.text = _volume_label_text()
 	)
-	box.add_child(slider)
+	menu.add_child(slider)
+
+func _make_menu_icon_rect(icon_name: String, icon_size: Vector2) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.size = icon_size
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var path := String(MENU_ICON_PATHS.get(icon_name, ""))
+	if ResourceLoader.exists(path):
+		icon.texture = load(path)
+	return icon
 
 func _play_ui_click() -> void:
 	if not ui_click_player or not ui_click_player.stream:

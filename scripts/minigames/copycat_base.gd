@@ -4,10 +4,14 @@ const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
 const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 
 const SAFE_BG_PATH := "res://assets/art/copycat_classroom_safe.png"
+const ALERT_BG_PATH := "res://assets/art/copycat_classroom_alert.png"
 const DANGER_BG_PATH := "res://assets/art/copycat_classroom_danger.png"
 const COPY_TARGET := 100.0
 const COPY_RATE := 48.0
 const DANGER_GRACE := 0.13
+const PHASE_SAFE := 0
+const PHASE_ALERT := 1
+const PHASE_DANGER := 2
 
 var copy_title_key := ""
 var copy_description_key := ""
@@ -20,16 +24,19 @@ var source_color := Color("#d8b7ff")
 var target_color := Color("#a7ff8f")
 
 var safe_bg: TextureRect
+var alert_bg: TextureRect
 var danger_bg: TextureRect
 var source_card: Control
 var target_ghost: Control
 var target_reveal: Control
 var progress_fill: ColorRect
 var warning_badge: Control
+var warning_label: Label
 var pencil_tip: ColorRect
 
 var copy_progress := 0.0
 var phase_timer := 0.0
+var dario_phase := PHASE_SAFE
 var dario_watching := false
 var held_in_danger := 0.0
 var caught := false
@@ -45,6 +52,7 @@ func start_minigame() -> void:
 	super.start_minigame()
 	copy_progress = 0.0
 	phase_timer = 1.05
+	dario_phase = PHASE_SAFE
 	dario_watching = false
 	held_in_danger = 0.0
 	caught = false
@@ -64,6 +72,8 @@ func _process(delta: float) -> void:
 
 func _build_stage() -> void:
 	safe_bg = _make_bg(SAFE_BG_PATH)
+	alert_bg = _make_bg(ALERT_BG_PATH)
+	alert_bg.visible = false
 	danger_bg = _make_bg(DANGER_BG_PATH)
 	danger_bg.visible = false
 
@@ -168,20 +178,29 @@ func _build_warning_badge() -> void:
 	warning_badge.visible = false
 	content_layer.add_child(warning_badge)
 
-	var warning := make_label("!", 52, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	warning.position = Vector2(0, 0)
-	warning.size = warning_badge.size
-	warning.add_theme_color_override("font_outline_color", Color("#111111"))
-	warning.add_theme_constant_override("outline_size", 8)
-	warning_badge.add_child(warning)
+	warning_label = make_label("!", 52, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	warning_label.position = Vector2(0, 0)
+	warning_label.size = warning_badge.size
+	warning_label.add_theme_color_override("font_outline_color", Color("#111111"))
+	warning_label.add_theme_constant_override("outline_size", 8)
+	warning_badge.add_child(warning_label)
 
 func _update_phase(delta: float) -> void:
 	phase_timer -= delta
 	if phase_timer > 0.0:
 		return
 
-	dario_watching = not dario_watching
-	phase_timer = randf_range(0.58, 0.82) if dario_watching else randf_range(0.82, 1.22)
+	match dario_phase:
+		PHASE_SAFE:
+			dario_phase = PHASE_ALERT
+			phase_timer = randf_range(0.28, 0.42)
+		PHASE_ALERT:
+			dario_phase = PHASE_DANGER
+			phase_timer = randf_range(0.58, 0.82)
+		_:
+			dario_phase = PHASE_SAFE
+			phase_timer = randf_range(0.82, 1.22)
+	dario_watching = dario_phase == PHASE_DANGER
 	_update_phase_visual()
 
 func _update_copy(delta: float) -> void:
@@ -189,14 +208,14 @@ func _update_copy(delta: float) -> void:
 	pencil_tip.visible = holding and not caught
 	pencil_tip.position = Vector2(226 + copy_progress * 1.68, 560 - sin(copy_progress * 0.09) * 8.0)
 
-	if holding and dario_watching:
+	if holding and dario_phase == PHASE_DANGER:
 		held_in_danger += delta
 		if held_in_danger >= DANGER_GRACE:
 			_fail_copy()
 		return
 
 	held_in_danger = 0.0
-	if holding and not dario_watching:
+	if holding and dario_phase == PHASE_SAFE:
 		copy_progress = minf(COPY_TARGET, copy_progress + COPY_RATE * delta)
 		score = int(copy_progress)
 		_update_copy_visual()
@@ -209,16 +228,29 @@ func _is_holding() -> bool:
 	return Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_key_pressed(KEY_SPACE)
 
 func _update_phase_visual() -> void:
-	safe_bg.visible = not dario_watching
-	danger_bg.visible = dario_watching
-	warning_badge.visible = dario_watching
-	set_status(tr("COPYCAT_DANGER") if dario_watching else tr("COPYCAT_SAFE") % int(copy_progress))
+	safe_bg.visible = dario_phase == PHASE_SAFE
+	alert_bg.visible = dario_phase == PHASE_ALERT
+	danger_bg.visible = dario_phase == PHASE_DANGER
+	warning_badge.visible = dario_phase != PHASE_SAFE
+	if warning_badge and warning_badge.has_method("configure"):
+		if dario_phase == PHASE_ALERT:
+			warning_badge.call("configure", Color("#ffca3a"), Color("#111111"), 5.0, 2.8, true, Color("#ffffff18"))
+		else:
+			warning_badge.call("configure", Color("#ff595e"), Color("#111111"), 5.0, 2.8, true, Color("#ffffff18"))
+	if warning_label:
+		warning_label.text = "?" if dario_phase == PHASE_ALERT else "!"
+	if dario_phase == PHASE_ALERT:
+		set_status(tr("COPYCAT_ALERT"))
+	elif dario_phase == PHASE_DANGER:
+		set_status(tr("COPYCAT_DANGER"))
+	else:
+		set_status(tr("COPYCAT_SAFE") % int(copy_progress))
 
 func _update_copy_visual() -> void:
 	var ratio := clampf(copy_progress / COPY_TARGET, 0.0, 1.0)
 	target_reveal.size.x = target_ghost.size.x * ratio
 	progress_fill.size.x = 456.0 * ratio
-	if not dario_watching:
+	if dario_phase == PHASE_SAFE:
 		set_status(tr("COPYCAT_SAFE") % int(copy_progress))
 
 func _fail_copy() -> void:
@@ -238,7 +270,14 @@ func _force_hold(value: bool) -> void:
 	forced_hold = value
 
 func _force_dario_watching(value: bool) -> void:
-	dario_watching = value
+	dario_phase = PHASE_DANGER if value else PHASE_SAFE
+	dario_watching = dario_phase == PHASE_DANGER
+	phase_timer = 99.0
+	_update_phase_visual()
+
+func _force_dario_alert() -> void:
+	dario_phase = PHASE_ALERT
+	dario_watching = false
 	phase_timer = 99.0
 	_update_phase_visual()
 

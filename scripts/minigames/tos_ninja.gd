@@ -1,6 +1,10 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_BLOCKS := 8
+const SPAWN_DELAY_MIN := 0.82
+const SPAWN_DELAY_MAX := 1.20
+const FALL_SPEED_MIN := 57.5
+const FALL_SPEED_MAX := 95.0
 const CLAUSES := [
 	{"key": "TOS_BAD_DATA", "bad": true},
 	{"key": "TOS_BAD_SOUL", "bad": true},
@@ -40,7 +44,7 @@ func _process(delta: float) -> void:
 		return
 	spawn_timer -= delta
 	if spawn_timer <= 0.0:
-		spawn_timer = randf_range(0.42, 0.78)
+		spawn_timer = randf_range(SPAWN_DELAY_MIN, SPAWN_DELAY_MAX)
 		_spawn_clause()
 	for clause in clauses.duplicate():
 		var node := clause["node"] as Control
@@ -93,11 +97,12 @@ func _spawn_clause() -> void:
 	var def: Dictionary = CLAUSES[randi_range(0, CLAUSES.size() - 1)]
 	var card := Button.new()
 	card.name = "DynamicTosClause"
-	card.position = Vector2(randf_range(150, 760), 292)
-	card.size = Vector2(190, 72)
+	card.position = Vector2(randf_range(145, 635), 292)
+	card.size = Vector2(250, 82)
 	card.text = tr(def["key"])
 	card.focus_mode = Control.FOCUS_NONE
-	card.add_theme_font_size_override("font_size", 16)
+	card.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	card.add_theme_font_size_override("font_size", 18)
 	card.add_theme_color_override("font_color", Color("#1d1d1d"))
 	card.add_theme_color_override("font_hover_color", Color("#1d1d1d"))
 	card.add_theme_color_override("font_pressed_color", Color("#1d1d1d"))
@@ -107,7 +112,7 @@ func _spawn_clause() -> void:
 	card.add_theme_stylebox_override("hover", make_style(Color("#fff7c7"), Color("#1d1d1d"), 4, 8))
 	card.pressed.connect(_on_clause_pressed.bind(card))
 	content_layer.add_child(card)
-	clauses.append({"node": card, "bad": bool(def["bad"]), "speed": randf_range(115.0, 190.0)})
+	clauses.append({"node": card, "bad": bool(def["bad"]), "speed": randf_range(FALL_SPEED_MIN, FALL_SPEED_MAX)})
 
 func _on_clause_pressed(node: Button) -> void:
 	if not running:

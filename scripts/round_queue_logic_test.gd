@@ -23,6 +23,9 @@ func _run() -> void:
 	var queue: Array = main.call("_make_random_round_queue")
 	var count := 0
 	for game_index in queue:
+		if bool(game_defs[int(game_index)].get("retired", false)):
+			_fail("Round queue should not include retired minigames.")
+			return
 		if int(game_index) == hallu_index:
 			count += 1
 	if count != 3:

@@ -139,6 +139,7 @@ func _build_common_ui() -> void:
 	var header := PanelContainer.new()
 	header.position = Vector2(32, 92)
 	header.size = Vector2(1216, 104)
+	header.z_index = 20
 	header.add_theme_stylebox_override("panel", make_style(Color("#fff7c7"), Color("#1d1d1d"), 5, 6))
 	add_child(header)
 
@@ -167,6 +168,7 @@ func _build_common_ui() -> void:
 	content_layer = Control.new()
 	content_layer.position = Vector2.ZERO
 	content_layer.size = Vector2(1280, 720)
+	content_layer.z_index = 0
 	add_child(content_layer)
 
 	_build_action_tutorial()
@@ -174,6 +176,7 @@ func _build_common_ui() -> void:
 	status_label = make_label("", 28, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
 	status_label.position = Vector2(40, 645)
 	status_label.size = Vector2(1200, 45)
+	status_label.z_index = 25
 	status_label.add_theme_color_override("font_outline_color", Color("#151515"))
 	status_label.add_theme_constant_override("outline_size", 8)
 	add_child(status_label)
@@ -181,6 +184,7 @@ func _build_common_ui() -> void:
 	overlay_label = make_label("", 74, Color("#fff6d1"), HORIZONTAL_ALIGNMENT_CENTER)
 	overlay_label.position = Vector2(0, 272)
 	overlay_label.size = Vector2(1280, 140)
+	overlay_label.z_index = 30
 	overlay_label.add_theme_constant_override("outline_size", 12)
 	overlay_label.add_theme_color_override("font_outline_color", Color("#129447"))
 	overlay_label.visible = false
@@ -334,6 +338,22 @@ func _resolve_tutorial_action_kind() -> String:
 	):
 		return "move"
 	return "click"
+
+func hide_common_minigame_header() -> void:
+	if not title_label:
+		return
+
+	var header_box := title_label.get_parent()
+	if not header_box:
+		return
+
+	var header := header_box.get_parent() as Control
+	if header:
+		header.visible = false
+
+func hide_base_status() -> void:
+	if status_label:
+		status_label.visible = false
 
 func set_full_rect(node: Control) -> void:
 	node.anchor_left = 0.0
