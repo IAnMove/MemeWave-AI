@@ -1,7 +1,6 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
-const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 
 const VRAM_LIMIT := 24
 const TARGET_JOBS := 6
@@ -23,6 +22,40 @@ const TASKS := [
 	{"key": "VRAM_TASK_VIDEO", "needs": ["wan"], "icon": "plane"},
 	{"key": "VRAM_TASK_CODE", "needs": ["qwen14"], "icon": "computer_good"}
 ]
+const TASK_ICON_PATHS := {
+	"VRAM_TASK_AUDIO": "res://assets/sprites/vram_task_audio.png",
+	"VRAM_TASK_SUMMARY": "res://assets/sprites/vram_task_summary.png",
+	"VRAM_TASK_IMAGE": "res://assets/sprites/vram_task_image.png",
+	"VRAM_TASK_SUBTITLES": "res://assets/sprites/vram_task_subtitles.png",
+	"VRAM_TASK_AGENT": "res://assets/sprites/vram_task_agent.png",
+	"VRAM_TASK_VIDEO": "res://assets/sprites/vram_task_video.png",
+	"VRAM_TASK_CODE": "res://assets/sprites/vram_task_code.png"
+}
+const MODEL_ICON_PATHS := {
+	"whisper": "res://assets/sprites/vram_model_whisper.png",
+	"qwen14": "res://assets/sprites/vram_model_qwen14.png",
+	"gemma4": "res://assets/sprites/vram_model_gemma4.png",
+	"gemma31": "res://assets/sprites/vram_model_gemma31.png",
+	"flux": "res://assets/sprites/vram_model_flux.png",
+	"wan": "res://assets/sprites/vram_model_wan.png"
+}
+const MODEL_SHORT_NAMES := {
+	"whisper": "Whisper",
+	"qwen14": "Qwen3",
+	"gemma4": "Gemma4",
+	"gemma31": "Gemma31",
+	"flux": "FLUX.1",
+	"wan": "Wan2.2"
+}
+const MODEL_TINY_NAMES := {
+	"whisper": "Whis",
+	"qwen14": "Qwen",
+	"gemma4": "G4",
+	"gemma31": "G31",
+	"flux": "Flux",
+	"wan": "Wan"
+}
+const GPU_ICON_PATH := "res://assets/sprites/vram_gpu_icon.png"
 
 var loaded_models: Array[String] = []
 var task_queue: Array = []
@@ -38,6 +71,7 @@ var task_step_label: Label
 var verdict_label: Label
 var usage_label: Label
 var queue_label: Label
+var task_icon: TextureRect
 var vram_tiles: Array[ColorRect] = []
 var pips: Array[ColorRect] = []
 var gpu_panel: Control
@@ -89,8 +123,8 @@ func _build_stage() -> void:
 	_build_gpu_panel()
 	_build_model_dock()
 	_build_status_panel()
-	status_label.position = Vector2(420, 650)
-	status_label.size = Vector2(440, 40)
+	status_label.position = Vector2(280, 646)
+	status_label.size = Vector2(720, 54)
 
 func _build_task_panel() -> void:
 	var panel: Control = SketchPanel.new()
@@ -104,12 +138,10 @@ func _build_task_panel() -> void:
 	title.size = Vector2(266, 42)
 	content_layer.add_child(title)
 
-	var icon: Control = SketchIcon.new()
-	icon.name = "TaskIcon"
-	icon.position = Vector2(138, 296)
-	icon.size = Vector2(118, 104)
-	icon.call("configure", "speaker", Color("#66dbff"), Color("#ffffff"))
-	content_layer.add_child(icon)
+	task_icon = _sprite_icon(_task_icon_path("VRAM_TASK_AUDIO"), Vector2(128, 128))
+	task_icon.name = "TaskIcon"
+	task_icon.position = Vector2(133, 286)
+	content_layer.add_child(task_icon)
 
 	task_label = _outlined_label("", 28, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
 	task_label.position = Vector2(72, 410)
@@ -134,9 +166,13 @@ func _build_gpu_panel() -> void:
 	content_layer.add_child(gpu_panel)
 
 	var title := _outlined_label(tr("VRAM_GPU_TITLE"), 32, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(430, 238)
-	title.size = Vector2(404, 46)
+	title.position = Vector2(470, 238)
+	title.size = Vector2(342, 46)
 	content_layer.add_child(title)
+
+	var gpu_icon := _sprite_icon(GPU_ICON_PATH, Vector2(56, 56))
+	gpu_icon.position = Vector2(420, 230)
+	content_layer.add_child(gpu_icon)
 
 	var tile_origin := Vector2(430, 306)
 	vram_tiles.clear()
@@ -165,21 +201,20 @@ func _build_model_dock() -> void:
 	panel.call("configure", Color("#f3f6ff"), Color("#111111"), 4.0, 1.2, false)
 	content_layer.add_child(panel)
 
-	var title := _outlined_label(tr("VRAM_DOCK_TITLE"), 28, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(924, 242)
-	title.size = Vector2(282, 40)
+	var title := _outlined_label(tr("VRAM_DOCK_TITLE"), 24, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = Vector2(924, 238)
+	title.size = Vector2(282, 58)
 	content_layer.add_child(title)
 
 	model_buttons.clear()
 	for index in range(MODELS.size()):
 		var model: Dictionary = MODELS[index]
-		var button := make_button("", 16, Color(String(model["color"])))
-		button.position = Vector2(924 + (index % 2) * 150, 300 + int(index / 2) * 88)
-		button.size = Vector2(132, 70)
-		button.text = "%s\n%d GB" % [tr(String(model["key"])), int(model["gb"])]
-		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		button.pressed.connect(_on_model_button_pressed.bind(String(model["id"])))
-		content_layer.add_child(button)
+		var button := _add_model_card(
+			Vector2(924 + (index % 2) * 150, 314 + int(index / 2) * 84),
+			Vector2(132, 70),
+			model,
+			_on_model_button_pressed.bind(String(model["id"]))
+		)
 		model_buttons[String(model["id"])] = button
 
 func _build_status_panel() -> void:
@@ -288,9 +323,8 @@ func _update_task_ui() -> void:
 	if current_task.is_empty():
 		return
 	task_label.text = tr(String(current_task["key"]))
-	var task_icon := content_layer.get_node_or_null("TaskIcon") as Control
 	if task_icon:
-		task_icon.call("configure", String(current_task.get("icon", "robot")), Color("#66dbff"), Color("#ffffff"))
+		task_icon.texture = load(_task_icon_path(String(current_task["key"])))
 
 	var needs: Array = current_task["needs"]
 	var step_parts: Array[String] = []
@@ -317,12 +351,15 @@ func _render_loaded_models() -> void:
 
 	for index in range(loaded_models.size()):
 		var model := _model_for_id(loaded_models[index])
-		var button := make_button("%s %dGB\n%s" % [tr(String(model["key"])), int(model["gb"]), tr("VRAM_EJECT")], 13, Color(String(model["color"])))
-		button.position = Vector2(index * 100, 0)
-		button.size = Vector2(92, 58)
-		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		button.pressed.connect(_eject_model.bind(String(model["id"])))
-		loaded_rows.add_child(button)
+		var button := _add_model_card(
+			Vector2(index * 100, 0),
+			Vector2(92, 58),
+			model,
+			_eject_model.bind(String(model["id"])),
+			loaded_rows,
+			true
+		)
+		button.tooltip_text = tr("VRAM_EJECT")
 
 func _update_vram() -> void:
 	for tile in vram_tiles:
@@ -388,6 +425,81 @@ func _outlined_label(text: String, font_size: int, color: Color, align: Horizont
 	label.add_theme_color_override("font_outline_color", Color("#ffffff") if color != Color("#ffffff") else Color("#111111"))
 	label.add_theme_constant_override("outline_size", 3)
 	return label
+
+func _task_icon_path(task_key: String) -> String:
+	return String(TASK_ICON_PATHS.get(task_key, TASK_ICON_PATHS["VRAM_TASK_SUMMARY"]))
+
+func _model_icon_path(model_id: String) -> String:
+	return String(MODEL_ICON_PATHS.get(model_id, MODEL_ICON_PATHS["gemma4"]))
+
+func _model_short_label(model: Dictionary, compact: bool = false) -> String:
+	var model_id := String(model["id"])
+	if compact:
+		return String(MODEL_TINY_NAMES.get(model_id, MODEL_SHORT_NAMES.get(model_id, tr(String(model["key"])))))
+	return String(MODEL_SHORT_NAMES.get(model_id, tr(String(model["key"]))))
+
+func _sprite_icon(path: String, icon_size: Vector2) -> TextureRect:
+	var sprite := TextureRect.new()
+	sprite.size = icon_size
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if ResourceLoader.exists(path):
+		sprite.texture = load(path)
+	return sprite
+
+func _empty_button_style() -> StyleBoxEmpty:
+	return StyleBoxEmpty.new()
+
+func _add_model_card(
+		pos: Vector2,
+		card_size: Vector2,
+		model: Dictionary,
+		callback: Callable,
+		parent: Control = null,
+		compact: bool = false
+	) -> Button:
+	if not parent:
+		parent = content_layer
+
+	var card: Control = SketchPanel.new()
+	card.position = pos
+	card.size = card_size
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.call("configure", Color(String(model["color"])), Color("#111111"), 4.0, 1.0, false)
+	parent.add_child(card)
+
+	var icon_size := Vector2(42, 42) if compact else Vector2(48, 48)
+	var icon := _sprite_icon(_model_icon_path(String(model["id"])), icon_size)
+	icon.position = pos + (Vector2(4, 8) if compact else Vector2(6, 12))
+	parent.add_child(icon)
+
+	var name_label := _outlined_label(_model_short_label(model, compact), 12 if compact else 13, Color("#151515"), HORIZONTAL_ALIGNMENT_LEFT)
+	name_label.position = pos + (Vector2(48, 4) if compact else Vector2(58, 8))
+	name_label.size = Vector2(card_size.x - (52 if compact else 64), 30)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(name_label)
+
+	var gb_label := _outlined_label(("%dGB" if compact else "%d GB") % int(model["gb"]), 13 if compact else 16, Color("#151515"), HORIZONTAL_ALIGNMENT_LEFT)
+	gb_label.position = pos + (Vector2(50, 31) if compact else Vector2(58, 42))
+	gb_label.size = Vector2(card_size.x - (54 if compact else 64), 24)
+	gb_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(gb_label)
+
+	var button := Button.new()
+	button.position = pos
+	button.size = card_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.add_theme_stylebox_override("normal", _empty_button_style())
+	button.add_theme_stylebox_override("hover", _empty_button_style())
+	button.add_theme_stylebox_override("pressed", _empty_button_style())
+	button.add_theme_stylebox_override("focus", _empty_button_style())
+	button.pressed.connect(callback)
+	parent.add_child(button)
+	return button
 
 func on_timeout() -> void:
 	var success := jobs_done >= maxi(2, TARGET_JOBS - 1)

@@ -31,6 +31,7 @@ const RESULT_FAIL_SOUND_PATH := "res://assets/sounds/result_fail.wav"
 const ACTION_COLLECT_SOUND_PATH := "res://assets/sounds/action_collect.wav"
 const ACTION_BAD_SOUND_PATH := "res://assets/sounds/action_bad.wav"
 const ACTION_MOVE_SOUND_PATH := "res://assets/sounds/action_move.wav"
+const RESULT_OVERLAY_Z := 1000
 
 var running := false
 var time_left := ROUND_SECONDS
@@ -45,6 +46,7 @@ var instruction_label: Label
 var status_label: Label
 var content_layer: Control
 var overlay_label: Label
+var result_backdrop: PanelContainer
 var tutorial_panel: PanelContainer
 var result_sound_player: AudioStreamPlayer
 var result_success_stream: AudioStream
@@ -72,6 +74,8 @@ func start_minigame() -> void:
 	time_left = ROUND_SECONDS
 	score = 0
 	overlay_label.visible = false
+	if result_backdrop:
+		result_backdrop.visible = false
 	set_status("")
 	emit_signal("time_changed", time_left)
 
@@ -114,10 +118,20 @@ func set_status(text: String) -> void:
 		status_label.text = text
 
 func show_result(text: String, success: bool) -> void:
+	if result_backdrop:
+		result_backdrop.visible = true
+		result_backdrop.z_index = RESULT_OVERLAY_Z - 1
+		result_backdrop.add_theme_stylebox_override(
+			"panel",
+			make_style(Color("#101923df") if success else Color("#23101bdf"), Color("#fff6d1"), 5, 8)
+		)
+		result_backdrop.move_to_front()
 	overlay_label.text = text
 	overlay_label.add_theme_color_override("font_color", Color("#fff6d1") if success else Color("#ffffff"))
 	overlay_label.add_theme_color_override("font_outline_color", Color("#111111"))
+	overlay_label.z_index = RESULT_OVERLAY_Z
 	overlay_label.visible = true
+	overlay_label.move_to_front()
 
 func _build_common_ui() -> void:
 	for child in get_children():
@@ -181,10 +195,19 @@ func _build_common_ui() -> void:
 	status_label.add_theme_constant_override("outline_size", 8)
 	add_child(status_label)
 
+	result_backdrop = PanelContainer.new()
+	result_backdrop.position = Vector2(180, 262)
+	result_backdrop.size = Vector2(920, 164)
+	result_backdrop.z_index = RESULT_OVERLAY_Z - 1
+	result_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result_backdrop.visible = false
+	result_backdrop.add_theme_stylebox_override("panel", make_style(Color("#101923df"), Color("#fff6d1"), 5, 8))
+	add_child(result_backdrop)
+
 	overlay_label = make_label("", 74, Color("#fff6d1"), HORIZONTAL_ALIGNMENT_CENTER)
 	overlay_label.position = Vector2(0, 272)
 	overlay_label.size = Vector2(1280, 140)
-	overlay_label.z_index = 30
+	overlay_label.z_index = RESULT_OVERLAY_Z
 	overlay_label.add_theme_constant_override("outline_size", 12)
 	overlay_label.add_theme_color_override("font_outline_color", Color("#129447"))
 	overlay_label.visible = false

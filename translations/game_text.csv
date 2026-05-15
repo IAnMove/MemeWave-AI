@@ -48,17 +48,25 @@ TOKENS_RATE_POP,hot!,calor!
 TOKENS_SUCCESS,GPU SAVED!,GPU SALVADA!
 TOKENS_TIMEOUT_SUCCESS,LAPTOP LIVES,PORTATIL VIVE
 TOKENS_FAIL,LAPTOP MELTED,PORTATIL FUNDIDO
-GAME_BENCH_TITLE,Benchmark Arena,Arena Benchmark
-GAME_BENCH_DESC,"Mocks leaderboards, benchmarks, and model marketing theater.","Se burla de rankings, benchmarks y teatro de marketing de modelos."
-BENCH_INSTRUCTIONS,Press RUN BENCHMARK when the cursor is in the green zone.,Pulsa RUN BENCHMARK cuando el cursor esté en verde.
-BENCH_STATUS,Good benchmarks: %d/%d  |  Overfit: %d/3,Benchmarks buenos: %d/%d  |  Overfit: %d/3
-BENCH_MODEL_A,MODEL A,MODELO A
-BENCH_MODEL_B,MODEL B,MODELO B
-BENCH_RUN_BUTTON,RUN BENCHMARK,RUN BENCHMARK
-BENCH_SUCCESS,LEADERBOARD DOMINATED,LEADERBOARD DOMINADO
-BENCH_OVERFIT_FAIL,MARKETING OVERFIT,OVERFIT PUBLICITARIO
-BENCH_TIMEOUT_SUCCESS,SOTA!,SOTA!
-BENCH_FAIL,WEAK BENCH,BENCH FLOJO
+GAME_BENCH_TITLE,Benchmark Trainer,Entrena Bench
+GAME_BENCH_DESC,"Train on leaked benchmark answers: score goes up, real skill stays flat.","Entrena con respuestas filtradas: sube el score, no la habilidad real."
+BENCH_INSTRUCTIONS,Press MEMORIZE when the pointer lands on the leaked answer key.,Pulsa MEMORIZAR cuando la aguja caiga en la chuleta.
+BENCH_STATUS,Memorized: %d/%d  |  real skill: 0  |  misses: %d/3,Memorizadas: %d/%d  |  habilidad real: 0  |  fallos: %d/3
+BENCH_MODEL_A,MODEL,MODELO
+BENCH_MODEL_B,BENCH SCORE,SCORE BENCH
+BENCH_RUN_BUTTON,MEMORIZE,MEMORIZAR
+BENCH_SUCCESS,SOTA SCORE SAME MODEL,SCORE SOTA MISMO MODELO
+BENCH_OVERFIT_FAIL,ANSWER KEY MISSED,CHULETA FALLADA
+BENCH_TIMEOUT_SUCCESS,PAPER SCORE UP,SCORE PAPER ARRIBA
+BENCH_FAIL,BENCH DID NOT STICK,NO MEMORIZO EL BENCH
+BENCH_LEAK_TITLE,LEAKED BENCH TEST,CHULETA BENCH
+BENCH_TRAINING_NOTE,memorizes without improving,memoriza sin mejorar
+BENCH_REAL_SKILL,real skill,habilidad real
+BENCH_REAL_WORLD,real world,mundo real
+BENCH_ANSWER_KEY,answer key,chuleta
+BENCH_FEEDBACK_READY,feed the leaked exam,mete el examen filtrado
+BENCH_FEEDBACK_HIT,benchmark memorized,benchmark memorizado
+BENCH_FEEDBACK_MISS,outside the leaked set,fuera del examen filtrado
 GAME_CODEX_TITLE,Codex Funding Round,Ronda Codex
 GAME_CODEX_DESC,Sam rides a funding slider catching falling bills: from 'no money' to bigger Codex limits.,Sam va en un deslizador de financiación recogiendo billetes que caen: de 'no hay dinero' a límites de Codex más grandes.
 CODEX_INSTRUCTIONS,Move Sam with A/D or arrows. Catch the falling bills.,Mueve a Sam con A/D o flechas. Recoge los billetes que caen.

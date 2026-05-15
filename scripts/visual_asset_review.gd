@@ -6,6 +6,8 @@ const TokenVacuum := preload("res://scripts/minigames/token_vacuum.gd")
 const WakePet := preload("res://scripts/minigames/wake_pet.gd")
 const RamenLocal := preload("res://scripts/minigames/prompt_injection_sushi.gd")
 const EnvLeakPanic := preload("res://scripts/minigames/env_leak_panic.gd")
+const VramHotSwap := preload("res://scripts/minigames/vram_hot_swap.gd")
+const BenchmarkArena := preload("res://scripts/minigames/benchmark_arena.gd")
 const MainScript := preload("res://scripts/main.gd")
 
 const OUT_DIR := "I:/vibecoding/wariowave/wario-wave-ai/visual_review"
@@ -18,6 +20,9 @@ func _run() -> void:
 	await _capture_main_menu()
 	await _capture_ramen()
 	await _capture_env_leak()
+	await _capture_env_leak_result()
+	await _capture_vram_hot_swap()
+	await _capture_benchmark_arena()
 	await _capture_thread()
 	await _capture_license()
 	await _capture_downgrade()
@@ -56,6 +61,41 @@ func _capture_env_leak() -> void:
 	await process_frame
 	await process_frame
 	_save_capture("env_leak_panic.png")
+	game.queue_free()
+	await process_frame
+
+func _capture_env_leak_result() -> void:
+	var game := EnvLeakPanic.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	game.call("_force_cover_all_leaks")
+	await process_frame
+	await process_frame
+	_save_capture("env_leak_result.png")
+	game.queue_free()
+	await process_frame
+
+func _capture_vram_hot_swap() -> void:
+	var game := VramHotSwap.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	game.call("_on_model_button_pressed", "whisper")
+	await process_frame
+	await process_frame
+	_save_capture("vram_hot_swap.png")
+	game.queue_free()
+	await process_frame
+
+func _capture_benchmark_arena() -> void:
+	var game := BenchmarkArena.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	await process_frame
+	_save_capture("benchmark_arena.png")
 	game.queue_free()
 	await process_frame
 
