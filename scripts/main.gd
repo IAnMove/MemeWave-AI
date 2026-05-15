@@ -1063,7 +1063,9 @@ func _is_unlocked(game_index: int) -> bool:
 func _is_game_retired(game_index: int) -> bool:
 	if game_index < 0 or game_index >= GAME_DEFS.size():
 		return true
-	return bool(GAME_DEFS[game_index].get("retired", false))
+	var def: Dictionary = GAME_DEFS[game_index]
+	var title_key := String(def.get("title_key", ""))
+	return bool(def.get("retired", false)) or PENDING_DELETE_GAME_TITLE_KEYS.has(title_key)
 
 func _active_game_indexes() -> Array[int]:
 	var indexes: Array[int] = []

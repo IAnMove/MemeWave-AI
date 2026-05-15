@@ -19,11 +19,11 @@ func _run() -> void:
 	main.show_collection(true)
 	await process_frame
 
-	if int(main.get("GAME_DEFS").size()) != 44:
-		_fail("Expected 44 minigames in navigation flow")
+	if int(main.get("GAME_DEFS").size()) != 46:
+		_fail("Expected 46 minigames in navigation flow")
 		return
-	if int((main.call("_active_game_indexes") as Array).size()) != 37:
-		_fail("Expected 37 active minigames in navigation flow")
+	if int((main.call("_active_game_indexes") as Array).size()) != 22:
+		_fail("Expected 22 active minigames in navigation flow")
 		return
 
 	main.start_direct_game(0, true)

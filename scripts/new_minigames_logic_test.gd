@@ -42,8 +42,8 @@ func _run() -> void:
 	if int(main.get("GAME_DEFS").size()) != 46:
 		_fail("Expected 46 minigames in GAME_DEFS")
 		return
-	if int((main.call("_active_game_indexes") as Array).size()) != 39:
-		_fail("Expected 39 active minigames after retiring duplicates")
+	if int((main.call("_active_game_indexes") as Array).size()) != 22:
+		_fail("Expected 22 active minigames after retiring discarded games")
 		return
 	main.queue_free()
 
