@@ -57,6 +57,8 @@ const UI_CLICK_SOUND_PATH := "res://assets/sounds/ui_click.wav"
 const ROUND_TRANSITION_SOUND_PATH := "res://assets/sounds/round_transition.wav"
 const MENU_MUSIC_PATH := "res://assets/sounds/Meme Mayhem_ Maximum Chaos.mp3"
 const GAME_MUSIC_PATH := "res://assets/sounds/Meme Micro Mayhem_ Extended Instrumental..mp3"
+const ENDING_MEDIUM_SCORE := 40
+const ENDING_GOOD_SCORE := 75
 const MENU_ICON_PATHS := {
 	"play": "res://assets/sprites/menu_icon_start.png",
 	"minigames": "res://assets/sprites/menu_icon_minigames.png",
@@ -192,7 +194,7 @@ const GAME_DEFS := [
 		"title_key": "GAME_ENERGY_TITLE",
 		"script": EnergyLinks,
 		"description_key": "GAME_ENERGY_DESC",
-		"thumbnail": "res://assets/art/object_spritesheet.png"
+		"thumbnail": "res://assets/art/energy_links_bg.png"
 	},
 	{
 		"title_key": "GAME_ROUTER_TITLE",
@@ -392,7 +394,7 @@ const GAME_DEFS := [
 		"script": GpuSacrificeRitual,
 		"description_key": "GAME_GPU_RITUAL_DESC",
 		"instruction_key": "GPU_RITUAL_INSTRUCTIONS",
-		"thumbnail": "res://assets/art/object_spritesheet.png"
+		"thumbnail": "res://assets/art/gpu_ritual_bg.png"
 	},
 	{
 		"title_key": "GAME_ARCHAEOLOGY_TITLE",
@@ -473,7 +475,9 @@ var wins := 0
 var total_score := 0
 var timer_label: Label
 var round_label: Label
+var score_label: Label
 var round_queue: Array[int] = []
+var hallucination_fact_queue: Array[int] = []
 var direct_launch := false
 var direct_developer := false
 var unlocked_minigames: Array[bool] = []
@@ -813,6 +817,7 @@ func start_game() -> void:
 	direct_launch = false
 	direct_developer = false
 	round_queue = _make_random_round_queue()
+	_reset_hallucination_fact_queue()
 	_start_next_round()
 
 func start_direct_game(game_index: int, developer: bool) -> void:
@@ -826,6 +831,7 @@ func start_direct_game(game_index: int, developer: bool) -> void:
 	direct_launch = true
 	direct_developer = developer
 	round_queue = [game_index]
+	_reset_hallucination_fact_queue()
 	_start_next_round()
 
 func _start_next_round() -> void:
@@ -863,13 +869,18 @@ func _start_next_round() -> void:
 		_unlock_game(active_game_index)
 
 	round_label = _make_label(tr("HUD_ROUND") % [current_index + 1, round_queue.size()], 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
-	round_label.custom_minimum_size = Vector2(260, 56)
+	round_label.custom_minimum_size = Vector2(205, 56)
 	round_label.add_theme_font_override("font", hud_font)
 	hud_box.add_child(round_label)
 
+	score_label = _make_label(tr("HUD_SCORE") % total_score, 24, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_LEFT)
+	score_label.custom_minimum_size = Vector2(210, 56)
+	score_label.add_theme_font_override("font", hud_font)
+	hud_box.add_child(score_label)
+
 	var active_def: Dictionary = GAME_DEFS[active_game_index]
 	var title_column := VBoxContainer.new()
-	title_column.custom_minimum_size = Vector2(600, 56)
+	title_column.custom_minimum_size = Vector2(500, 56)
 	title_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	title_column.add_theme_constant_override("separation", -2)
 	hud_box.add_child(title_column)
@@ -878,7 +889,7 @@ func _start_next_round() -> void:
 	if has_instruction:
 		var title_row := HBoxContainer.new()
 		title_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		title_row.custom_minimum_size = Vector2(600, 34)
+		title_row.custom_minimum_size = Vector2(500, 34)
 		title_row.add_theme_constant_override("separation", 8)
 		title_column.add_child(title_row)
 
@@ -887,13 +898,13 @@ func _start_next_round() -> void:
 		funnel.call("configure", "funnel", Color("#ffe34d"), Color("#ffffff"))
 		title_row.add_child(funnel)
 
-		var name_label := _make_label(tr(active_def["title_key"]), 27, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-		name_label.custom_minimum_size = Vector2(330, 34)
+		var name_label := _make_label(tr(active_def["title_key"]), 25, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+		name_label.custom_minimum_size = Vector2(310, 34)
 		name_label.add_theme_font_override("font", hud_font)
 		title_row.add_child(name_label)
 	else:
-		var name_label := _make_label(tr(active_def["title_key"]), 30, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-		name_label.custom_minimum_size = Vector2(600, 56)
+		var name_label := _make_label(tr(active_def["title_key"]), 28, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+		name_label.custom_minimum_size = Vector2(500, 56)
 		name_label.add_theme_font_override("font", hud_font)
 		title_column.add_child(name_label)
 
@@ -902,20 +913,20 @@ func _start_next_round() -> void:
 			var subtitle_rich := RichTextLabel.new()
 			subtitle_rich.bbcode_enabled = true
 			subtitle_rich.text = "[center]%s[/center]" % tr(active_def["rich_instruction_key"])
-			subtitle_rich.custom_minimum_size = Vector2(600, 22)
+			subtitle_rich.custom_minimum_size = Vector2(500, 22)
 			subtitle_rich.fit_content = true
 			subtitle_rich.scroll_active = false
 			subtitle_rich.add_theme_font_override("normal_font", hud_font)
 			subtitle_rich.add_theme_font_size_override("normal_font_size", 16)
 			title_column.add_child(subtitle_rich)
 		else:
-			var subtitle_label := _make_label(tr(active_def["instruction_key"]), 16, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-			subtitle_label.custom_minimum_size = Vector2(600, 20)
+			var subtitle_label := _make_label(tr(active_def["instruction_key"]), 15, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
+			subtitle_label.custom_minimum_size = Vector2(500, 20)
 			subtitle_label.add_theme_font_override("font", hud_font)
 			title_column.add_child(subtitle_label)
 
 	timer_label = _make_label("15.0", 36, Color("#bf2030"), HORIZONTAL_ALIGNMENT_RIGHT)
-	timer_label.custom_minimum_size = Vector2(220, 56)
+	timer_label.custom_minimum_size = Vector2(170, 56)
 	timer_label.add_theme_font_override("font", hud_font)
 	hud_box.add_child(timer_label)
 
@@ -929,6 +940,8 @@ func _start_next_round() -> void:
 	var minigame: Control = GAME_DEFS[active_game_index]["script"].new()
 	minigame.position = Vector2.ZERO
 	minigame.size = Vector2(1280, 720)
+	if String(active_def["title_key"]) == "GAME_HALLU_TITLE" and minigame.has_method("set_fact_round"):
+		minigame.call("set_fact_round", _next_hallucination_fact_index())
 	minigame.finished.connect(_on_minigame_finished)
 	minigame.time_changed.connect(_on_time_changed)
 	runner.add_child(minigame)
@@ -983,27 +996,50 @@ func show_summary() -> void:
 	_clear_view()
 	current_screen = "summary"
 	_set_music_mode("menu")
-	var screen := _make_screen(Color("#101729"))
+	var ending_tier := _ending_tier_for_result(wins, round_queue.size())
+	var screen := _make_screen(_ending_background_color(ending_tier))
 	current_view = screen
 
-	var title := _make_label(tr("SUMMARY_TITLE"), 66, Color("#fff06a"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(0, 85)
-	title.size = Vector2(1280, 90)
+	var title := _make_label(tr(_ending_title_key(ending_tier)), 58, Color("#fff06a"), HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = Vector2(0, 54)
+	title.size = Vector2(1280, 86)
 	title.add_theme_color_override("font_outline_color", Color("#000000"))
 	title.add_theme_constant_override("outline_size", 10)
 	screen.add_child(title)
 
-	var result_text := "%s\n%s" % [tr("SUMMARY_WINS") % [wins, round_queue.size()], tr("SUMMARY_POINTS") % total_score]
-	var result := _make_label(result_text, 46, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	result.position = Vector2(250, 220)
-	result.size = Vector2(780, 160)
+	var rank := _make_label(tr(_ending_rank_key(ending_tier)), 33, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	rank.position = Vector2(0, 138)
+	rank.size = Vector2(1280, 54)
+	rank.add_theme_color_override("font_outline_color", Color("#000000"))
+	rank.add_theme_constant_override("outline_size", 7)
+	screen.add_child(rank)
+
+	_add_ending_image(screen, ending_tier)
+
+	var panel := PanelContainer.new()
+	panel.position = Vector2(410, 210)
+	panel.size = Vector2(680, 176)
+	panel.add_theme_stylebox_override("panel", _make_style(_ending_panel_color(ending_tier), Color("#fffdf8"), 5, 8))
+	screen.add_child(panel)
+
+	var performance_score := _performance_score_for_result(wins, round_queue.size())
+	var result_text := "%s\n%s\n%s" % [
+		tr("SUMMARY_WINS") % [wins, round_queue.size()],
+		tr("SUMMARY_PERFORMANCE") % performance_score,
+		tr("SUMMARY_POINTS") % total_score
+	]
+	var result := _make_label(result_text, 39, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	result.position = Vector2(430, 214)
+	result.size = Vector2(640, 168)
 	result.add_theme_color_override("font_outline_color", Color("#000000"))
 	result.add_theme_constant_override("outline_size", 7)
 	screen.add_child(result)
 
-	var note := _make_label(tr("SUMMARY_NOTE"), 25, Color("#cfe8ff"), HORIZONTAL_ALIGNMENT_CENTER)
-	note.position = Vector2(180, 410)
-	note.size = Vector2(920, 70)
+	var note := _make_label(tr(_ending_body_key(ending_tier)), 27, Color("#fffdf8"), HORIZONTAL_ALIGNMENT_CENTER)
+	note.position = Vector2(150, 414)
+	note.size = Vector2(980, 98)
+	note.add_theme_color_override("font_outline_color", Color("#000000"))
+	note.add_theme_constant_override("outline_size", 5)
 	screen.add_child(note)
 
 	var again := _make_button(tr("SUMMARY_AGAIN"), 34, Color("#ffef5f"))
@@ -1017,6 +1053,94 @@ func show_summary() -> void:
 	menu.size = Vector2(300, 72)
 	menu.pressed.connect(show_main_menu)
 	screen.add_child(menu)
+
+func _ending_tier_for_result(win_count: int, round_count: int) -> String:
+	return _ending_tier_for_score(_performance_score_for_result(win_count, round_count))
+
+func _performance_score_for_result(win_count: int, round_count: int) -> int:
+	if round_count <= 0:
+		return 0
+
+	return roundi(clampf(float(win_count) / float(round_count), 0.0, 1.0) * 100.0)
+
+func _ending_tier_for_score(score_percent: int) -> String:
+	if score_percent >= ENDING_GOOD_SCORE:
+		return "good"
+	if score_percent >= ENDING_MEDIUM_SCORE:
+		return "medium"
+	return "bad"
+
+func _ending_title_key(tier: String) -> String:
+	match tier:
+		"good":
+			return "SUMMARY_GOOD_TITLE"
+		"medium":
+			return "SUMMARY_MEDIUM_TITLE"
+		_:
+			return "SUMMARY_BAD_TITLE"
+
+func _ending_rank_key(tier: String) -> String:
+	match tier:
+		"good":
+			return "SUMMARY_GOOD_RANK"
+		"medium":
+			return "SUMMARY_MEDIUM_RANK"
+		_:
+			return "SUMMARY_BAD_RANK"
+
+func _ending_body_key(tier: String) -> String:
+	match tier:
+		"good":
+			return "SUMMARY_GOOD_BODY"
+		"medium":
+			return "SUMMARY_MEDIUM_BODY"
+		_:
+			return "SUMMARY_BAD_BODY"
+
+func _ending_background_color(tier: String) -> Color:
+	match tier:
+		"good":
+			return Color("#123623")
+		"medium":
+			return Color("#243048")
+		_:
+			return Color("#351722")
+
+func _ending_panel_color(tier: String) -> Color:
+	match tier:
+		"good":
+			return Color("#176c39")
+		"medium":
+			return Color("#335a92")
+		_:
+			return Color("#7b2334")
+
+func _ending_image_path(tier: String) -> String:
+	match tier:
+		"good":
+			return "res://assets/art/gpu_black_friday_sam_cart.png"
+		"medium":
+			return "res://assets/sprites/leaderboard.png"
+		_:
+			return "res://assets/sprites/browser_computer_bad.png"
+
+func _add_ending_image(screen: Control, tier: String) -> void:
+	var image_panel := PanelContainer.new()
+	image_panel.position = Vector2(164, 210)
+	image_panel.size = Vector2(196, 176)
+	image_panel.add_theme_stylebox_override("panel", _make_style(Color("#fffdf8"), Color("#111111"), 5, 8))
+	screen.add_child(image_panel)
+
+	var image := TextureRect.new()
+	image.name = "EndingImage"
+	image.position = Vector2(178, 222)
+	image.size = Vector2(168, 150)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var path := _ending_image_path(tier)
+	if ResourceLoader.exists(path):
+		image.texture = load(path)
+	screen.add_child(image)
 
 func _set_initial_locale() -> void:
 	var locale := TranslationServer.get_locale().substr(0, 2)
@@ -1084,6 +1208,17 @@ func _make_random_round_queue() -> Array[int]:
 			queue.append(index)
 	queue.shuffle()
 	return queue
+
+func _reset_hallucination_fact_queue() -> void:
+	hallucination_fact_queue.clear()
+	for index in range(HallucinationHunt.FACT_ROUNDS.size()):
+		hallucination_fact_queue.append(index)
+	hallucination_fact_queue.shuffle()
+
+func _next_hallucination_fact_index() -> int:
+	if hallucination_fact_queue.is_empty():
+		_reset_hallucination_fact_queue()
+	return int(hallucination_fact_queue.pop_front())
 
 func _toggle_locale() -> void:
 	var locale := TranslationServer.get_locale().substr(0, 2)

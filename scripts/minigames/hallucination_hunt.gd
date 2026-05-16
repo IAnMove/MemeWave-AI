@@ -36,6 +36,7 @@ const FACT_ROUNDS := [
 
 var cards: Array[Dictionary] = []
 var current_fact := 0
+var forced_fact_index := -1
 var hits := 0
 var mistakes := 0
 var person_label: Label
@@ -55,12 +56,18 @@ func _ready() -> void:
 
 func start_minigame() -> void:
 	super.start_minigame()
-	current_fact = randi_range(0, FACT_ROUNDS.size() - 1)
+	if forced_fact_index >= 0:
+		current_fact = forced_fact_index % FACT_ROUNDS.size()
+	else:
+		current_fact = randi_range(0, FACT_ROUNDS.size() - 1)
 	hits = 0
 	mistakes = 0
 	_show_fact_round()
 	_update_detector("idle")
 	_update_status()
+
+func set_fact_round(fact_index: int) -> void:
+	forced_fact_index = fact_index
 
 func _build_stage() -> void:
 	var bg := ColorRect.new()

@@ -8,21 +8,27 @@ const RamenLocal := preload("res://scripts/minigames/prompt_injection_sushi.gd")
 const EnvLeakPanic := preload("res://scripts/minigames/env_leak_panic.gd")
 const VramHotSwap := preload("res://scripts/minigames/vram_hot_swap.gd")
 const BenchmarkArena := preload("res://scripts/minigames/benchmark_arena.gd")
+const EnergyLinks := preload("res://scripts/minigames/energy_links.gd")
+const GpuSacrificeRitual := preload("res://scripts/minigames/gpu_sacrifice_ritual.gd")
+const ContextTetris := preload("res://scripts/minigames/context_tetris.gd")
 const MainScript := preload("res://scripts/main.gd")
 
-const OUT_DIR := "I:/vibecoding/wariowave/wario-wave-ai/visual_review"
+const OUT_DIR := "res://visual_review"
 
 func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
-	DirAccess.make_dir_recursive_absolute(OUT_DIR)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	await _capture_main_menu()
 	await _capture_ramen()
 	await _capture_env_leak()
 	await _capture_env_leak_result()
 	await _capture_vram_hot_swap()
 	await _capture_benchmark_arena()
+	await _capture_energy_links()
+	await _capture_gpu_ritual()
+	await _capture_satellite_alignment()
 	await _capture_thread()
 	await _capture_license()
 	await _capture_downgrade()
@@ -99,6 +105,39 @@ func _capture_benchmark_arena() -> void:
 	game.queue_free()
 	await process_frame
 
+func _capture_energy_links() -> void:
+	var game := EnergyLinks.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	await process_frame
+	_save_capture("energy_links.png")
+	game.queue_free()
+	await process_frame
+
+func _capture_gpu_ritual() -> void:
+	var game := GpuSacrificeRitual.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	await process_frame
+	_save_capture("gpu_ritual.png")
+	game.queue_free()
+	await process_frame
+
+func _capture_satellite_alignment() -> void:
+	var game := ContextTetris.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
+	await process_frame
+	_save_capture("satellite_alignment.png")
+	game.queue_free()
+	await process_frame
+
 func _capture_thread() -> void:
 	var game := ThreadOfDoom.new()
 	root.add_child(game)
@@ -149,4 +188,4 @@ func _capture_plug_server() -> void:
 
 func _save_capture(file_name: String) -> void:
 	var image := root.get_texture().get_image()
-	image.save_png("%s/%s" % [OUT_DIR, file_name])
+	image.save_png(ProjectSettings.globalize_path("%s/%s" % [OUT_DIR, file_name]))

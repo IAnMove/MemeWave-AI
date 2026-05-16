@@ -346,8 +346,6 @@ func _ready() -> void:
 	hide_common_minigame_header()
 	hide_base_status()
 	_hide_base_header_panel()
-	if tutorial_panel:
-		tutorial_panel.visible = false
 	_build_stage()
 
 func start_minigame() -> void:

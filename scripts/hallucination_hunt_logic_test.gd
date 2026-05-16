@@ -17,7 +17,7 @@ func _run() -> void:
 		_fail("Hallucination Hunt should show four fixed options.")
 		return
 	var current_fact := int(game.get("current_fact"))
-	if current_fact < 0 or current_fact >= 3:
+	if current_fact < 0 or current_fact >= HallucinationHunt.FACT_ROUNDS.size():
 		_fail("Hallucination Hunt should choose one of the generated portrait rounds.")
 		return
 	var portrait := game.get("portrait_sprite") as TextureRect
@@ -58,6 +58,21 @@ func _run() -> void:
 
 	game.queue_free()
 	await process_frame
+
+	for fact_index in range(HallucinationHunt.FACT_ROUNDS.size()):
+		game = HallucinationHunt.new()
+		root.add_child(game)
+		await process_frame
+		game.call("set_fact_round", fact_index)
+		game.start_minigame()
+		await process_frame
+		if int(game.get("current_fact")) != fact_index:
+			_fail("Hallucination Hunt did not honor the assigned fact round.")
+			return
+		game.finish(false)
+		game.queue_free()
+		await process_frame
+
 	print("Hallucination Hunt logic test passed.")
 	quit()
 

@@ -3,7 +3,7 @@ extends "res://scripts/minigames/base_minigame.gd"
 const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
 const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 
-const LEAK_SECONDS := 5.0
+const LEAK_SECONDS := 10.0
 const TARGET_LEAKS := 4
 const TAPE_SIZE := Vector2(138, 42)
 const TAPE_STARTS := [
@@ -311,7 +311,7 @@ func _build_tape_tray() -> void:
 		shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tape.add_child(shine)
 
-		var label := _outlined_label("REDACT", 15, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_CENTER)
+		var label := _outlined_label(tr("ENV_TAPE_LABEL"), 15, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_CENTER)
 		label.position = Vector2(0, 6)
 		label.size = TAPE_SIZE - Vector2(0, 12)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -344,7 +344,7 @@ func _add_leak_marker(leak_index: int) -> void:
 	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(marker)
 
-	var tag := _outlined_label("SECRET", 10, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	var tag := _outlined_label(tr("ENV_SECRET_TAG"), 10, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
 	tag.position = rect.position + Vector2(rect.size.x - 62, -16)
 	tag.size = Vector2(60, 18)
 	tag.z_index = 9
@@ -464,7 +464,7 @@ func _complete_success() -> void:
 	await finish_with_result(true, "ENV_SUCCESS", 0.55)
 
 func _spawn_stamp(center: Vector2) -> void:
-	var stamp := _outlined_label("COVERED", 18, Color("#56d364"), HORIZONTAL_ALIGNMENT_CENTER)
+	var stamp := _outlined_label(tr("ENV_STAMP_COVERED"), 18, Color("#56d364"), HORIZONTAL_ALIGNMENT_CENTER)
 	stamp.position = center - Vector2(70, 38)
 	stamp.size = Vector2(140, 34)
 	stamp.z_index = 70

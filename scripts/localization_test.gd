@@ -26,6 +26,15 @@ func _run() -> void:
 	if probe.tr("QUICK_PROGRESS") != "Progreso":
 		_fail("Spanish translation failed for QUICK_PROGRESS")
 		return
+	if probe.tr("HUD_SCORE") != "Puntos: %d":
+		_fail("Spanish translation failed for HUD_SCORE")
+		return
+	if probe.tr("SUMMARY_PERFORMANCE") != "Rendimiento: %d%%":
+		_fail("Spanish translation failed for SUMMARY_PERFORMANCE")
+		return
+	if probe.tr("SUMMARY_GOOD_TITLE") != "Unicornio MemeWave":
+		_fail("Spanish translation failed for SUMMARY_GOOD_TITLE")
+		return
 
 	var main: Control = MainScript.new()
 	root.add_child(main)
@@ -40,6 +49,22 @@ func _run() -> void:
 			var key := String(game_def[key_name])
 			_assert_translated(probe, key, "es")
 			_assert_translated(probe, key, "en")
+
+	for key in [
+		"HUD_SCORE",
+		"SUMMARY_PERFORMANCE",
+		"SUMMARY_BAD_TITLE",
+		"SUMMARY_BAD_RANK",
+		"SUMMARY_BAD_BODY",
+		"SUMMARY_MEDIUM_TITLE",
+		"SUMMARY_MEDIUM_RANK",
+		"SUMMARY_MEDIUM_BODY",
+		"SUMMARY_GOOD_TITLE",
+		"SUMMARY_GOOD_RANK",
+		"SUMMARY_GOOD_BODY"
+	]:
+		_assert_translated(probe, key, "es")
+		_assert_translated(probe, key, "en")
 
 	main.queue_free()
 	probe.queue_free()

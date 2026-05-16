@@ -1,5 +1,5 @@
 keys,en,es
-MENU_TITLE,MemeWave AI,MemeWave AI
+MENU_TITLE,MemeWave,MemeWave
 MENU_SUBTITLE,"AI meme microgames about tokens, model wars, and egos with intentionally bad drawings.","Microjuegos meme de IA sobre tokens, guerra de modelos y egos con dibujos mal hechos a propósito."
 MENU_START,START,EMPEZAR
 MENU_DESCRIPTIONS,DESCRIPTIONS,DESCRIPCIONES
@@ -11,19 +11,30 @@ MENU_LANGUAGE,Language,Idioma
 MENU_VOLUME,Volume,Volumen
 DESCRIPTIONS_TITLE,What each microgame is trying to say,Qué intenta transmitir cada microjuego
 HUD_ROUND,Round %d/%d,Ronda %d/%d
+HUD_SCORE,Score: %d,Puntos: %d
 COUNTDOWN_GO,GO!,HAZLO!
 SUMMARY_TITLE,Run summary,Resumen de la tanda
 SUMMARY_WINS,Wins: %d/%d,Victorias: %d/%d
+SUMMARY_PERFORMANCE,Performance score: %d%%,Rendimiento: %d%%
 SUMMARY_POINTS,Meme score: %d,Puntuación meme: %d
 SUMMARY_NOTE,"Minimum viable product ready: next we iterate jokes, difficulty, and art.","Producto mínimo viable listo: ahora toca iterar chistes, dificultad y arte."
+SUMMARY_BAD_TITLE,Demo on fire,Demo en llamas
+SUMMARY_BAD_RANK,Bad ending,Final malo
+SUMMARY_BAD_BODY,"The agents shipped vibes, burned the token budget, and the investor deck became a postmortem.","Los agentes lanzaron vibes, quemaron el presupuesto de tokens y el deck de inversión acabó como post mortem."
+SUMMARY_MEDIUM_TITLE,Forever private beta,Beta privada eterna
+SUMMARY_MEDIUM_RANK,Medium ending,Final medio
+SUMMARY_MEDIUM_BODY,"The demo survived with smoke, suspicious benchmarks, and one more promise to fix it next sprint.","La demo sobrevivió con humo, benchmarks sospechosos y una promesa más de arreglarlo en el siguiente sprint."
+SUMMARY_GOOD_TITLE,MemeWave unicorn,Unicornio MemeWave
+SUMMARY_GOOD_RANK,Good ending,Final bueno
+SUMMARY_GOOD_BODY,"The run went viral, the GPUs arrived, and every bug got rebranded as emergent product strategy.","La tanda se hizo viral, llegaron las GPUs y cada bug fue rebautizado como estrategia de producto emergente."
 SUMMARY_AGAIN,ANOTHER RUN,OTRA TANDA
 SUMMARY_MENU,MENU,MENU
 GAME_REPO_TITLE,Private Repo,Repo Privado
-GAME_REPO_DESC,"Sam asks you to close public repos and make them private. It memes the contradiction between saying OpenAI and closing code.","Sam te pide cerrar repos publicos y hacerlos privados. Intenta transmitir la contradicción meme entre llamarse OpenAI y cerrar código."
-REPO_INSTRUCTIONS,Sam wants the repos private. Close them before Elon arrives.,Sam quiere los repos privados. Ciérralos antes de que llegue Elon.
-REPO_STATUS,Repos privatized: %d/%d,Repos privatizados: %d/%d
-REPO_SAM_SPEECH,"Sam: close these repos.","Sam: cierra estos repos."
-REPO_ELON_SPEECH,Elon: this is not open anymore!,Elon: esto ya no es open!
+GAME_REPO_DESC,"Close public repos in a GitHub-like dashboard before Elon notices the open-source contradiction.","Cierra repos públicos en un panel tipo GitHub antes de que Elon vea la contradicción open-source."
+REPO_INSTRUCTIONS,Click every public repo to make it private.,Haz clic en cada repo público para hacerlo privado.
+REPO_STATUS,Private repos: %d/%d,Repos privados: %d/%d
+REPO_SAM_SPEECH,"Sam: make them private.","Sam: ponlos privados."
+REPO_ELON_SPEECH,Elon: OpenAI? More like ClosedAI!,Elon: ¿OpenAI? Más bien ClosedAI.
 REPO_SUCCESS,THIS IS NOT OPEN ANYMORE!,ESTO YA NO ES OPEN!
 REPO_FAIL,THE REPO IS STILL OPEN,EL REPO SIGUE ABIERTO
 GAME_TOKENS_TITLE,Cool Ollama,Sopla la GPU
@@ -860,33 +871,33 @@ VIBE_DEPLOY_SUCCESS,PROD SURVIVED!,PROD SOBREVIVIO!
 VIBE_DEPLOY_TIMEOUT_SUCCESS,DEPLOY CLEAN,DEPLOY LIMPIO
 VIBE_DEPLOY_TIMEOUT_FAIL,QUEUE FROZE,COLA CONGELADA
 VIBE_DEPLOY_FAIL,INCIDENT CHANNEL!,CANAL DE INCIDENTE!
-GAME_GPU_RITUAL_TITLE,GPU Sacrifice Ritual,Ritual Sacrificio GPU
-GAME_GPU_RITUAL_DESC,Connect GPUs fans cash and power to the altar before the hungry model goes dark,Conecta GPUs ventiladores dinero y luz al altar antes de que el modelo se apague
-GPU_RITUAL_INSTRUCTIONS,Click an offering and its matching altar port.,Haz clic en una ofrenda y su puerto del altar.
-GPU_RITUAL_OFFERINGS,OFFERINGS,OFRENDAS
-GPU_RITUAL_ALTAR_PORTS,ALTAR PORTS,PUERTOS ALTAR
-GPU_RITUAL_CLICK_LEFT,first click an offering,primero clic en ofrenda
-GPU_RITUAL_CLICK_RIGHT,then click altar,luego clic en altar
-GPU_RITUAL_ALTAR_TITLE,Hungry model altar,Altar del modelo hambriento
-GPU_RITUAL_ALTAR_OFF,ALTAR STARVING,ALTAR HAMBRIENTO
-GPU_RITUAL_ALTAR_ON,ALTAR ONLINE,ALTAR ONLINE
-GPU_RITUAL_IDLE,bring the tribute,trae el tributo
-GPU_RITUAL_DONE,ritual complete,ritual completo
-GPU_RITUAL_GOOD_CABLE,tribute accepted,tributo aceptado
-GPU_RITUAL_BAD_CABLE,bad sacrifice,sacrificio malo
-GPU_RITUAL_LEFT_GPU,GPU STACK,TORRE GPU
-GPU_RITUAL_RIGHT_ALTAR,MODEL ALTAR,ALTAR MODELO
-GPU_RITUAL_LEFT_FAN,FAN WALL,MURO VENTILADOR
-GPU_RITUAL_RIGHT_WIND,COOLING WIND,VIENTO FRIO
-GPU_RITUAL_LEFT_CASH,VC CASH,DINERO VC
-GPU_RITUAL_RIGHT_FIRE,BURN PIT,POZO QUEMA
+GAME_GPU_RITUAL_TITLE,GPU Sacrifice Ritual,Ritual de GPU
+GAME_GPU_RITUAL_DESC,Feed a hungry local model by matching each resource cable to the right input.,Alimenta un modelo local hambriento conectando cada recurso a su entrada correcta.
+GPU_RITUAL_INSTRUCTIONS,Click a resource and then click the matching model input.,Haz clic en un recurso y luego en su entrada del modelo.
+GPU_RITUAL_OFFERINGS,RESOURCES,RECURSOS
+GPU_RITUAL_ALTAR_PORTS,MODEL INPUTS,ENTRADAS MODELO
+GPU_RITUAL_CLICK_LEFT,choose resource,elige recurso
+GPU_RITUAL_CLICK_RIGHT,connect input,conecta entrada
+GPU_RITUAL_ALTAR_TITLE,Hungry local model,Modelo local hambriento
+GPU_RITUAL_ALTAR_OFF,MODEL STARVING,MODELO SIN ENERGIA
+GPU_RITUAL_ALTAR_ON,MODEL FED,MODELO ALIMENTADO
+GPU_RITUAL_IDLE,needs power,necesita recursos
+GPU_RITUAL_DONE,all inputs live,todo conectado
+GPU_RITUAL_GOOD_CABLE,input matched,entrada correcta
+GPU_RITUAL_BAD_CABLE,wrong input,entrada incorrecta
+GPU_RITUAL_LEFT_GPU,GPU RACK,RACK GPU
+GPU_RITUAL_RIGHT_ALTAR,MODEL CORE,NUCLEO MODELO
+GPU_RITUAL_LEFT_FAN,COOLING FANS,VENTILADORES
+GPU_RITUAL_RIGHT_WIND,COOLING,REFRIGERACION
+GPU_RITUAL_LEFT_CASH,VC MONEY,DINERO VC
+GPU_RITUAL_RIGHT_FIRE,BURN RATE,QUEMA CASH
 GPU_RITUAL_LEFT_POWER,POWER BILL,FACTURA LUZ
-GPU_RITUAL_RIGHT_SOCKET,MEGA SOCKET,MEGA ENCHUFE
-GPU_RITUAL_STATUS,Connections: %d/%d  |  bad cables: %d,Conexiones: %d/%d  |  cables malos: %d
-GPU_RITUAL_SUCCESS,MODEL SUMMONED!,MODELO INVOCADO!
-GPU_RITUAL_TIMEOUT_SUCCESS,RITUAL HELD,RITUAL AGUANTO
-GPU_RITUAL_TIMEOUT_FAIL,ALTAR WENT DARK,ALTAR APAGADO
-GPU_RITUAL_FAIL,RITUAL FIZZLED,RITUAL FALLIDO
+GPU_RITUAL_RIGHT_SOCKET,POWER INPUT,ENTRADA LUZ
+GPU_RITUAL_STATUS,Inputs: %d/%d  |  errors: %d,Entradas: %d/%d  |  errores: %d
+GPU_RITUAL_SUCCESS,MODEL FED!,MODELO ALIMENTADO!
+GPU_RITUAL_TIMEOUT_SUCCESS,MODEL SURVIVED,MODELO VIVO
+GPU_RITUAL_TIMEOUT_FAIL,MODEL STARVED,MODELO SIN RECURSOS
+GPU_RITUAL_FAIL,RITUAL SHORTED,CORTOCIRCUITO
 GAME_ARCHAEOLOGY_TITLE,Prompt Archaeologist,Arqueologo de Prompt
 GAME_ARCHAEOLOGY_DESC,Dig useful instructions out of a giant context pile and toss praise logs and ancient chat noise,Excava instrucciones utiles de un contexto gigante y tira halagos logs y chat antiguo
 ARCHAEOLOGY_INSTRUCTIONS,Dig useful fragments. Toss noisy layers.,Excava fragmentos utiles. Tira capas ruidosas.
@@ -1171,17 +1182,20 @@ VRAM_TIMEOUT_SUCCESS,QUEUE SURVIVED,COLA VIVA
 VRAM_TIMEOUT_FAIL,QUEUE MELTED,COLA FUNDIDA
 VRAM_FAIL,VRAM PANIC!,PANICO VRAM!
 GAME_ENV_TITLE,ENV Leak Panic,Panico Leak ENV
-GAME_ENV_DESC,Redact secrets before the project screenshot gets posted online.,Tapa secretos antes de publicar la captura del proyecto.
-ENV_INSTRUCTIONS,Drag black tape over exposed secrets.,Arrastra cinta negra sobre los secretos.
+GAME_ENV_DESC,Hide critical env variables before the project screenshot gets posted online.,Oculta variables críticas antes de publicar la captura del proyecto.
+ENV_INSTRUCTIONS,Drag black tape over critical variables.,Arrastra cinta negra sobre las variables críticas.
 ENV_TWEET_TITLE,UPLOADING TWEET,SUBIENDO TWEET
-ENV_TAPE_TRAY,BLACK TAPE,CINTA NEGRA
-ENV_READY,find the leaks,busca los leaks
-ENV_DRAGGING,cover it!,tapalo!
-ENV_COVERED,secret covered,secreto tapado
-ENV_MISSED,missed leak,leak sin tapar
+ENV_TAPE_TRAY,HIDE CRITICAL VARIABLES,OCULTA VARIABLES CRITICAS
+ENV_TAPE_LABEL,HIDE,OCULTAR
+ENV_SECRET_TAG,CRITICAL,CRITICA
+ENV_STAMP_COVERED,HIDDEN,OCULTO
+ENV_READY,hide the critical vars,oculta las variables criticas
+ENV_DRAGGING,hide it!,ocultalo!
+ENV_COVERED,variable hidden,variable oculta
+ENV_MISSED,variable exposed,variable expuesta
 ENV_SAFE,clean screenshot,captura limpia
-ENV_STATUS,Covered: %d/%d,Tapados: %d/%d
-ENV_COVER_COUNT,Secrets: %d/%d,Secretos: %d/%d
-ENV_SUCCESS,NO LEAKS POSTED!,SIN LEAKS PUBLICADOS!
+ENV_STATUS,Hidden: %d/%d,Ocultas: %d/%d
+ENV_COVER_COUNT,Variables: %d/%d,Variables: %d/%d
+ENV_SUCCESS,NO SECRETS POSTED!,SECRETOS OCULTOS!
 ENV_TIMEOUT_SUCCESS,SCREENSHOT CLEAN,CAPTURA LIMPIA
 ENV_FAIL,SECRET WENT PUBLIC!,SECRETO PUBLICADO!

@@ -1,6 +1,9 @@
 extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_CONNECTIONS := 4
+const BG_PATH := "res://assets/art/energy_links_bg.png"
+const INK := Color("#161616")
+const PAPER := Color("#fff8dc")
 const PAIRS := [
 	{
 		"id": "plug",
@@ -49,12 +52,147 @@ var screen_lines: Array[ColorRect] = []
 var work_label: Label
 var energy_bar: ProgressBar
 
+class EnergySocketIcon:
+	extends Control
+
+	var side := "left"
+	var pair_id := "plug"
+	var accent := Color("#ff595e")
+
+	func configure(new_side: String, new_pair_id: String, new_accent: Color) -> void:
+		side = new_side
+		pair_id = new_pair_id
+		accent = new_accent
+		queue_redraw()
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var icon_id := pair_id
+		if side == "right":
+			match pair_id:
+				"plug":
+					icon_id = "motor"
+				"solar":
+					icon_id = "battery"
+				"gpu":
+					icon_id = "rack"
+				"hamster":
+					icon_id = "generator"
+		match icon_id:
+			"solar":
+				_draw_solar()
+			"battery":
+				_draw_battery()
+			"gpu":
+				_draw_gpu()
+			"rack":
+				_draw_rack()
+			"hamster":
+				_draw_hamster()
+			"generator":
+				_draw_generator()
+			"motor":
+				_draw_motor()
+			_:
+				_draw_plug()
+
+	func _draw_solar() -> void:
+		_draw_sun(Vector2(size.x * 0.24, size.y * 0.25), size.x * 0.12)
+		var panel := Rect2(Vector2(size.x * 0.28, size.y * 0.32), Vector2(size.x * 0.54, size.y * 0.42))
+		draw_rect(panel, Color("#1f4f9a"), true)
+		_wobbly_rect(panel, INK, 3.0)
+		for index in range(1, 3):
+			var x := panel.position.x + panel.size.x * float(index) / 3.0
+			draw_line(Vector2(x, panel.position.y + 4), Vector2(x, panel.position.y + panel.size.y - 4), Color("#ffffff88"), 1.5, true)
+		draw_line(panel.position + Vector2(4, panel.size.y * 0.5), panel.position + Vector2(panel.size.x - 4, panel.size.y * 0.5), Color("#ffffff88"), 1.5, true)
+
+	func _draw_plug() -> void:
+		draw_line(Vector2(size.x * 0.08, size.y * 0.50), Vector2(size.x * 0.42, size.y * 0.50), accent, 6.0, true)
+		var body := Rect2(Vector2(size.x * 0.36, size.y * 0.27), Vector2(size.x * 0.32, size.y * 0.46))
+		draw_rect(body, PAPER, true)
+		_wobbly_rect(body, INK, 3.0)
+		draw_line(Vector2(size.x * 0.68, size.y * 0.39), Vector2(size.x * 0.88, size.y * 0.39), INK, 4.0, true)
+		draw_line(Vector2(size.x * 0.68, size.y * 0.61), Vector2(size.x * 0.88, size.y * 0.61), INK, 4.0, true)
+
+	func _draw_gpu() -> void:
+		var card := Rect2(Vector2(size.x * 0.12, size.y * 0.24), Vector2(size.x * 0.72, size.y * 0.48))
+		draw_rect(card, Color("#263041"), true)
+		_wobbly_rect(card, INK, 3.0)
+		draw_circle(card.position + Vector2(card.size.x * 0.28, card.size.y * 0.50), size.x * 0.13, Color("#66c6ff"))
+		draw_arc(card.position + Vector2(card.size.x * 0.28, card.size.y * 0.50), size.x * 0.09, 0.0, TAU, 16, INK, 2.0, true)
+		draw_rect(Rect2(card.position + Vector2(card.size.x * 0.50, 12), Vector2(card.size.x * 0.36, 7)), accent, true)
+		draw_line(Vector2(card.position.x + 8, card.position.y + card.size.y + 5), Vector2(card.position.x + card.size.x - 8, card.position.y + card.size.y + 5), Color("#ffca3a"), 4.0, true)
+
+	func _draw_hamster() -> void:
+		var center := Vector2(size.x * 0.44, size.y * 0.52)
+		draw_arc(center, size.x * 0.27, 0.0, TAU, 30, INK, 4.0, true)
+		draw_arc(center, size.x * 0.21, 0.0, TAU, 30, Color("#c98a36"), 3.0, true)
+		draw_line(center + Vector2(-14, 0), center + Vector2(14, 0), INK, 2.0, true)
+		draw_line(center + Vector2(0, -14), center + Vector2(0, 14), INK, 2.0, true)
+		draw_circle(center + Vector2(0, 7), size.x * 0.08, Color("#d8a35d"))
+		draw_circle(center + Vector2(5, 4), 1.8, INK)
+		draw_line(Vector2(size.x * 0.66, size.y * 0.62), Vector2(size.x * 0.88, size.y * 0.68), accent, 4.0, true)
+
+	func _draw_motor() -> void:
+		var body := Rect2(Vector2(size.x * 0.18, size.y * 0.34), Vector2(size.x * 0.52, size.y * 0.32))
+		draw_rect(body, Color("#c7c7c7"), true)
+		_wobbly_rect(body, INK, 3.0)
+		draw_circle(Vector2(size.x * 0.76, size.y * 0.50), size.x * 0.12, accent)
+		draw_arc(Vector2(size.x * 0.76, size.y * 0.50), size.x * 0.12, 0.0, TAU, 20, INK, 2.5, true)
+		draw_line(Vector2(size.x * 0.06, size.y * 0.64), Vector2(size.x * 0.88, size.y * 0.64), INK, 3.0, true)
+
+	func _draw_battery() -> void:
+		var body := Rect2(Vector2(size.x * 0.18, size.y * 0.25), Vector2(size.x * 0.56, size.y * 0.50))
+		draw_rect(body, Color("#313740"), true)
+		_wobbly_rect(body, INK, 3.0)
+		draw_rect(Rect2(Vector2(body.end.x, body.position.y + body.size.y * 0.30), Vector2(size.x * 0.10, body.size.y * 0.40)), accent, true)
+		draw_line(body.position + Vector2(10, body.size.y * 0.50), body.position + Vector2(body.size.x - 10, body.size.y * 0.50), Color("#ffffff8c"), 3.0, true)
+		draw_line(body.position + Vector2(body.size.x * 0.28, 10), body.position + Vector2(body.size.x * 0.28, body.size.y - 10), Color("#ff595e"), 3.0, true)
+		draw_line(body.position + Vector2(body.size.x * 0.50, 10), body.position + Vector2(body.size.x * 0.50, body.size.y - 10), Color("#ffca3a"), 3.0, true)
+		draw_line(body.position + Vector2(body.size.x * 0.72, 10), body.position + Vector2(body.size.x * 0.72, body.size.y - 10), Color("#8ac926"), 3.0, true)
+
+	func _draw_rack() -> void:
+		var rack := Rect2(Vector2(size.x * 0.18, size.y * 0.16), Vector2(size.x * 0.58, size.y * 0.70))
+		draw_rect(rack, Color("#2a3038"), true)
+		_wobbly_rect(rack, INK, 3.0)
+		for index in range(3):
+			var shelf := Rect2(rack.position + Vector2(7, 8 + index * 15), Vector2(rack.size.x - 14, 10))
+			draw_rect(shelf, Color("#11151a"), true)
+			draw_circle(shelf.position + Vector2(shelf.size.x - 8, 5), 2.4, [Color("#ff595e"), Color("#ffca3a"), Color("#8ac926")][index])
+
+	func _draw_generator() -> void:
+		var base := Rect2(Vector2(size.x * 0.14, size.y * 0.34), Vector2(size.x * 0.56, size.y * 0.34))
+		draw_rect(base, Color("#e2e2d8"), true)
+		_wobbly_rect(base, INK, 3.0)
+		draw_circle(Vector2(size.x * 0.70, size.y * 0.51), size.x * 0.14, accent)
+		draw_arc(Vector2(size.x * 0.70, size.y * 0.51), size.x * 0.14, 0.0, TAU, 18, INK, 3.0, true)
+		draw_line(Vector2(size.x * 0.16, size.y * 0.30), Vector2(size.x * 0.64, size.y * 0.30), INK, 2.0, true)
+		draw_line(Vector2(size.x * 0.22, size.y * 0.22), Vector2(size.x * 0.28, size.y * 0.34), INK, 2.0, true)
+
+	func _draw_sun(center: Vector2, radius: float) -> void:
+		draw_circle(center, radius, Color("#ffca3a"))
+		for index in range(8):
+			var angle := TAU * float(index) / 8.0
+			draw_line(center + Vector2(cos(angle), sin(angle)) * (radius + 3.0), center + Vector2(cos(angle), sin(angle)) * (radius + 10.0), Color("#ffca3a"), 2.5, true)
+
+	func _wobbly_rect(rect: Rect2, color: Color, width: float) -> void:
+		var points := PackedVector2Array([
+			rect.position,
+			rect.position + Vector2(rect.size.x, 1.0),
+			rect.position + rect.size,
+			rect.position + Vector2(1.0, rect.size.y),
+			rect.position
+		])
+		draw_polyline(points, color, width, true)
+
 func _ready() -> void:
 	configure(
 		"GAME_ENERGY_TITLE",
 		"ENERGY_INSTRUCTIONS",
 		"GAME_ENERGY_DESC",
-		""
+		BG_PATH
 	)
 	super._ready()
 	if overlay_label:
@@ -76,7 +214,7 @@ func _build_stage() -> void:
 	var bg := ColorRect.new()
 	bg.position = Vector2(0, 0)
 	bg.size = Vector2(1280, 720)
-	bg.color = Color("#162331")
+	bg.color = Color("#fff1cf")
 	add_child(bg)
 	move_child(bg, 0)
 
@@ -84,36 +222,30 @@ func _build_stage() -> void:
 	cable_layer.z_index = 1
 	content_layer.add_child(cable_layer)
 
-	_build_column(Vector2(58, 228), tr("ENERGY_SOURCES"), "left")
-	_build_column(Vector2(944, 228), tr("ENERGY_TARGETS"), "right")
+	_build_column(Vector2(50, 218), tr("ENERGY_SOURCES"), "left")
+	_build_column(Vector2(944, 218), tr("ENERGY_TARGETS"), "right")
 	_build_model_panel()
 	_build_sockets()
 
 func _build_column(position: Vector2, title_text: String, side: String) -> void:
 	var panel := PanelContainer.new()
 	panel.position = position
-	panel.size = Vector2(278, 390)
-	panel.add_theme_stylebox_override("panel", make_style(Color("#f7f4df"), Color("#1d1d1d"), 5, 8))
+	panel.size = Vector2(288, 404)
+	panel.add_theme_stylebox_override("panel", make_style(Color("#fff7d6ec"), INK, 5, 8))
 	content_layer.add_child(panel)
 
-	var title := make_label(title_text, 29, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = position + Vector2(12, 12)
-	title.size = Vector2(254, 40)
+	var title := make_label(title_text, 26, INK, HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = position + Vector2(14, 12)
+	title.size = Vector2(260, 70)
 	title.add_theme_color_override("font_outline_color", Color("#ffffff"))
 	title.add_theme_constant_override("outline_size", 2)
 	content_layer.add_child(title)
 
-	var side_label_key := "ENERGY_CLICK_SOURCE" if side == "left" else "ENERGY_CLICK_TARGET"
-	var hint := make_label(tr(side_label_key), 16, Color("#3d3d3d"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = position + Vector2(14, 350)
-	hint.size = Vector2(250, 30)
-	content_layer.add_child(hint)
-
 func _build_model_panel() -> void:
 	model_panel = PanelContainer.new()
-	model_panel.position = Vector2(384, 234)
-	model_panel.size = Vector2(512, 370)
-	model_panel.add_theme_stylebox_override("panel", make_style(Color("#20242a"), Color("#ff595e"), 6, 8))
+	model_panel.position = Vector2(384, 230)
+	model_panel.size = Vector2(512, 382)
+	model_panel.add_theme_stylebox_override("panel", make_style(Color("#20242ae8"), Color("#ff595e"), 6, 8))
 	content_layer.add_child(model_panel)
 
 	var title := make_label(tr("ENERGY_MODEL_NAME"), 35, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
@@ -141,7 +273,7 @@ func _build_model_panel() -> void:
 	content_layer.add_child(energy_bar)
 
 	work_label = make_label(tr("ENERGY_WORK_IDLE"), 22, Color("#fff1c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	work_label.position = Vector2(438, 592)
+	work_label.position = Vector2(438, 566)
 	work_label.size = Vector2(404, 34)
 	work_label.add_theme_color_override("font_outline_color", Color("#111111"))
 	work_label.add_theme_constant_override("outline_size", 4)
@@ -201,10 +333,10 @@ func _build_power_devices() -> void:
 		screen_lines.append(line)
 
 func _build_sockets() -> void:
-	var left_x := 82
-	var right_x := 968
-	var start_y := 298
-	var gap := 76
+	var left_x := 78
+	var right_x := 976
+	var start_y := 306
+	var gap := 74
 	var left_pairs := _shuffled_pairs()
 	var right_pairs := _shuffled_pairs()
 	if _orders_match(left_pairs, right_pairs):
@@ -247,13 +379,18 @@ func _add_socket(side: String, pair_id: String, label_text: String, wire_color: 
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(inner)
 
-	_add_connector_icon(inner, side, wire_color)
+	var item_icon := EnergySocketIcon.new()
+	item_icon.position = Vector2(162, 5) if side == "left" else Vector2(8, 5)
+	item_icon.size = Vector2(60, 48)
+	item_icon.configure(side, pair_id, wire_color)
+	inner.add_child(item_icon)
 
-	var label := make_label(label_text, 17, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	label.position = Vector2(14, 2)
-	label.size = Vector2(160, 54)
+	var label := make_label(label_text, 16, INK, HORIZONTAL_ALIGNMENT_CENTER)
+	label.position = Vector2(10, 2)
+	label.size = Vector2(148, 54)
 	if side == "right":
-		label.position.x = 58
+		label.position.x = 70
+		label.size.x = 148
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(label)
 

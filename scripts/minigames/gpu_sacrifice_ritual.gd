@@ -5,6 +5,9 @@ const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 
 const TARGET_CONNECTIONS := 4
 const MISTAKE_LIMIT := 3
+const BG_PATH := "res://assets/art/gpu_ritual_bg.png"
+const INK := Color("#151515")
+const PAPER := Color("#fff7d6")
 const PAIRS := [
 	{"id": "gpu", "left_key": "GPU_RITUAL_LEFT_GPU", "right_key": "GPU_RITUAL_RIGHT_ALTAR", "color": "#1982c4"},
 	{"id": "fan", "left_key": "GPU_RITUAL_LEFT_FAN", "right_key": "GPU_RITUAL_RIGHT_WIND", "color": "#8ac926"},
@@ -27,8 +30,140 @@ var ritual_bar: ProgressBar
 var verdict_label: Label
 var pips: Array[ColorRect] = []
 
+class RitualSocketIcon:
+	extends Control
+
+	var side := "left"
+	var pair_id := "gpu"
+	var accent := Color("#1982c4")
+
+	func configure(new_side: String, new_pair_id: String, new_accent: Color) -> void:
+		side = new_side
+		pair_id = new_pair_id
+		accent = new_accent
+		queue_redraw()
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var icon_id := pair_id
+		if side == "right":
+			match pair_id:
+				"gpu":
+					icon_id = "core"
+				"fan":
+					icon_id = "cooling"
+				"cash":
+					icon_id = "burn"
+				"power":
+					icon_id = "socket"
+		match icon_id:
+			"fan":
+				_draw_fan()
+			"cash":
+				_draw_cash()
+			"power":
+				_draw_bill()
+			"core":
+				_draw_core()
+			"cooling":
+				_draw_cooling()
+			"burn":
+				_draw_burn()
+			"socket":
+				_draw_socket()
+			_:
+				_draw_gpu()
+
+	func _draw_gpu() -> void:
+		var card := Rect2(Vector2(size.x * 0.12, size.y * 0.22), Vector2(size.x * 0.70, size.y * 0.48))
+		draw_rect(card, Color("#263041"), true)
+		_wobbly_rect(card, INK, 3.0)
+		draw_circle(card.position + Vector2(card.size.x * 0.30, card.size.y * 0.50), size.x * 0.12, accent.lightened(0.25))
+		draw_arc(card.position + Vector2(card.size.x * 0.30, card.size.y * 0.50), size.x * 0.08, 0.0, TAU, 18, INK, 2.0, true)
+		draw_rect(Rect2(card.position + Vector2(card.size.x * 0.52, 12), Vector2(card.size.x * 0.34, 7)), accent, true)
+		draw_line(card.position + Vector2(8, card.size.y + 5), card.position + Vector2(card.size.x - 8, card.size.y + 5), Color("#ffca3a"), 4.0, true)
+
+	func _draw_fan() -> void:
+		var center := size * 0.5
+		draw_circle(center, size.x * 0.30, Color("#d7f8d0"))
+		draw_arc(center, size.x * 0.30, 0.0, TAU, 28, INK, 3.0, true)
+		for index in range(4):
+			var angle := TAU * float(index) / 4.0
+			var p1 := center + Vector2(cos(angle), sin(angle)) * size.x * 0.08
+			var p2 := center + Vector2(cos(angle + 0.45), sin(angle + 0.45)) * size.x * 0.24
+			draw_line(p1, p2, accent.darkened(0.15), 6.0, true)
+		draw_circle(center, size.x * 0.07, INK)
+
+	func _draw_cash() -> void:
+		for index in range(3):
+			var bill := Rect2(Vector2(size.x * (0.18 + index * 0.06), size.y * (0.30 + index * 0.08)), Vector2(size.x * 0.50, size.y * 0.22))
+			draw_rect(bill, Color("#8be56f"), true)
+			_wobbly_rect(bill, INK, 2.5)
+			draw_circle(bill.position + bill.size * 0.5, size.x * 0.055, Color("#ffef5f"))
+
+	func _draw_bill() -> void:
+		var page := Rect2(Vector2(size.x * 0.22, size.y * 0.16), Vector2(size.x * 0.50, size.y * 0.66))
+		draw_rect(page, Color("#fffdf3"), true)
+		_wobbly_rect(page, INK, 3.0)
+		draw_line(page.position + Vector2(8, 16), page.position + Vector2(page.size.x - 8, 16), accent, 4.0, true)
+		draw_line(page.position + Vector2(8, 32), page.position + Vector2(page.size.x - 12, 32), INK, 2.0, true)
+		draw_line(page.position + Vector2(8, 46), page.position + Vector2(page.size.x - 18, 46), INK, 2.0, true)
+		draw_line(page.position + Vector2(page.size.x - 16, page.size.y - 14), page.position + Vector2(page.size.x - 5, page.size.y - 4), Color("#ff595e"), 3.0, true)
+
+	func _draw_core() -> void:
+		var chip := Rect2(Vector2(size.x * 0.26, size.y * 0.20), Vector2(size.x * 0.48, size.y * 0.56))
+		draw_rect(chip, Color("#a5ecff"), true)
+		_wobbly_rect(chip, INK, 3.0)
+		draw_circle(chip.position + chip.size * 0.5, size.x * 0.11, accent)
+		for index in range(3):
+			var y := chip.position.y + 10 + index * 11
+			draw_line(Vector2(chip.position.x - 9, y), Vector2(chip.position.x, y), INK, 2.5, true)
+			draw_line(Vector2(chip.end.x, y), Vector2(chip.end.x + 9, y), INK, 2.5, true)
+
+	func _draw_cooling() -> void:
+		for index in range(3):
+			var y := size.y * (0.30 + index * 0.18)
+			draw_line(Vector2(size.x * 0.18, y), Vector2(size.x * 0.82, y - 6.0), accent, 5.0, true)
+			draw_line(Vector2(size.x * 0.74, y - 14.0), Vector2(size.x * 0.84, y - 6.0), accent, 3.0, true)
+			draw_line(Vector2(size.x * 0.76, y + 5.0), Vector2(size.x * 0.84, y - 6.0), accent, 3.0, true)
+
+	func _draw_burn() -> void:
+		var base := Rect2(Vector2(size.x * 0.18, size.y * 0.58), Vector2(size.x * 0.62, size.y * 0.20))
+		draw_rect(base, Color("#47333a"), true)
+		_wobbly_rect(base, INK, 2.5)
+		var flame := PackedVector2Array([
+			Vector2(size.x * 0.48, size.y * 0.18),
+			Vector2(size.x * 0.68, size.y * 0.58),
+			Vector2(size.x * 0.50, size.y * 0.48),
+			Vector2(size.x * 0.34, size.y * 0.62)
+		])
+		draw_colored_polygon(flame, Color("#ff595e"))
+		flame.append(flame[0])
+		draw_polyline(flame, INK, 3.0, true)
+		draw_circle(Vector2(size.x * 0.48, size.y * 0.55), size.x * 0.07, Color("#ffca3a"))
+
+	func _draw_socket() -> void:
+		var plate := Rect2(Vector2(size.x * 0.22, size.y * 0.22), Vector2(size.x * 0.54, size.y * 0.56))
+		draw_rect(plate, Color("#fffdf3"), true)
+		_wobbly_rect(plate, INK, 3.0)
+		draw_line(Vector2(size.x * 0.40, size.y * 0.42), Vector2(size.x * 0.40, size.y * 0.58), INK, 4.0, true)
+		draw_line(Vector2(size.x * 0.58, size.y * 0.42), Vector2(size.x * 0.58, size.y * 0.58), INK, 4.0, true)
+		draw_circle(Vector2(size.x * 0.49, size.y * 0.67), size.x * 0.035, accent)
+
+	func _wobbly_rect(rect: Rect2, color: Color, width: float) -> void:
+		var points := PackedVector2Array([
+			rect.position,
+			rect.position + Vector2(rect.size.x, 1.0),
+			rect.position + rect.size,
+			rect.position + Vector2(1.0, rect.size.y),
+			rect.position
+		])
+		draw_polyline(points, color, width, true)
+
 func _ready() -> void:
-	configure("GAME_GPU_RITUAL_TITLE", "GPU_RITUAL_INSTRUCTIONS", "GAME_GPU_RITUAL_DESC", "res://assets/art/object_spritesheet.png")
+	configure("GAME_GPU_RITUAL_TITLE", "GPU_RITUAL_INSTRUCTIONS", "GAME_GPU_RITUAL_DESC", BG_PATH)
 	super._ready()
 	if overlay_label:
 		overlay_label.z_index = 200
@@ -50,7 +185,7 @@ func _build_stage() -> void:
 	var bg := ColorRect.new()
 	bg.position = Vector2.ZERO
 	bg.size = Vector2(1280, 720)
-	bg.color = Color("#18131f")
+	bg.color = Color("#fff1cf")
 	add_child(bg)
 	move_child(bg, 0)
 
@@ -58,37 +193,31 @@ func _build_stage() -> void:
 	cable_layer.z_index = 1
 	content_layer.add_child(cable_layer)
 
-	_build_column(Vector2(54, 222), tr("GPU_RITUAL_OFFERINGS"), "left")
-	_build_column(Vector2(944, 222), tr("GPU_RITUAL_ALTAR_PORTS"), "right")
+	_build_column(Vector2(50, 218), tr("GPU_RITUAL_OFFERINGS"), "left")
+	_build_column(Vector2(944, 218), tr("GPU_RITUAL_ALTAR_PORTS"), "right")
 	_build_altar()
 	_build_sockets()
 
 func _build_column(position: Vector2, title_text: String, side: String) -> void:
-	_sketch_panel(position, Vector2(286, 404), Color("#fff7d6"), false)
-	var title := _outlined_label(title_text, 27, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = position + Vector2(16, 16)
-	title.size = Vector2(254, 44)
+	_sketch_panel(position, Vector2(286, 404), Color("#fff7d6eb"), false)
+	var title := _outlined_label(title_text, 26, INK, HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = position + Vector2(16, 12)
+	title.size = Vector2(254, 70)
 	content_layer.add_child(title)
 
-	var hint_key := "GPU_RITUAL_CLICK_LEFT" if side == "left" else "GPU_RITUAL_CLICK_RIGHT"
-	var hint := _outlined_label(tr(hint_key), 17, Color("#3d3d3d"), HORIZONTAL_ALIGNMENT_CENTER)
-	hint.position = position + Vector2(18, 358)
-	hint.size = Vector2(250, 28)
-	content_layer.add_child(hint)
-
 func _build_altar() -> void:
-	altar_panel = _sketch_panel(Vector2(400, 238), Vector2(480, 360), Color("#21182a"), true, Color("#ff595e"))
-	_icon("spark", Vector2(444, 270), Vector2(48, 48), Color("#ffca3a"))
-	_icon("robot", Vector2(546, 302), Vector2(188, 150), Color("#49424f"))
-	_icon("spark", Vector2(784, 270), Vector2(48, 48), Color("#ffca3a"))
+	altar_panel = _sketch_panel(Vector2(400, 232), Vector2(480, 374), Color("#21182ae8"), true, Color("#ff595e"))
+	_icon("spark", Vector2(446, 286), Vector2(42, 42), Color("#ffca3a"))
+	_icon("robot", Vector2(548, 320), Vector2(184, 142), Color("#49424f"))
+	_icon("spark", Vector2(790, 286), Vector2(42, 42), Color("#ffca3a"))
 
-	var title := _outlined_label(tr("GPU_RITUAL_ALTAR_TITLE"), 34, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
-	title.position = Vector2(430, 250)
-	title.size = Vector2(420, 54)
+	var title := _outlined_label(tr("GPU_RITUAL_ALTAR_TITLE"), 29, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
+	title.position = Vector2(430, 248)
+	title.size = Vector2(420, 44)
 	content_layer.add_child(title)
 
 	ritual_bar = ProgressBar.new()
-	ritual_bar.position = Vector2(468, 472)
+	ritual_bar.position = Vector2(468, 478)
 	ritual_bar.size = Vector2(344, 32)
 	ritual_bar.min_value = 0
 	ritual_bar.max_value = TARGET_CONNECTIONS
@@ -96,18 +225,18 @@ func _build_altar() -> void:
 	content_layer.add_child(ritual_bar)
 
 	altar_label = _outlined_label("", 27, Color("#ffb9c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	altar_label.position = Vector2(436, 516)
+	altar_label.position = Vector2(436, 520)
 	altar_label.size = Vector2(408, 38)
 	content_layer.add_child(altar_label)
 
 	verdict_label = _outlined_label("", 23, Color("#fff1c6"), HORIZONTAL_ALIGNMENT_CENTER)
-	verdict_label.position = Vector2(430, 560)
+	verdict_label.position = Vector2(430, 564)
 	verdict_label.size = Vector2(420, 36)
 	content_layer.add_child(verdict_label)
 
 	for index in range(MISTAKE_LIMIT):
 		var pip := ColorRect.new()
-		pip.position = Vector2(574 + index * 48, 452)
+		pip.position = Vector2(574 + index * 48, 458)
 		pip.size = Vector2(34, 14)
 		pip.color = Color("#3d3442")
 		content_layer.add_child(pip)
@@ -116,8 +245,8 @@ func _build_altar() -> void:
 func _build_sockets() -> void:
 	var left_x := 82
 	var right_x := 972
-	var start_y := 300
-	var gap := 76
+	var start_y := 306
+	var gap := 74
 	var left_pairs := _shuffled_pairs()
 	var right_pairs := _shuffled_pairs()
 	if _orders_match(left_pairs, right_pairs):
@@ -155,14 +284,26 @@ func _add_socket(side: String, pair_id: String, label_text: String, wire_color: 
 	card.gui_input.connect(_on_socket_input.bind(card))
 	content_layer.add_child(card)
 
-	var label := make_label(label_text, 18, Color("#1d1d1d"), HORIZONTAL_ALIGNMENT_CENTER)
-	label.position = Vector2(14, 2)
-	label.size = Vector2(160, 54)
-	if side == "right":
-		label.position.x = 58
-	card.add_child(label)
+	var inner := Control.new()
+	inner.custom_minimum_size = card.size
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(inner)
 
-	_add_rope_anchor_icon(card, side, wire_color)
+	var label := make_label(label_text, 16, INK, HORIZONTAL_ALIGNMENT_CENTER)
+	label.position = Vector2(12, 2)
+	label.size = Vector2(148, 54)
+	if side == "right":
+		label.position.x = 70
+		label.size.x = 148
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(label)
+
+	var item_icon := RitualSocketIcon.new()
+	item_icon.position = Vector2(164, 5) if side == "left" else Vector2(8, 5)
+	item_icon.size = Vector2(58, 48)
+	item_icon.configure(side, pair_id, wire_color)
+	item_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(item_icon)
 
 	sockets.append({
 		"node": card,

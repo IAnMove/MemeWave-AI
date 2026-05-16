@@ -1,6 +1,7 @@
 extends SceneTree
 
 const MainScript := preload("res://scripts/main.gd")
+const HallucinationHunt := preload("res://scripts/minigames/hallucination_hunt.gd")
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -30,6 +31,18 @@ func _run() -> void:
 			count += 1
 	if count != 3:
 		_fail("Hallucination Hunt should appear three times in normal random runs.")
+		return
+
+	main.call("_reset_hallucination_fact_queue")
+	var seen_facts := {}
+	for index in range(HallucinationHunt.FACT_ROUNDS.size()):
+		var fact_index := int(main.call("_next_hallucination_fact_index"))
+		if seen_facts.has(fact_index):
+			_fail("Hallucination Hunt should not repeat a character before every character has appeared once.")
+			return
+		seen_facts[fact_index] = true
+	if seen_facts.size() != HallucinationHunt.FACT_ROUNDS.size():
+		_fail("Hallucination Hunt should schedule every character once per cycle.")
 		return
 
 	main.queue_free()
