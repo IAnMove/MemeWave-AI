@@ -522,8 +522,8 @@ func _test_env_leak_panic() -> void:
 	await process_frame
 	game.start_minigame()
 	await process_frame
-	if float(game.get("time_left")) < 9.5:
-		_fail("ENV Leak Panic should start with 10 seconds on the timer")
+	if float(game.get("time_left")) < 11.5:
+		_fail("ENV Leak Panic should start with 12 seconds on the timer")
 		return
 
 	game.call("_force_cover_all_leaks")

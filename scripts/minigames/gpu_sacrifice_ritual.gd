@@ -6,6 +6,7 @@ const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 const TARGET_CONNECTIONS := 4
 const MISTAKE_LIMIT := 3
 const BG_PATH := "res://assets/art/gpu_ritual_bg.png"
+const CENTER_COMPUTER_PATH := "res://assets/art/center_computer.png"
 const INK := Color("#151515")
 const PAPER := Color("#fff7d6")
 const PAIRS := [
@@ -17,6 +18,7 @@ const PAIRS := [
 
 var sockets: Array[Dictionary] = []
 var selected_index := -1
+var dragging_cable := false
 var connected := 0
 var mistakes := 0
 var cable_layer: Node2D
@@ -24,6 +26,8 @@ var dangling_cable: Line2D
 var dangling_cable_shadow: Line2D
 var dangling_cable_jacket: Line2D
 var dangling_cable_highlight: Line2D
+var dangling_plug: Control
+var center_computer: TextureRect
 var altar_panel: Control
 var altar_label: Label
 var ritual_bar: ProgressBar
@@ -172,6 +176,7 @@ func _ready() -> void:
 func start_minigame() -> void:
 	super.start_minigame()
 	selected_index = -1
+	dragging_cable = false
 	connected = 0
 	mistakes = 0
 	score = 0
@@ -208,8 +213,15 @@ func _build_column(position: Vector2, title_text: String, side: String) -> void:
 func _build_altar() -> void:
 	altar_panel = _sketch_panel(Vector2(400, 232), Vector2(480, 374), Color("#21182ae8"), true, Color("#ff595e"))
 	_icon("spark", Vector2(446, 286), Vector2(42, 42), Color("#ffca3a"))
-	_icon("robot", Vector2(548, 320), Vector2(184, 142), Color("#49424f"))
 	_icon("spark", Vector2(790, 286), Vector2(42, 42), Color("#ffca3a"))
+
+	center_computer = make_sprite(CENTER_COMPUTER_PATH, Vector2(286, 180))
+	center_computer.position = Vector2(497, 303)
+	center_computer.size = Vector2(286, 180)
+	center_computer.z_index = 3
+	center_computer.modulate = Color(0.9, 0.84, 0.86, 1.0)
+	center_computer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(center_computer)
 
 	var title := _outlined_label(tr("GPU_RITUAL_ALTAR_TITLE"), 29, Color("#ffffff"), HORIZONTAL_ALIGNMENT_CENTER)
 	title.position = Vector2(430, 248)
@@ -324,15 +336,24 @@ func _on_socket_input(event: InputEvent, card: PanelContainer) -> void:
 		return
 
 	if selected_index == -1:
-		_select_socket(index)
+		_begin_drag_from_socket(index)
 		return
 	if selected_index == index:
-		_clear_selection()
+		_begin_drag_from_socket(index)
 		return
 	if sockets[selected_index]["side"] == sockets[index]["side"]:
-		_select_socket(index)
+		_begin_drag_from_socket(index)
 		return
 	_try_connect(selected_index, index)
+
+func _input(event: InputEvent) -> void:
+	if not running or not dragging_cable:
+		return
+
+	if event is InputEventMouseMotion:
+		_update_dangling_cable(event.position)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		_finish_drag(event.position)
 
 func _try_connect(first_index: int, second_index: int) -> void:
 	if first_index < 0 or second_index < 0 or first_index >= sockets.size() or second_index >= sockets.size():
@@ -392,20 +413,46 @@ func _select_socket(index: int) -> void:
 	_set_socket_style(index, "selected")
 	_draw_dangling_cable(index)
 
+func _begin_drag_from_socket(index: int) -> void:
+	_select_socket(index)
+	dragging_cable = true
+	_update_dangling_cable(get_viewport().get_mouse_position())
+	play_action_sound("move")
+
+func _finish_drag(point: Vector2) -> void:
+	dragging_cable = false
+	if selected_index == -1:
+		_clear_dangling_cable()
+		return
+
+	var target_index := _find_socket_at(point)
+	if target_index == selected_index:
+		_update_dangling_cable(point)
+		return
+	if target_index != -1 and not bool(sockets[target_index]["connected"]) and sockets[selected_index]["side"] != sockets[target_index]["side"]:
+		_try_connect(selected_index, target_index)
+		return
+
+	_update_dangling_cable(point)
+
 func _clear_selection() -> void:
+	dragging_cable = false
 	_clear_dangling_cable()
 	if selected_index != -1 and not bool(sockets[selected_index]["connected"]):
 		_set_socket_style(selected_index, "normal")
 	selected_index = -1
 
-func _draw_dangling_cable(index: int) -> void:
+func _draw_dangling_cable(index: int, tip: Vector2 = Vector2(-99999.0, -99999.0)) -> void:
 	_clear_dangling_cable()
 	var socket := sockets[index]
 	var node := socket["node"] as Control
 	var side := String(socket["side"])
 	var start := _socket_anchor(node, side)
 	var direction := 1.0 if side == "left" else -1.0
-	var points := _rope_points(start, start + Vector2(96.0 * direction, 58))
+	var end := tip
+	if end.x < -90000.0:
+		end = start + Vector2(96.0 * direction, 58)
+	var points := _rope_points(start, end)
 	dangling_cable_shadow = _make_rope_line(Color("#00000070"), 24, points, 2, Vector2(0, 7))
 	dangling_cable_jacket = _make_rope_line(Color("#171116"), 18, points, 3)
 	dangling_cable = _make_rope_line((socket["color"] as Color).lightened(0.02), 12, points, 4)
@@ -414,6 +461,25 @@ func _draw_dangling_cable(index: int) -> void:
 	cable_layer.add_child(dangling_cable_jacket)
 	cable_layer.add_child(dangling_cable)
 	cable_layer.add_child(dangling_cable_highlight)
+	dangling_plug = _make_drag_plug(socket["color"])
+	content_layer.add_child(dangling_plug)
+	_place_drag_plug(points)
+
+func _update_dangling_cable(tip: Vector2) -> void:
+	if selected_index == -1 or not dangling_cable:
+		return
+	var socket := sockets[selected_index]
+	var node := socket["node"] as Control
+	var start := _socket_anchor(node, String(socket["side"]))
+	var points := _rope_points(start, tip)
+	dangling_cable.points = points
+	if dangling_cable_shadow:
+		dangling_cable_shadow.points = points
+	if dangling_cable_jacket:
+		dangling_cable_jacket.points = points
+	if dangling_cable_highlight:
+		dangling_cable_highlight.points = points
+	_place_drag_plug(points)
 
 func _clear_dangling_cable() -> void:
 	if dangling_cable and is_instance_valid(dangling_cable):
@@ -428,6 +494,9 @@ func _clear_dangling_cable() -> void:
 	if dangling_cable_highlight and is_instance_valid(dangling_cable_highlight):
 		dangling_cable_highlight.queue_free()
 	dangling_cable_highlight = null
+	if dangling_plug and is_instance_valid(dangling_plug):
+		dangling_plug.queue_free()
+	dangling_plug = null
 
 func _drop_wrong_cable(first: Dictionary, second: Dictionary) -> void:
 	_clear_dangling_cable()
@@ -501,6 +570,68 @@ func _add_rope_twists(bundle: Node2D, color: Color, points: PackedVector2Array) 
 		line.antialiased = true
 		bundle.add_child(line)
 
+func _make_drag_plug(wire_color: Color) -> Control:
+	var plug := Control.new()
+	plug.size = Vector2(88, 54)
+	plug.pivot_offset = Vector2(80, 27)
+	plug.z_index = 8
+	plug.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var shadow := PanelContainer.new()
+	shadow.position = Vector2(25, 13)
+	shadow.size = Vector2(40, 32)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shadow.modulate = Color("#0000005f")
+	shadow.add_theme_stylebox_override("panel", make_style(Color("#0000005f"), Color("#00000000"), 0, 10))
+	plug.add_child(shadow)
+
+	var cord := ColorRect.new()
+	cord.position = Vector2(0, 22)
+	cord.size = Vector2(33, 10)
+	cord.color = wire_color
+	cord.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plug.add_child(cord)
+
+	var cord_highlight := ColorRect.new()
+	cord_highlight.position = Vector2(0, 22)
+	cord_highlight.size = Vector2(33, 3)
+	cord_highlight.color = (wire_color as Color).lightened(0.45)
+	cord_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plug.add_child(cord_highlight)
+
+	var body := PanelContainer.new()
+	body.position = Vector2(28, 9)
+	body.size = Vector2(35, 34)
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_theme_stylebox_override("panel", make_style(Color("#f6f0d5"), Color("#111111"), 4, 10))
+	plug.add_child(body)
+
+	var shine := ColorRect.new()
+	shine.position = Vector2(34, 15)
+	shine.size = Vector2(21, 5)
+	shine.color = Color("#ffffff99")
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plug.add_child(shine)
+
+	for y in [16, 33]:
+		var prong := ColorRect.new()
+		prong.position = Vector2(61, y)
+		prong.size = Vector2(23, 5)
+		prong.color = Color("#111111")
+		prong.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		plug.add_child(prong)
+	return plug
+
+func _place_drag_plug(points: PackedVector2Array) -> void:
+	if not dangling_plug:
+		return
+	var tip := points[points.size() - 1]
+	var direction := tip - points[maxi(points.size() - 4, 0)]
+	if direction.length() < 1.0:
+		direction = Vector2.RIGHT
+	dangling_plug.rotation = direction.angle()
+	dangling_plug.position = tip - dangling_plug.pivot_offset
+
 func _add_rope_anchor_icon(parent: Control, side: String, rope_color: Color) -> void:
 	var icon := Control.new()
 	icon.position = Vector2(172, 9) if side == "left" else Vector2(8, 9)
@@ -569,6 +700,8 @@ func _reset_sockets() -> void:
 func _update_altar(active: bool) -> void:
 	if altar_panel:
 		altar_panel.call("configure", Color("#173322") if active else Color("#21182a"), Color("#35d96b") if active else Color("#ff595e"), 4.0, 1.6, true, Color("#0000000c"))
+	if center_computer:
+		center_computer.modulate = Color.WHITE if active else Color(0.9, 0.84, 0.86, 1.0)
 	ritual_bar.value = connected
 	altar_label.text = tr("GPU_RITUAL_ALTAR_ON") if active else tr("GPU_RITUAL_ALTAR_OFF")
 	altar_label.add_theme_color_override("font_color", Color("#5cff86") if active else Color("#ffb9c6"))
@@ -587,6 +720,7 @@ func _update_status() -> void:
 	set_status(tr("GPU_RITUAL_STATUS") % [connected, TARGET_CONNECTIONS, mistakes])
 
 func _clear_cables() -> void:
+	_clear_dangling_cable()
 	if not cable_layer:
 		return
 	for child in cable_layer.get_children():
@@ -595,6 +729,13 @@ func _clear_cables() -> void:
 func _find_socket_index(card: PanelContainer) -> int:
 	for index in range(sockets.size()):
 		if sockets[index]["node"] == card:
+			return index
+	return -1
+
+func _find_socket_at(point: Vector2) -> int:
+	for index in range(sockets.size()):
+		var card := sockets[index]["node"] as Control
+		if is_instance_valid(card) and card.get_global_rect().grow(12.0).has_point(point):
 			return index
 	return -1
 

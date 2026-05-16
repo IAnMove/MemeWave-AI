@@ -82,11 +82,21 @@ func _test_gpu_ritual() -> void:
 		_fail("GPU Sacrifice Ritual should show a dangling cable after selecting a socket.")
 		return
 
+	game.queue_free()
+	await process_frame
+
+	game = GpuSacrificeRitual.new()
+	root.add_child(game)
+	await process_frame
+	game.start_minigame()
+	await process_frame
 	var correct_pair := _find_pair(game, true)
-	game.call("_try_connect", correct_pair[0], correct_pair[1])
+	game.call("_begin_drag_from_socket", correct_pair[0])
+	var target_node := (game.get("sockets") as Array)[correct_pair[1]]["node"] as Control
+	game.call("_finish_drag", target_node.get_global_rect().get_center())
 	await process_frame
 	if int(game.get("connected")) != 1:
-		_fail("GPU Sacrifice Ritual should connect a matching pair.")
+		_fail("GPU Sacrifice Ritual should connect a matching pair by dragging the cable.")
 		return
 
 	game.queue_free()

@@ -4,6 +4,7 @@ signal finished(success: bool, score: int)
 signal time_changed(time_left: float)
 
 const ROUND_SECONDS := 15.0
+const RESULT_REACTION_TIME_MULTIPLIER := 2.0
 const TUTORIAL_ACTION_IMAGES := {
 	"click": [
 		"res://assets/tutorial_actions/click_1_mouse.png",
@@ -110,7 +111,7 @@ func finish_with_result(success: bool, text: String, delay: float = 0.45) -> voi
 	running = false
 	play_result_sound(success)
 	show_result(tr(text), success)
-	await get_tree().create_timer(delay).timeout
+	await get_tree().create_timer(delay * RESULT_REACTION_TIME_MULTIPLIER).timeout
 	emit_signal("finished", success, score)
 
 func set_status(text: String) -> void:

@@ -2,6 +2,8 @@ extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_REPOS := 8
 const ELON_ANGRY_PATH := "res://assets/sprites/elon_face.png"
+const BG_PATH := "res://assets/art/repo_github_sketch_bg.png"
+const REPO_BUTTON_SIZE := Vector2(110, 110)
 
 var private_count := 0
 var face_sprite: TextureRect
@@ -12,7 +14,7 @@ func _ready() -> void:
 		"GAME_REPO_TITLE",
 		"REPO_INSTRUCTIONS",
 		"GAME_REPO_DESC",
-		"res://assets/art/repo_private_bg.png"
+		BG_PATH
 	)
 	super._ready()
 	_build_repos()
@@ -31,16 +33,17 @@ func start_minigame() -> void:
 func _build_repos() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 4
-	grid.position = Vector2(118, 222)
-	grid.size = Vector2(660, 360)
-	grid.add_theme_constant_override("h_separation", 18)
-	grid.add_theme_constant_override("v_separation", 18)
+	grid.position = Vector2(332, 354)
+	grid.size = Vector2(500, 244)
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 14)
+	grid.z_index = 4
 	content_layer.add_child(grid)
 
 	for index in TARGET_REPOS:
-		var repo := make_sprite_button("res://assets/sprites/repo_open.png", Vector2(150, 150))
+		var repo := make_sprite_button("res://assets/sprites/repo_open.png", REPO_BUTTON_SIZE)
 		repo.name = "RepoButton"
-		repo.custom_minimum_size = Vector2(150, 150)
+		repo.custom_minimum_size = REPO_BUTTON_SIZE
 		if ResourceLoader.exists("res://assets/sprites/repo_locked.png"):
 			repo.texture_disabled = load("res://assets/sprites/repo_locked.png")
 		repo.pressed.connect(_on_repo_pressed.bind(repo))

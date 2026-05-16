@@ -434,7 +434,7 @@ GAME_COPY_CODEX_DESC,Sam peeks at Dario's Claude Code homework. Hold to copy Cod
 GAME_COPY_DAYBREAK_TITLE,Copy Mythos,Copia Mythos
 GAME_COPY_DAYBREAK_DESC,Sam peeks at Dario's security homework. Hold to copy Daybreak and release when Dario looks up.,Sam mira los deberes de seguridad de Dario. Mantén para copiar Daybreak y suelta cuando Dario alce la vista.
 COPYCAT_INSTRUCTIONS,Hold click to copy. Release when Dario looks up.,Mantén clic para copiar. Suelta cuando Dario alce la vista.
-COPYCAT_COPY_LABEL,COPY,COPIA
+COPYCAT_COPY_LABEL,Press here to copy,Pulsa aquí para copiar
 COPYCAT_SAFE,copying... %d%%,copiando... %d%%
 COPYCAT_ALERT,Dario looks up!,Dario alza la vista!
 COPYCAT_DANGER,DARIO LOOKS!,¡DARIO MIRA!
@@ -475,9 +475,9 @@ DEV_TITLE,Developer Mode,Modo Developer
 DEV_SUBTITLE,All microgames are unlocked here. Pick one from the grid and launch it directly.,Aqui todos los minijuegos estan desbloqueados. Elige uno en la cuadricula y cargalo directo.
 DEV_GRID,OPEN DEV GRID,ABRIR GRID DEV
 COLLECTION_TITLE,Microgame Collection,Coleccion de minijuegos
-COLLECTION_DEV_TITLE,Developer Gameplay Groups,Grupos developer por jugabilidad
+COLLECTION_DEV_TITLE,Developer Jam Order,Orden developer gamejam
 COLLECTION_HINT,Normal players only see microgames they have already discovered. Locked ones stay grey.,El jugador normal solo ve los minijuegos que ya ha descubierto. Los bloqueados salen en gris.
-COLLECTION_DEV_HINT,Grouped by gameplay type for debug. Click any name or use 1-0 for the first ten.,Agrupados por jugabilidad para debug. Haz clic en un nombre o usa 1-0 para los diez primeros.
+COLLECTION_DEV_HINT,Grouped by game jam priority. Click any name to test it directly.,Agrupados por prioridad de gamejam. Haz clic en un nombre para probarlo directo.
 GAMEPLAY_CLICK_TARGETS,Click targets,Clic en objetivos
 GAMEPLAY_DRAG_DROP,Drag and drop,Arrastrar y soltar
 GAMEPLAY_MOVE_CATCH,Move / catch / dodge,Mover / recoger / esquivar
@@ -487,6 +487,10 @@ GAMEPLAY_MEMORY,Memory cards,Cartas de memoria
 GAMEPLAY_OPTION_SORTING,Choice / classification,Eleccion / clasificacion
 GAMEPLAY_OTHER,Other,Otros
 GAMEPLAY_PENDING_DELETE,Pending deletion,Pendientes de borrar
+GAMEPLAY_JAM_OPENING,Opening showcase,Apertura showcase
+GAMEPLAY_JAM_GOOD,Good / high priority,Buenos / alta prioridad
+GAMEPLAY_JAM_MID,Middle / okay,Medio / aceptables
+GAMEPLAY_JAM_LOW,Final random / weaker,Bloque final / flojos
 QUICK_PROGRESS,Progress,Progreso
 QUICK_SORT_GOOD,Good!,Bien!
 QUICK_SORT_BAD,Wrong!,Mal!

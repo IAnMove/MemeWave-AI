@@ -50,9 +50,10 @@ const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
 const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 const VolumeBar := preload("res://scripts/ui/volume_bar.gd")
 
-const DEFAULT_LOCALE := "es"
-const LOCALE_SEQUENCE := ["es", "en"]
+const DEFAULT_LOCALE := "en"
+const LOCALE_SEQUENCE := ["en", "es"]
 const SAVE_PATH := "user://progress.cfg"
+const PROJECT_REPOSITORY_URL := "https://github.com/IAnMove/MemeWave-AI"
 const UI_CLICK_SOUND_PATH := "res://assets/sounds/ui_click.wav"
 const ROUND_TRANSITION_SOUND_PATH := "res://assets/sounds/round_transition.wav"
 const MENU_MUSIC_PATH := "res://assets/sounds/Meme Mayhem_ Maximum Chaos.mp3"
@@ -158,13 +159,38 @@ const PENDING_DELETE_GAME_TITLE_KEYS := [
 	"GAME_DENIAL_TITLE",
 	"GAME_APOLOGY_TITLE"
 ]
+const OPENING_GAME_TITLE_KEYS := [
+	"GAME_COPY_CODEX_TITLE",
+	"GAME_REPO_TITLE",
+	"GAME_COPY_DAYBREAK_TITLE",
+	"GAME_WAKE_PET_TITLE",
+	"GAME_CONTEXT_TITLE"
+]
+const HIGH_QUALITY_GAME_TITLE_KEYS := [
+	"GAME_ENERGY_TITLE",
+	"GAME_GPU_RITUAL_TITLE",
+	"GAME_LICENSE_TITLE",
+	"GAME_THREAD_TITLE",
+	"GAME_BENCH_TITLE",
+	"GAME_ENV_TITLE",
+	"GAME_HALLU_TITLE",
+	"GAME_TOKENS_TITLE",
+	"GAME_CLAUDE_TITLE",
+	"GAME_AGENT_TITLE",
+	"GAME_RENAME_TITLE"
+]
+const MID_QUALITY_GAME_TITLE_KEYS := [
+	"GAME_GPU_TITLE",
+	"GAME_MEMORY_TITLE",
+	"GAME_VACUUM_TITLE"
+]
 
 const GAME_DEFS := [
 	{
 		"title_key": "GAME_REPO_TITLE",
 		"script": RepoPrivate,
 		"description_key": "GAME_REPO_DESC",
-		"thumbnail": "res://assets/art/repo_private_bg.png"
+		"thumbnail": "res://assets/art/repo_github_sketch_bg.png"
 	},
 	{
 		"title_key": "GAME_TOKENS_TITLE",
@@ -547,7 +573,7 @@ func show_main_menu() -> void:
 
 	_add_menu_action_button(menu, tr("MENU_START"), Vector2(920, 218), Color("#ffdf2e"), "play", Callable(self, "start_game"), 32, Vector2(314, 74))
 	_add_menu_action_button(menu, tr("MENU_COLLECTION"), Vector2(920, 314), Color("#b9f56a"), "minigames", func() -> void: show_collection(false), 27, Vector2(314, 74))
-	_add_menu_action_button(menu, tr("MENU_QUIT"), Vector2(920, 410), Color("#ff9a37"), "exit", func() -> void: get_tree().quit(), 27, Vector2(314, 74))
+	_add_menu_action_button(menu, tr("MENU_QUIT"), Vector2(920, 410), Color("#ff9a37"), "exit", Callable(self, "_quit_game"), 27, Vector2(314, 74))
 
 	var language_button := _make_button(_language_button_text(), 20, Color("#fffdf8"))
 	language_button.position = Vector2(978, 504)
@@ -556,6 +582,14 @@ func show_main_menu() -> void:
 	menu.add_child(language_button)
 
 	_add_volume_control(menu)
+
+func _quit_game() -> void:
+	if OS.has_feature("web") and Engine.has_singleton("JavaScriptBridge"):
+		var bridge := Engine.get_singleton("JavaScriptBridge")
+		bridge.eval("window.location.href = %s;" % JSON.stringify(PROJECT_REPOSITORY_URL))
+		return
+
+	get_tree().quit()
 
 func show_descriptions() -> void:
 	_clear_view()
@@ -669,7 +703,7 @@ func show_collection(developer: bool) -> void:
 		list.add_theme_constant_override("separation", 16)
 		scroll.add_child(list)
 
-		for group in _build_developer_gameplay_groups():
+		for group in _build_developer_gamejam_groups():
 			list.add_child(_make_developer_gameplay_section(String(group["title_key"]), group["indexes"]))
 	else:
 		var grid := GridContainer.new()
@@ -778,6 +812,44 @@ func _build_developer_gameplay_groups() -> Array:
 
 	return groups
 
+func _build_developer_gamejam_groups() -> Array:
+	var used := {}
+	var groups := []
+
+	var opening_indexes := _game_indexes_for_title_keys(OPENING_GAME_TITLE_KEYS, used)
+	if not opening_indexes.is_empty():
+		groups.append({"title_key": "GAMEPLAY_JAM_OPENING", "indexes": opening_indexes})
+
+	var high_quality_indexes := _game_indexes_for_title_keys(HIGH_QUALITY_GAME_TITLE_KEYS, used)
+	if not high_quality_indexes.is_empty():
+		groups.append({"title_key": "GAMEPLAY_JAM_GOOD", "indexes": high_quality_indexes})
+
+	var mid_quality_indexes := _game_indexes_for_title_keys(MID_QUALITY_GAME_TITLE_KEYS, used)
+	if not mid_quality_indexes.is_empty():
+		groups.append({"title_key": "GAMEPLAY_JAM_MID", "indexes": mid_quality_indexes})
+
+	var low_priority_indexes := []
+	for index in _active_game_indexes():
+		if used.has(index):
+			continue
+		used[index] = true
+		low_priority_indexes.append(index)
+	if not low_priority_indexes.is_empty():
+		groups.append({"title_key": "GAMEPLAY_JAM_LOW", "indexes": low_priority_indexes})
+
+	return groups
+
+func _game_indexes_for_title_keys(title_keys: Array, used: Dictionary) -> Array:
+	var indexes := []
+	for title_key_variant in title_keys:
+		var title_key := String(title_key_variant)
+		var game_index := _game_index_for_title_key(title_key)
+		if game_index == -1 or _is_game_retired(game_index) or used.has(game_index):
+			continue
+		used[game_index] = true
+		indexes.append(game_index)
+	return indexes
+
 func _make_developer_gameplay_section(title_key: String, game_indexes: Array) -> VBoxContainer:
 	var section := VBoxContainer.new()
 	section.custom_minimum_size = Vector2(1124, 0)
@@ -852,6 +924,7 @@ func _start_next_round() -> void:
 	var hud: Control = SketchPanel.new()
 	hud.position = Vector2(22, 14)
 	hud.size = Vector2(1236, 64)
+	hud.z_index = 900
 	hud.call("configure", Color("#fffdf8"), Color("#1d1d1d"), 3.8, 1.3, false)
 	runner.add_child(hud)
 
@@ -960,7 +1033,10 @@ func _show_countdown(minigame: Control) -> void:
 	overlay.add_theme_color_override("font_color", Color("#fff06a"))
 	overlay.add_theme_color_override("font_outline_color", Color("#1d1d1d"))
 	overlay.add_theme_constant_override("outline_size", 14)
+	overlay.z_index = 1200
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	current_view.add_child(overlay)
+	overlay.move_to_front()
 
 	_countdown_async(overlay, minigame, generation)
 
@@ -1143,10 +1219,7 @@ func _add_ending_image(screen: Control, tier: String) -> void:
 	screen.add_child(image)
 
 func _set_initial_locale() -> void:
-	var locale := TranslationServer.get_locale().substr(0, 2)
-	if not LOCALE_SEQUENCE.has(locale):
-		locale = DEFAULT_LOCALE
-	TranslationServer.set_locale(locale)
+	TranslationServer.set_locale(DEFAULT_LOCALE)
 
 func _load_progress() -> void:
 	unlocked_minigames.clear()
@@ -1200,14 +1273,59 @@ func _active_game_indexes() -> Array[int]:
 
 func _make_random_round_queue() -> Array[int]:
 	var queue: Array[int] = []
+	var scheduled_title_keys := {}
+
+	for title_key in OPENING_GAME_TITLE_KEYS:
+		_append_round_entries_for_title_key(queue, String(title_key))
+		scheduled_title_keys[String(title_key)] = true
+
+	var high_quality_queue := _make_round_entries_for_title_keys(HIGH_QUALITY_GAME_TITLE_KEYS, scheduled_title_keys)
+	high_quality_queue.shuffle()
+	queue.append_array(high_quality_queue)
+
+	var mid_quality_queue := _make_round_entries_for_title_keys(MID_QUALITY_GAME_TITLE_KEYS, scheduled_title_keys)
+	mid_quality_queue.shuffle()
+	queue.append_array(mid_quality_queue)
+
+	var remaining_queue: Array[int] = []
 	for index in _active_game_indexes():
-		queue.append(index)
 		var title_key := String(GAME_DEFS[index]["title_key"])
-		var repeat_count := int(ROUND_REPEAT_COUNTS.get(title_key, 1))
-		for extra in range(maxi(0, repeat_count - 1)):
-			queue.append(index)
-	queue.shuffle()
+		if scheduled_title_keys.has(title_key):
+			continue
+		_append_round_entries_for_index(remaining_queue, index)
+		scheduled_title_keys[title_key] = true
+	remaining_queue.shuffle()
+	queue.append_array(remaining_queue)
 	return queue
+
+func _make_round_entries_for_title_keys(title_keys: Array, scheduled_title_keys: Dictionary) -> Array[int]:
+	var queue: Array[int] = []
+	for title_key in title_keys:
+		var title_key_string := String(title_key)
+		if scheduled_title_keys.has(title_key_string):
+			continue
+		_append_round_entries_for_title_key(queue, title_key_string)
+		scheduled_title_keys[title_key_string] = true
+	return queue
+
+func _append_round_entries_for_title_key(queue: Array[int], title_key: String) -> void:
+	var game_index := _game_index_for_title_key(title_key)
+	if game_index == -1 or _is_game_retired(game_index):
+		return
+	_append_round_entries_for_index(queue, game_index)
+
+func _append_round_entries_for_index(queue: Array[int], game_index: int) -> void:
+	queue.append(game_index)
+	var title_key := String(GAME_DEFS[game_index]["title_key"])
+	var repeat_count := int(ROUND_REPEAT_COUNTS.get(title_key, 1))
+	for extra in range(maxi(0, repeat_count - 1)):
+		queue.append(game_index)
+
+func _game_index_for_title_key(title_key: String) -> int:
+	for index in GAME_DEFS.size():
+		if String(GAME_DEFS[index]["title_key"]) == title_key:
+			return index
+	return -1
 
 func _reset_hallucination_fact_queue() -> void:
 	hallucination_fact_queue.clear()

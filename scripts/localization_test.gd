@@ -39,6 +39,9 @@ func _run() -> void:
 	var main: Control = MainScript.new()
 	root.add_child(main)
 	await process_frame
+	if TranslationServer.get_locale().substr(0, 2) != "en":
+		_fail("Game should default to English on startup.")
+		return
 
 	var game_defs: Array = main.get("GAME_DEFS")
 	for game_def_variant in game_defs:
@@ -61,7 +64,11 @@ func _run() -> void:
 		"SUMMARY_MEDIUM_BODY",
 		"SUMMARY_GOOD_TITLE",
 		"SUMMARY_GOOD_RANK",
-		"SUMMARY_GOOD_BODY"
+		"SUMMARY_GOOD_BODY",
+		"GAMEPLAY_JAM_OPENING",
+		"GAMEPLAY_JAM_GOOD",
+		"GAMEPLAY_JAM_MID",
+		"GAMEPLAY_JAM_LOW"
 	]:
 		_assert_translated(probe, key, "es")
 		_assert_translated(probe, key, "en")

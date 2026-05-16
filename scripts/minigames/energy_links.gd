@@ -2,6 +2,7 @@ extends "res://scripts/minigames/base_minigame.gd"
 
 const TARGET_CONNECTIONS := 4
 const BG_PATH := "res://assets/art/energy_links_bg.png"
+const CENTER_COMPUTER_PATH := "res://assets/art/center_computer.png"
 const INK := Color("#161616")
 const PAPER := Color("#fff8dc")
 const PAIRS := [
@@ -48,6 +49,7 @@ var monitor_screen: PanelContainer
 var monitor_glow: ColorRect
 var computer_case: PanelContainer
 var computer_light: ColorRect
+var center_computer: TextureRect
 var screen_lines: Array[ColorRect] = []
 var work_label: Label
 var energy_bar: ProgressBar
@@ -280,55 +282,38 @@ func _build_model_panel() -> void:
 	content_layer.add_child(work_label)
 
 func _build_power_devices() -> void:
-	monitor_screen = PanelContainer.new()
-	monitor_screen.position = Vector2(438, 316)
-	monitor_screen.size = Vector2(190, 112)
-	monitor_screen.add_theme_stylebox_override("panel", make_style(Color("#11151a"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(monitor_screen)
+	center_computer = make_sprite(CENTER_COMPUTER_PATH, Vector2(430, 220))
+	center_computer.position = Vector2(425, 296)
+	center_computer.size = Vector2(430, 220)
+	center_computer.z_index = 2
+	center_computer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content_layer.add_child(center_computer)
 
 	monitor_glow = ColorRect.new()
-	monitor_glow.position = Vector2(452, 330)
-	monitor_glow.size = Vector2(162, 84)
+	monitor_glow.position = Vector2(510, 348)
+	monitor_glow.size = Vector2(174, 82)
 	monitor_glow.color = Color("#05070a")
+	monitor_glow.modulate.a = 0.52
+	monitor_glow.z_index = 3
 	monitor_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(monitor_glow)
 
-	var monitor_stand := PanelContainer.new()
-	monitor_stand.position = Vector2(512, 428)
-	monitor_stand.size = Vector2(42, 34)
-	monitor_stand.add_theme_stylebox_override("panel", make_style(Color("#555555"), Color("#1d1d1d"), 3, 4))
-	content_layer.add_child(monitor_stand)
-
-	var monitor_base := PanelContainer.new()
-	monitor_base.position = Vector2(474, 458)
-	monitor_base.size = Vector2(118, 18)
-	monitor_base.add_theme_stylebox_override("panel", make_style(Color("#6a6a6a"), Color("#1d1d1d"), 3, 8))
-	content_layer.add_child(monitor_base)
-
-	computer_case = PanelContainer.new()
-	computer_case.position = Vector2(666, 318)
-	computer_case.size = Vector2(150, 142)
-	computer_case.add_theme_stylebox_override("panel", make_style(Color("#55575d"), Color("#1d1d1d"), 5, 8))
-	content_layer.add_child(computer_case)
-
-	var drive_slot := ColorRect.new()
-	drive_slot.position = Vector2(690, 348)
-	drive_slot.size = Vector2(86, 10)
-	drive_slot.color = Color("#1a1a1a")
-	content_layer.add_child(drive_slot)
-
 	computer_light = ColorRect.new()
-	computer_light.position = Vector2(782, 430)
+	computer_light.position = Vector2(725, 455)
 	computer_light.size = Vector2(14, 14)
 	computer_light.color = Color("#4b3f3f")
+	computer_light.z_index = 4
+	computer_light.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content_layer.add_child(computer_light)
 
 	screen_lines.clear()
 	for index in range(3):
 		var line := ColorRect.new()
-		line.position = Vector2(470, 350 + index * 20)
+		line.position = Vector2(538, 370 + index * 20)
 		line.size = Vector2(0, 6)
 		line.color = Color("#9cff8a")
+		line.z_index = 4
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content_layer.add_child(line)
 		screen_lines.append(line)
 
@@ -772,10 +757,13 @@ func _update_model_state(active: bool) -> void:
 		model_panel.add_theme_stylebox_override("panel", make_style(Color("#163322"), Color("#35d96b"), 6, 8))
 		model_status.text = tr("ENERGY_MODEL_ON")
 		model_status.add_theme_color_override("font_color", Color("#5cff86"))
+		if center_computer:
+			center_computer.modulate = Color.WHITE
 		if monitor_screen:
 			monitor_screen.add_theme_stylebox_override("panel", make_style(Color("#233d35"), Color("#35d96b"), 5, 8))
 		if monitor_glow:
 			monitor_glow.color = Color("#173322")
+			monitor_glow.modulate.a = 0.18
 		if computer_case:
 			computer_case.add_theme_stylebox_override("panel", make_style(Color("#c5d1d0"), Color("#35d96b"), 5, 8))
 		if computer_light:
@@ -787,10 +775,13 @@ func _update_model_state(active: bool) -> void:
 		model_panel.add_theme_stylebox_override("panel", make_style(Color("#20242a"), Color("#ff595e"), 6, 8))
 		model_status.text = tr("ENERGY_MODEL_OFF")
 		model_status.add_theme_color_override("font_color", Color("#ff5b5b"))
+		if center_computer:
+			center_computer.modulate = Color(0.68, 0.68, 0.64, 1.0)
 		if monitor_screen:
 			monitor_screen.add_theme_stylebox_override("panel", make_style(Color("#11151a"), Color("#1d1d1d"), 5, 8))
 		if monitor_glow:
 			monitor_glow.color = Color("#05070a")
+			monitor_glow.modulate.a = 0.52
 		if computer_case:
 			computer_case.add_theme_stylebox_override("panel", make_style(Color("#55575d"), Color("#1d1d1d"), 5, 8))
 		if computer_light:

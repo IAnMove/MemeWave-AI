@@ -3,15 +3,15 @@ extends "res://scripts/minigames/base_minigame.gd"
 const SketchPanel := preload("res://scripts/ui/sketch_panel.gd")
 const SketchIcon := preload("res://scripts/ui/sketch_icon.gd")
 
-const LEAK_SECONDS := 10.0
+const LEAK_SECONDS := 12.0
 const TARGET_LEAKS := 4
-const TAPE_SIZE := Vector2(138, 42)
+const TAPE_SIZE := Vector2(92, 38)
 const TAPE_STARTS := [
-	Vector2(898, 570),
-	Vector2(1048, 570),
-	Vector2(898, 620),
-	Vector2(1048, 620),
-	Vector2(748, 620)
+	Vector2(738, 610),
+	Vector2(834, 610),
+	Vector2(930, 610),
+	Vector2(1026, 610),
+	Vector2(1122, 610)
 ]
 const LEAK_DEFS := [
 	{
@@ -291,6 +291,7 @@ func _build_tape_tray() -> void:
 	var title := _outlined_label(tr("ENV_TAPE_TRAY"), 22, Color("#151515"), HORIZONTAL_ALIGNMENT_CENTER)
 	title.position = Vector2(740, 564)
 	title.size = Vector2(454, 32)
+	title.z_index = 8
 	content_layer.add_child(title)
 
 	tapes.clear()
@@ -305,14 +306,14 @@ func _build_tape_tray() -> void:
 		content_layer.add_child(tape)
 
 		var shine := ColorRect.new()
-		shine.position = Vector2(10, 8)
-		shine.size = Vector2(118, 4)
+		shine.position = Vector2(8, 7)
+		shine.size = Vector2(76, 4)
 		shine.color = Color("#ffffff22")
 		shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tape.add_child(shine)
 
-		var label := _outlined_label(tr("ENV_TAPE_LABEL"), 15, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_CENTER)
-		label.position = Vector2(0, 6)
+		var label := _outlined_label(tr("ENV_TAPE_LABEL"), 13, Color("#d8d8d8"), HORIZONTAL_ALIGNMENT_CENTER)
+		label.position = Vector2(0, 5)
 		label.size = TAPE_SIZE - Vector2(0, 12)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tape.add_child(label)
